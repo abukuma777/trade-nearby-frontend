@@ -125,7 +125,7 @@ const TradePostsPage: React.FC = () => {
 
               return (
                 <Link
-                  to={`/trade-posts/${post.id}`}
+                  to={`/trade-posts/${post.short_id || post.id}`}
                   key={post.id}
                   className="block bg-white rounded-lg shadow hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1 overflow-hidden"
                 >

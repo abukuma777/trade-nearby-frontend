@@ -14,6 +14,8 @@ export interface ImageData {
 export interface SimpleTradePost {
   id: string;
   user_id: string;
+  short_id?: string;  // 短縮ID追加
+  slug?: string;      // スラッグ追加
   give_item: string;
   want_item: string;
   description?: string;
