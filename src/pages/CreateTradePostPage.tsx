@@ -4,9 +4,17 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTradePostStore } from '../stores/tradePostStore';
-import { tradePostService, ImageData, UploadImageData } from '../services/tradePostService';
+
+import CategorySelect, {
+  CategorySelection,
+} from '../components/CategorySelect';
 import ImageUpload from '../components/ImageUpload';
+import {
+  tradePostService,
+  ImageData,
+  UploadImageData,
+} from '../services/tradePostService';
+import { useTradePostStore } from '../stores/tradePostStore';
 
 const CreateTradePostPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +27,11 @@ const CreateTradePostPage: React.FC = () => {
     location_name: '',
   });
 
+  // カテゴリ選択の状態
+  const [categorySelection, setCategorySelection] = useState<CategorySelection>(
+    {},
+  );
+
   // 画像データの状態管理（Base64形式で一時保存）
   const [giveItemImages, setGiveItemImages] = useState<ImageData[]>([]);
   const [wantItemImages, setWantItemImages] = useState<ImageData[]>([]);
@@ -30,7 +43,9 @@ const CreateTradePostPage: React.FC = () => {
     images?: string;
   }>({});
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -56,14 +71,17 @@ const CreateTradePostPage: React.FC = () => {
   };
 
   // Base64画像をサーバーにアップロード
-  const uploadImagesToServer = async (images: ImageData[]): Promise<ImageData[]> => {
-    if (images.length === 0) return [];
+  const uploadImagesToServer = async (
+    images: ImageData[],
+  ): Promise<ImageData[]> => {
+    if (images.length === 0) {
+      return [];
+    }
 
     const uploadData: UploadImageData[] = images.map((img, index) => {
       // Base64データからファイル情報を抽出
       const matches = img.url.match(/^data:([^;]+);base64,(.+)$/);
       if (!matches) {
-        console.error('Invalid image data format');
         throw new Error('Invalid image data');
       }
 
@@ -71,8 +89,6 @@ const CreateTradePostPage: React.FC = () => {
       const base64Data = img.url; // そのまま送信
       const extension = mimeType.split('/')[1];
       const fileName = `image-${Date.now()}-${index}.${extension}`;
-
-      console.log('Preparing upload:', { fileName, mimeType, order: img.order });
 
       return {
         base64Data,
@@ -83,18 +99,11 @@ const CreateTradePostPage: React.FC = () => {
       };
     });
 
-    try {
-      console.log('Calling uploadImages API with', uploadData.length, 'images');
-      const uploadedImages = await tradePostService.uploadImages(uploadData);
-      console.log('Upload API response:', uploadedImages);
-      return uploadedImages;
-    } catch (error) {
-      console.error('画像アップロードエラー:', error);
-      throw error;
-    }
+    const uploadedImages = await tradePostService.uploadImages(uploadData);
+    return uploadedImages;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
     if (!validate()) {
@@ -108,34 +117,27 @@ const CreateTradePostPage: React.FC = () => {
       let uploadedGiveImages: ImageData[] = [];
       let uploadedWantImages: ImageData[] = [];
 
-      console.log('=== Frontend Upload Start ===');
-      console.log('Give images to upload:', giveItemImages.length);
-      console.log('Want images to upload:', wantItemImages.length);
-
       if (giveItemImages.length > 0) {
-        console.log('Uploading give images...');
         uploadedGiveImages = await uploadImagesToServer(giveItemImages);
-        console.log('Give images uploaded:', uploadedGiveImages);
       }
 
       if (wantItemImages.length > 0) {
-        console.log('Uploading want images...');
         uploadedWantImages = await uploadImagesToServer(wantItemImages);
-        console.log('Want images uploaded:', uploadedWantImages);
       }
 
       // 投稿データを作成
       const postData = {
         ...formData,
-        give_item_images: uploadedGiveImages.length > 0 ? uploadedGiveImages : undefined,
-        want_item_images: uploadedWantImages.length > 0 ? uploadedWantImages : undefined,
+        ...categorySelection, // カテゴリ情報を追加
+        give_item_images:
+          uploadedGiveImages.length > 0 ? uploadedGiveImages : undefined,
+        want_item_images:
+          uploadedWantImages.length > 0 ? uploadedWantImages : undefined,
       };
 
-      console.log('Creating post with data:', postData);
       await createPost(postData);
       navigate('/trade-posts/my');
     } catch (err) {
-      console.error('投稿作成エラー:', err);
       setValidationErrors((prev) => ({
         ...prev,
         images: '画像のアップロードに失敗しました。もう一度お試しください。',
@@ -149,28 +151,52 @@ const CreateTradePostPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-2xl">
+      <div className="container mx-auto max-w-2xl px-4">
         {/* ヘッダー */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">交換投稿を作成</h1>
+          <h1 className="mb-4 text-3xl font-bold text-gray-900">
+            交換投稿を作成
+          </h1>
           <p className="text-gray-600">
             交換したいアイテムを「譲)〇〇 求)〇〇」形式で投稿しましょう
           </p>
         </div>
 
         {/* エラー表示 */}
-        {error && <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+        {error && (
+          <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
+            {error}
+          </div>
+        )}
         {validationErrors.images && (
-          <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
+          <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
             {validationErrors.images}
           </div>
         )}
 
         {/* フォーム */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">
+        <form
+          onSubmit={(e) => {
+            void handleSubmit(e);
+          }}
+          className="rounded-lg bg-white p-6 shadow"
+        >
+          {/* カテゴリ選択 */}
+          <div className="mb-6">
+            <CategorySelect
+              onSelectionChange={setCategorySelection}
+              initialSelection={categorySelection}
+              required={false}
+              disabled={isSubmitDisabled}
+            />
+          </div>
+
           {/* 譲るもの */}
           <div className="mb-6">
-            <label htmlFor="give_item" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="give_item"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               譲るもの <span className="text-red-500">*</span>
             </label>
             <input
@@ -180,13 +206,17 @@ const CreateTradePostPage: React.FC = () => {
               value={formData.give_item}
               onChange={handleChange}
               placeholder="例: エマのアクリルスタンド"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                validationErrors.give_item ? 'border-red-500' : 'border-gray-300'
+              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                validationErrors.give_item
+                  ? 'border-red-500'
+                  : 'border-gray-300'
               }`}
               disabled={isSubmitDisabled}
             />
             {validationErrors.give_item && (
-              <p className="mt-1 text-sm text-red-500">{validationErrors.give_item}</p>
+              <p className="mt-1 text-sm text-red-500">
+                {validationErrors.give_item}
+              </p>
             )}
           </div>
 
@@ -201,7 +231,10 @@ const CreateTradePostPage: React.FC = () => {
 
           {/* 求めるもの */}
           <div className="mb-6">
-            <label htmlFor="want_item" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="want_item"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               求めるもの <span className="text-red-500">*</span>
             </label>
             <input
@@ -211,13 +244,17 @@ const CreateTradePostPage: React.FC = () => {
               value={formData.want_item}
               onChange={handleChange}
               placeholder="例: 栞子のアクリルスタンド"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                validationErrors.want_item ? 'border-red-500' : 'border-gray-300'
+              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                validationErrors.want_item
+                  ? 'border-red-500'
+                  : 'border-gray-300'
               }`}
               disabled={isSubmitDisabled}
             />
             {validationErrors.want_item && (
-              <p className="mt-1 text-sm text-red-500">{validationErrors.want_item}</p>
+              <p className="mt-1 text-sm text-red-500">
+                {validationErrors.want_item}
+              </p>
             )}
           </div>
 
@@ -232,7 +269,10 @@ const CreateTradePostPage: React.FC = () => {
 
           {/* 詳細説明 */}
           <div className="mb-6">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="description"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               詳細説明（任意）
             </label>
             <textarea
@@ -242,14 +282,17 @@ const CreateTradePostPage: React.FC = () => {
               onChange={handleChange}
               placeholder="状態や希望条件など、詳細を記載してください"
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isSubmitDisabled}
             />
           </div>
 
           {/* 場所 */}
           <div className="mb-8">
-            <label htmlFor="location_name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="location_name"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               取引希望場所（任意）
             </label>
             <input
@@ -259,7 +302,7 @@ const CreateTradePostPage: React.FC = () => {
               value={formData.location_name}
               onChange={handleChange}
               placeholder="例: 東京駅周辺"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isSubmitDisabled}
             />
           </div>
@@ -269,15 +312,21 @@ const CreateTradePostPage: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitDisabled}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isUploadingImages ? '画像アップロード中...' : loading ? '投稿中...' : '投稿する'}
+              {isUploadingImages
+                ? '画像アップロード中...'
+                : loading
+                  ? '投稿中...'
+                  : '投稿する'}
             </button>
             <button
               type="button"
-              onClick={() => navigate('/trade-posts')}
+              onClick={() => {
+                navigate('/trade-posts');
+              }}
               disabled={isSubmitDisabled}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               キャンセル
             </button>
@@ -287,34 +336,39 @@ const CreateTradePostPage: React.FC = () => {
         {/* プレビュー */}
         {(formData.give_item || formData.want_item) && (
           <div className="mt-8">
-            <h2 className="text-lg font-medium text-gray-700 mb-4">プレビュー</h2>
-            <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="mb-4 text-lg font-medium text-gray-700">
+              プレビュー
+            </h2>
+            <div className="rounded-lg bg-white p-6 shadow">
               {/* 譲アイテム */}
               <div className="mb-4">
-                <div className="flex items-center mb-2">
-                  <span className="text-sm font-medium text-gray-500 w-12">譲)</span>
+                <div className="mb-2 flex items-center">
+                  <span className="w-12 text-sm font-medium text-gray-500">
+                    譲)
+                  </span>
                   <span className="text-lg font-bold text-gray-900">
                     {formData.give_item || '（未入力）'}
                   </span>
                 </div>
                 {/* 譲アイテム画像プレビュー */}
                 {giveItemImages.length > 0 && (
-                  <div className="flex gap-2 ml-12">
+                  <div className="ml-12 flex gap-2">
                     {giveItemImages
                       .filter((img) => img.is_main)
-                      .map((img, index) => (
+                      .map((img) => (
                         <img
-                          key={index}
+                          key={img.url}
                           src={img.url}
                           alt="譲るもの"
-                          className="w-20 h-20 object-cover rounded-lg"
+                          className="h-20 w-20 rounded-lg object-cover"
                         />
                       ))}
-                    {giveItemImages.filter((img) => img.is_main).length === 0 && (
+                    {giveItemImages.filter((img) => img.is_main).length ===
+                      0 && (
                       <img
                         src={giveItemImages[0].url}
                         alt="譲るもの"
-                        className="w-20 h-20 object-cover rounded-lg"
+                        className="h-20 w-20 rounded-lg object-cover"
                       />
                     )}
                   </div>
@@ -323,30 +377,33 @@ const CreateTradePostPage: React.FC = () => {
 
               {/* 求アイテム */}
               <div className="mb-4">
-                <div className="flex items-center mb-2">
-                  <span className="text-sm font-medium text-gray-500 w-12">求)</span>
+                <div className="mb-2 flex items-center">
+                  <span className="w-12 text-sm font-medium text-gray-500">
+                    求)
+                  </span>
                   <span className="text-lg font-bold text-blue-600">
                     {formData.want_item || '（未入力）'}
                   </span>
                 </div>
                 {/* 求アイテム画像プレビュー */}
                 {wantItemImages.length > 0 && (
-                  <div className="flex gap-2 ml-12">
+                  <div className="ml-12 flex gap-2">
                     {wantItemImages
                       .filter((img) => img.is_main)
-                      .map((img, index) => (
+                      .map((img) => (
                         <img
-                          key={index}
+                          key={img.url}
                           src={img.url}
                           alt="求めるもの"
-                          className="w-20 h-20 object-cover rounded-lg"
+                          className="h-20 w-20 rounded-lg object-cover"
                         />
                       ))}
-                    {wantItemImages.filter((img) => img.is_main).length === 0 && (
+                    {wantItemImages.filter((img) => img.is_main).length ===
+                      0 && (
                       <img
                         src={wantItemImages[0].url}
                         alt="求めるもの"
-                        className="w-20 h-20 object-cover rounded-lg"
+                        className="h-20 w-20 rounded-lg object-cover"
                       />
                     )}
                   </div>
@@ -354,10 +411,14 @@ const CreateTradePostPage: React.FC = () => {
               </div>
 
               {formData.description && (
-                <p className="text-gray-600 text-sm mb-4">{formData.description}</p>
+                <p className="mb-4 text-sm text-gray-600">
+                  {formData.description}
+                </p>
               )}
               {formData.location_name && (
-                <p className="text-sm text-gray-500">📍 {formData.location_name}</p>
+                <p className="text-sm text-gray-500">
+                  📍 {formData.location_name}
+                </p>
               )}
             </div>
           </div>
