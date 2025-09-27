@@ -125,10 +125,19 @@ const CreateTradePostPage: React.FC = () => {
         uploadedWantImages = await uploadImagesToServer(wantItemImages);
       }
 
+      // 最深階層のIDをcontent_idとして設定
+      const content_id =
+        categorySelection.event_id ||
+        categorySelection.series_id ||
+        categorySelection.genre_id ||
+        categorySelection.category_id ||
+        undefined;
+
       // 投稿データを作成
       const postData = {
         ...formData,
-        ...categorySelection, // カテゴリ情報を追加
+        content_id, // 最深階層のIDを明示的に設定
+        category_hierarchy: categorySelection, // 階層情報も保持（将来の拡張用）
         give_item_images:
           uploadedGiveImages.length > 0 ? uploadedGiveImages : undefined,
         want_item_images:
