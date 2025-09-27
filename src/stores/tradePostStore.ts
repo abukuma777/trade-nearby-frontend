@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+
 import {
   tradePostService,
   SimpleTradePost,
@@ -21,14 +22,29 @@ interface TradePostStore {
   error: string | null;
 
   // アクション
-  fetchPosts: (status?: string) => Promise<void>;
+  fetchPosts: (
+    status?: string,
+    contentId?: string,
+    includeChildren?: boolean,
+  ) => Promise<void>;
   fetchMyPosts: () => Promise<void>;
   fetchPost: (id: string) => Promise<void>;
   createPost: (data: CreateTradePostData) => Promise<SimpleTradePost>;
   updatePost: (id: string, data: UpdateTradePostData) => Promise<void>;
-  updateStatus: (id: string, status: 'active' | 'completed' | 'cancelled') => Promise<void>;
+  updateStatus: (
+    id: string,
+    status: 'active' | 'completed' | 'cancelled',
+  ) => Promise<void>;
   deletePost: (id: string) => Promise<void>;
   clearError: () => void;
+}
+
+interface AxiosErrorResponse {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
 }
 
 export const useTradePostStore = create<TradePostStore>()(
@@ -42,14 +58,24 @@ export const useTradePostStore = create<TradePostStore>()(
       error: null,
 
       // 投稿一覧取得
-      fetchPosts: async (status?: string) => {
+      fetchPosts: async (
+        status?: string,
+        contentId?: string,
+        includeChildren?: boolean,
+      ) => {
         set({ loading: true, error: null });
         try {
-          const posts = await tradePostService.getAllPosts(status);
+          const posts = await tradePostService.getAllPosts(
+            status,
+            contentId,
+            includeChildren,
+          );
           set({ posts, loading: false });
-        } catch (error: any) {
+        } catch (error) {
+          const axiosError = error as AxiosErrorResponse;
           set({
-            error: error.response?.data?.message || '投稿の取得に失敗しました',
+            error:
+              axiosError.response?.data?.message || '投稿の取得に失敗しました',
             loading: false,
           });
         }
@@ -61,9 +87,11 @@ export const useTradePostStore = create<TradePostStore>()(
         try {
           const myPosts = await tradePostService.getMyPosts();
           set({ myPosts, loading: false });
-        } catch (error: any) {
+        } catch (error) {
+          const axiosError = error as AxiosErrorResponse;
           set({
-            error: error.response?.data?.message || '投稿の取得に失敗しました',
+            error:
+              axiosError.response?.data?.message || '投稿の取得に失敗しました',
             loading: false,
           });
         }
@@ -75,9 +103,11 @@ export const useTradePostStore = create<TradePostStore>()(
         try {
           const currentPost = await tradePostService.getPost(id);
           set({ currentPost, loading: false });
-        } catch (error: any) {
+        } catch (error) {
+          const axiosError = error as AxiosErrorResponse;
           set({
-            error: error.response?.data?.message || '投稿の取得に失敗しました',
+            error:
+              axiosError.response?.data?.message || '投稿の取得に失敗しました',
             loading: false,
           });
         }
@@ -94,9 +124,11 @@ export const useTradePostStore = create<TradePostStore>()(
             loading: false,
           });
           return newPost;
-        } catch (error: any) {
+        } catch (error) {
+          const axiosError = error as AxiosErrorResponse;
           set({
-            error: error.response?.data?.message || '投稿の作成に失敗しました',
+            error:
+              axiosError.response?.data?.message || '投稿の作成に失敗しました',
             loading: false,
           });
           throw error;
@@ -113,12 +145,15 @@ export const useTradePostStore = create<TradePostStore>()(
           set({
             posts: posts.map((p) => (p.id === id ? updatedPost : p)),
             myPosts: myPosts.map((p) => (p.id === id ? updatedPost : p)),
-            currentPost: get().currentPost?.id === id ? updatedPost : get().currentPost,
+            currentPost:
+              get().currentPost?.id === id ? updatedPost : get().currentPost,
             loading: false,
           });
-        } catch (error: any) {
+        } catch (error) {
+          const axiosError = error as AxiosErrorResponse;
           set({
-            error: error.response?.data?.message || '投稿の更新に失敗しました',
+            error:
+              axiosError.response?.data?.message || '投稿の更新に失敗しました',
             loading: false,
           });
           throw error;
@@ -126,7 +161,10 @@ export const useTradePostStore = create<TradePostStore>()(
       },
 
       // ステータス更新
-      updateStatus: async (id: string, status: 'active' | 'completed' | 'cancelled') => {
+      updateStatus: async (
+        id: string,
+        status: 'active' | 'completed' | 'cancelled',
+      ) => {
         set({ loading: true, error: null });
         try {
           const updatedPost = await tradePostService.updateStatus(id, status);
@@ -135,12 +173,16 @@ export const useTradePostStore = create<TradePostStore>()(
           set({
             posts: posts.map((p) => (p.id === id ? updatedPost : p)),
             myPosts: myPosts.map((p) => (p.id === id ? updatedPost : p)),
-            currentPost: get().currentPost?.id === id ? updatedPost : get().currentPost,
+            currentPost:
+              get().currentPost?.id === id ? updatedPost : get().currentPost,
             loading: false,
           });
-        } catch (error: any) {
+        } catch (error) {
+          const axiosError = error as AxiosErrorResponse;
           set({
-            error: error.response?.data?.message || 'ステータスの更新に失敗しました',
+            error:
+              axiosError.response?.data?.message ||
+              'ステータスの更新に失敗しました',
             loading: false,
           });
           throw error;
@@ -157,12 +199,15 @@ export const useTradePostStore = create<TradePostStore>()(
           set({
             posts: posts.filter((p) => p.id !== id),
             myPosts: myPosts.filter((p) => p.id !== id),
-            currentPost: get().currentPost?.id === id ? null : get().currentPost,
+            currentPost:
+              get().currentPost?.id === id ? null : get().currentPost,
             loading: false,
           });
-        } catch (error: any) {
+        } catch (error) {
+          const axiosError = error as AxiosErrorResponse;
           set({
-            error: error.response?.data?.message || '投稿の削除に失敗しました',
+            error:
+              axiosError.response?.data?.message || '投稿の削除に失敗しました',
             loading: false,
           });
           throw error;

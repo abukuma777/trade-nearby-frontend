@@ -14,8 +14,8 @@ export interface ImageData {
 export interface SimpleTradePost {
   id: string;
   user_id: string;
-  short_id?: string;  // 短縮ID追加
-  slug?: string;      // スラッグ追加
+  short_id?: string; // 短縮ID追加
+  slug?: string; // スラッグ追加
   give_item: string;
   want_item: string;
   description?: string;
@@ -61,10 +61,26 @@ class TradePostService {
   /**
    * 投稿一覧取得
    */
-  async getAllPosts(status?: string): Promise<SimpleTradePost[]> {
+  async getAllPosts(
+    status?: string,
+    contentId?: string,
+    includeChildren?: boolean,
+  ): Promise<SimpleTradePost[]> {
     try {
-      const params = status ? { status } : {};
-      const response = await apiClient.get('/trade-posts', { params });
+      const params: Record<string, string> = {};
+      if (status) {params.status = status;}
+      if (contentId) {
+        params.content_id = contentId;
+        if (includeChildren !== undefined) {
+          params.include_children = includeChildren.toString();
+        }
+      }
+      const response = await apiClient.get<{ data: SimpleTradePost[] }>(
+        '/trade-posts',
+        {
+          params,
+        },
+      );
       return response.data.data || [];
     } catch (error) {
       console.error('投稿一覧取得エラー:', error);
@@ -77,7 +93,9 @@ class TradePostService {
    */
   async getMyPosts(): Promise<SimpleTradePost[]> {
     try {
-      const response = await apiClient.get('/trade-posts/my');
+      const response = await apiClient.get<{ data: SimpleTradePost[] }>(
+        '/trade-posts/my',
+      );
       return response.data.data || [];
     } catch (error) {
       console.error('自分の投稿取得エラー:', error);
@@ -90,7 +108,9 @@ class TradePostService {
    */
   async getPost(id: string): Promise<SimpleTradePost> {
     try {
-      const response = await apiClient.get(`/trade-posts/${id}`);
+      const response = await apiClient.get<{ data: SimpleTradePost }>(
+        `/trade-posts/${id}`,
+      );
       return response.data.data;
     } catch (error) {
       console.error('投稿詳細取得エラー:', error);
@@ -103,7 +123,10 @@ class TradePostService {
    */
   async createPost(data: CreateTradePostData): Promise<SimpleTradePost> {
     try {
-      const response = await apiClient.post('/trade-posts', data);
+      const response = await apiClient.post<{ data: SimpleTradePost }>(
+        '/trade-posts',
+        data,
+      );
       return response.data.data;
     } catch (error) {
       console.error('投稿作成エラー:', error);
@@ -114,9 +137,15 @@ class TradePostService {
   /**
    * 投稿更新
    */
-  async updatePost(id: string, data: UpdateTradePostData): Promise<SimpleTradePost> {
+  async updatePost(
+    id: string,
+    data: UpdateTradePostData,
+  ): Promise<SimpleTradePost> {
     try {
-      const response = await apiClient.put(`/trade-posts/${id}`, data);
+      const response = await apiClient.put<{ data: SimpleTradePost }>(
+        `/trade-posts/${id}`,
+        data,
+      );
       return response.data.data;
     } catch (error) {
       console.error('投稿更新エラー:', error);
@@ -132,7 +161,10 @@ class TradePostService {
     status: 'active' | 'completed' | 'cancelled',
   ): Promise<SimpleTradePost> {
     try {
-      const response = await apiClient.patch(`/trade-posts/${id}/status`, { status });
+      const response = await apiClient.patch<{ data: SimpleTradePost }>(
+        `/trade-posts/${id}/status`,
+        { status },
+      );
       return response.data.data;
     } catch (error) {
       console.error('ステータス更新エラー:', error);
@@ -157,7 +189,10 @@ class TradePostService {
    */
   async uploadImages(images: UploadImageData[]): Promise<ImageData[]> {
     try {
-      const response = await apiClient.post('/trade-posts/upload-images', { images });
+      const response = await apiClient.post<{ data: { urls: ImageData[] } }>(
+        '/trade-posts/upload-images',
+        { images },
+      );
       return response.data.data.urls || [];
     } catch (error) {
       console.error('画像アップロードエラー:', error);
