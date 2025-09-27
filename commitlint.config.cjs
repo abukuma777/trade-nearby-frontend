@@ -64,8 +64,8 @@ module.exports = {
     
     // 文字数制限（エラー）
     'subject-max-length': [2, 'always', 50],      // 件名は50文字以内（より厳格）
-    'body-max-line-length': [2, 'always', 80],    // 本文は80文字以内
-    'footer-max-line-length': [2, 'always', 80],  // フッターも80文字以内
+    'body-max-line-length': [0],                  // 本文の行長制限なし
+    'footer-max-line-length': [0],                // フッターの行長制限なし
     
     // 文の形式（エラー）
     'subject-case': [2, 'always', 'lower-case'],  // 小文字で開始必須
