@@ -1,0 +1,127 @@
+/**
+ * ImageUploaderコンポーネントのStorybook定義
+ */
+
+import type { Meta, StoryObj } from '@storybook/react';
+import { ImageUploader } from './ImageUploader';
+import { UploadedImage } from '@/services/uploadService';
+
+const meta: Meta<typeof ImageUploader> = {
+  title: 'Components/Upload/ImageUploader',
+  component: ImageUploader,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+  argTypes: {
+    maxImages: {
+      control: { type: 'number', min: 1, max: 10 },
+      description: '最大アップロード可能画像数',
+    },
+    uploadType: {
+      control: { type: 'radio' },
+      options: ['item', 'avatar'],
+      description: 'アップロードタイプ',
+    },
+    disabled: {
+      control: { type: 'boolean' },
+      description: '無効化フラグ',
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+/**
+ * デフォルト表示
+ */
+export const Default: Story = {
+  args: {
+    maxImages: 5,
+    uploadType: 'item',
+    disabled: false,
+    onImagesChange: (images: UploadedImage[]) => {
+      console.log('Images changed:', images);
+    },
+  },
+};
+
+/**
+ * 単一画像アップロード
+ */
+export const SingleImage: Story = {
+  args: {
+    maxImages: 1,
+    uploadType: 'avatar',
+    onImagesChange: (images: UploadedImage[]) => {
+      console.log('Avatar changed:', images);
+    },
+  },
+};
+
+/**
+ * 初期画像あり
+ */
+export const WithInitialImages: Story = {
+  args: {
+    maxImages: 5,
+    uploadType: 'item',
+    initialImages: [
+      {
+        url: 'https://via.placeholder.com/200x200/FF6B6B/FFFFFF?text=Image+1',
+        path: 'test/image1.jpg',
+        thumbnail: 'https://via.placeholder.com/200x200/FF6B6B/FFFFFF?text=Thumb+1',
+      },
+      {
+        url: 'https://via.placeholder.com/200x200/4ECDC4/FFFFFF?text=Image+2',
+        path: 'test/image2.jpg',
+        thumbnail: 'https://via.placeholder.com/200x200/4ECDC4/FFFFFF?text=Thumb+2',
+      },
+    ],
+    onImagesChange: (images: UploadedImage[]) => {
+      console.log('Images changed:', images);
+    },
+  },
+};
+
+/**
+ * 無効化状態
+ */
+export const Disabled: Story = {
+  args: {
+    maxImages: 5,
+    uploadType: 'item',
+    disabled: true,
+    onImagesChange: (images: UploadedImage[]) => {
+      console.log('Images changed:', images);
+    },
+  },
+};
+
+/**
+ * 最大画像数到達
+ */
+export const MaxImagesReached: Story = {
+  args: {
+    maxImages: 3,
+    uploadType: 'item',
+    initialImages: [
+      {
+        url: 'https://via.placeholder.com/200x200/FF6B6B/FFFFFF?text=Image+1',
+        path: 'test/image1.jpg',
+      },
+      {
+        url: 'https://via.placeholder.com/200x200/4ECDC4/FFFFFF?text=Image+2',
+        path: 'test/image2.jpg',
+      },
+      {
+        url: 'https://via.placeholder.com/200x200/45B7D1/FFFFFF?text=Image+3',
+        path: 'test/image3.jpg',
+      },
+    ],
+    onImagesChange: (images: UploadedImage[]) => {
+      console.log('Images changed:', images);
+    },
+  },
+};

@@ -1,0 +1,6 @@
+# Netlify Redirects
+# API calls to backend
+/api/*  https://trade-nearby-api.onrender.com/api/:splat  200
+
+# SPA redirect - must be last
+/*    /index.html   200
