@@ -1,27 +1,30 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useEffect } from 'react';
-import { useAuthStore } from '@/stores/authStore';
-import { PrivateRoute, GuestRoute } from '@/components/auth/PrivateRoute';
 import MainLayout from '@components/Layout/MainLayout';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+// 譲求システム（シンプル版）
+import CreateTradePostPage from './pages/CreateTradePostPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ProfilePage from './pages/ProfilePage';
-// 譲求システム（シンプル版）
-import TradePostsPage from './pages/TradePostsPage';
-import CreateTradePostPage from './pages/CreateTradePostPage';
 import MyTradePostsPage from './pages/MyTradePostsPage';
-import UserTradePostsPage from './pages/UserTradePostsPage';
-import TradePostDetailPage from './pages/TradePostDetailPage';
+import ProfilePage from './pages/ProfilePage';
+import RegisterPage from './pages/RegisterPage';
 // 交換リクエスト管理
-import TradePage from './pages/TradePage';
+import TradeChatPage from './pages/TradeChatPage';
 import TradeDetailPage from './pages/TradeDetailPage';
 // 取引チャット
-import TradeChatPage from './pages/TradeChatPage';
+import TradePage from './pages/TradePage';
+import TradePostDetailPage from './pages/TradePostDetailPage';
+import TradePostEditPage from './pages/TradePostEditPage';
+import TradePostsPage from './pages/TradePostsPage';
+import UserTradePostsPage from './pages/UserTradePostsPage';
+
+import { PrivateRoute, GuestRoute } from '@/components/auth/PrivateRoute';
+import { useAuthStore } from '@/stores/authStore';
 // import ImageTestPage from './pages/ImageTestPage';
 import './App.css';
 
-function App() {
+function App(): JSX.Element {
   // Zustandストアから認証状態を取得
   const { isAuthenticated, user, checkAuth } = useAuthStore();
   const username = user?.username || user?.email || '';
@@ -93,6 +96,18 @@ function App() {
             <PrivateRoute>
               <MainLayout isAuthenticated={isAuthenticated} username={username}>
                 <CreateTradePostPage />
+              </MainLayout>
+            </PrivateRoute>
+          }
+        />
+
+        {/* 譲求投稿編集（認証必要） */}
+        <Route
+          path="/trade-posts/:id/edit"
+          element={
+            <PrivateRoute>
+              <MainLayout isAuthenticated={isAuthenticated} username={username}>
+                <TradePostEditPage />
               </MainLayout>
             </PrivateRoute>
           }
@@ -211,7 +226,7 @@ function App() {
           element={
             <MainLayout isAuthenticated={isAuthenticated} username={username}>
               <div className="container mx-auto px-4 py-16 text-center">
-                <h1 className="text-4xl font-bold mb-4">404</h1>
+                <h1 className="mb-4 text-4xl font-bold">404</h1>
                 <p className="text-xl text-gray-600">ページが見つかりません</p>
               </div>
             </MainLayout>

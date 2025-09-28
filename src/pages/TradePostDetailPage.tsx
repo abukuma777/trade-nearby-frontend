@@ -428,9 +428,9 @@ const TradePostDetailPage: React.FC = () => {
                 <>
                   <button
                     onClick={() => {
-                      // TODO: 編集画面へ遷移
-                      // eslint-disable-next-line no-console
-                      console.log('編集機能は実装中です');
+                      navigate(
+                        `/trade-posts/${currentPost.short_id || currentPost.id}/edit`,
+                      );
                     }}
                     className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
                   >

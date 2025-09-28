@@ -2,25 +2,35 @@
  * 自分の交換投稿一覧ページ（画像対応版）
  */
 
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useTradePostStore } from '../stores/tradePostStore';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+import { useTradePostStore } from '../stores/tradePostStore';
 
 const MyTradePostsPage: React.FC = () => {
-  const { myPosts, loading, error, fetchMyPosts, updateStatus, deletePost, clearError } =
-    useTradePostStore();
+  const {
+    myPosts,
+    loading,
+    error,
+    fetchMyPosts,
+    updateStatus,
+    deletePost,
+    clearError,
+  } = useTradePostStore();
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
-    fetchMyPosts();
+    void fetchMyPosts();
     return () => clearError();
-  }, []);
+  }, [fetchMyPosts, clearError]);
 
   // メイン画像またはデフォルト画像を取得
-  const getMainImage = (images?: Array<{ url: string; is_main?: boolean }>) => {
+  const getMainImage = (
+    images?: Array<{ url: string; is_main?: boolean }>,
+  ): string | null => {
     if (!images || images.length === 0) {
       return null;
     }
@@ -28,7 +38,10 @@ const MyTradePostsPage: React.FC = () => {
     return mainImage ? mainImage.url : images[0].url;
   };
 
-  const handleStatusChange = async (id: string, status: 'active' | 'completed' | 'cancelled') => {
+  const handleStatusChange = async (
+    id: string,
+    status: 'active' | 'completed' | 'cancelled',
+  ): Promise<void> => {
     try {
       await updateStatus(id, status);
     } catch (err) {
@@ -36,7 +49,7 @@ const MyTradePostsPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string): Promise<void> => {
     try {
       await deletePost(id);
       setShowDeleteConfirm(false);
@@ -46,7 +59,7 @@ const MyTradePostsPage: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string): JSX.Element => {
     const styles = {
       active: 'bg-green-100 text-green-800',
       completed: 'bg-blue-100 text-blue-800',
@@ -59,7 +72,7 @@ const MyTradePostsPage: React.FC = () => {
     };
     return (
       <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status as keyof typeof styles]}`}
+        className={`rounded-full px-2 py-1 text-xs font-medium ${styles[status as keyof typeof styles]}`}
       >
         {labels[status as keyof typeof labels]}
       </span>
@@ -70,7 +83,7 @@ const MyTradePostsPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4">
-          <div className="flex justify-center items-center h-64">
+          <div className="flex h-64 items-center justify-center">
             <div className="text-gray-500">読み込み中...</div>
           </div>
         </div>
@@ -83,24 +96,30 @@ const MyTradePostsPage: React.FC = () => {
       <div className="container mx-auto px-4">
         {/* ヘッダー */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">自分の投稿</h1>
-          <p className="text-gray-600">あなたが作成した交換投稿の管理ページです</p>
+          <h1 className="mb-4 text-3xl font-bold text-gray-900">自分の投稿</h1>
+          <p className="text-gray-600">
+            あなたが作成した交換投稿の管理ページです
+          </p>
         </div>
 
         {/* エラー表示 */}
-        {error && <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+        {error && (
+          <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
+            {error}
+          </div>
+        )}
 
         {/* アクションボタン */}
         <div className="mb-6 flex gap-4">
           <Link
             to="/trade-posts/create"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
           >
             新規投稿作成
           </Link>
           <Link
             to="/trade-posts"
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
           >
             全投稿を見る
           </Link>
@@ -108,11 +127,11 @@ const MyTradePostsPage: React.FC = () => {
 
         {/* 投稿リスト */}
         {myPosts.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="rounded-lg bg-white p-8 text-center shadow">
             <p className="text-gray-500">まだ投稿がありません</p>
             <Link
               to="/trade-posts/create"
-              className="inline-block mt-4 text-blue-600 hover:underline"
+              className="mt-4 inline-block text-blue-600 hover:underline"
             >
               投稿を作成する
             </Link>
@@ -124,20 +143,23 @@ const MyTradePostsPage: React.FC = () => {
               const wantImage = getMainImage(post.want_item_images);
 
               return (
-                <div key={post.id} className="bg-white rounded-lg shadow overflow-hidden">
+                <div
+                  key={post.id}
+                  className="overflow-hidden rounded-lg bg-white shadow"
+                >
                   <div className="flex">
                     {/* 画像部分 */}
-                    <div className="flex-shrink-0 w-32 h-32 bg-gray-100">
+                    <div className="h-32 w-32 flex-shrink-0 bg-gray-100">
                       {giveImage || wantImage ? (
                         <img
                           src={(giveImage || wantImage) as string}
                           alt={post.give_item}
-                          className="w-full h-full object-cover"
+                          className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <div className="flex h-full w-full items-center justify-center text-gray-400">
                           <svg
-                            className="w-8 h-8"
+                            className="h-8 w-8"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -155,30 +177,36 @@ const MyTradePostsPage: React.FC = () => {
 
                     {/* コンテンツ部分 */}
                     <div className="flex-1 p-4">
-                      <div className="flex justify-between items-start mb-3">
+                      <div className="mb-3 flex items-start justify-between">
                         {/* 交換情報 */}
                         <div className="flex-1">
-                          <div className="flex items-center mb-1">
-                            <span className="text-sm font-medium text-gray-500 w-10">譲)</span>
+                          <div className="mb-1 flex items-center">
+                            <span className="w-10 text-sm font-medium text-gray-500">
+                              譲)
+                            </span>
                             <span className="text-base font-bold text-gray-900">
                               {post.give_item}
                             </span>
-                            {post.give_item_images && post.give_item_images.length > 0 && (
-                              <span className="ml-2 text-xs text-gray-400">
-                                📷 {post.give_item_images.length}枚
-                              </span>
-                            )}
+                            {post.give_item_images &&
+                              post.give_item_images.length > 0 && (
+                                <span className="ml-2 text-xs text-gray-400">
+                                  📷 {post.give_item_images.length}枚
+                                </span>
+                              )}
                           </div>
                           <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-500 w-10">求)</span>
+                            <span className="w-10 text-sm font-medium text-gray-500">
+                              求)
+                            </span>
                             <span className="text-base font-bold text-gray-900">
                               {post.want_item}
                             </span>
-                            {post.want_item_images && post.want_item_images.length > 0 && (
-                              <span className="ml-2 text-xs text-gray-400">
-                                📷 {post.want_item_images.length}枚
-                              </span>
-                            )}
+                            {post.want_item_images &&
+                              post.want_item_images.length > 0 && (
+                                <span className="ml-2 text-xs text-gray-400">
+                                  📷 {post.want_item_images.length}枚
+                                </span>
+                              )}
                           </div>
                         </div>
 
@@ -188,17 +216,21 @@ const MyTradePostsPage: React.FC = () => {
 
                       {/* 説明（短縮表示） */}
                       {post.description && (
-                        <p className="text-gray-600 text-sm mb-2 line-clamp-1">
+                        <p className="mb-2 line-clamp-1 text-sm text-gray-600">
                           {post.description}
                         </p>
                       )}
 
                       {/* メタ情報とアクション */}
-                      <div className="flex justify-between items-center">
+                      <div className="flex items-center justify-between">
                         {/* 場所と日付 */}
                         <div className="text-xs text-gray-400">
-                          {post.location_name && <span>📍 {post.location_name} / </span>}
-                          {format(new Date(post.created_at), 'M月d日 HH:mm', { locale: ja })}
+                          {post.location_name && (
+                            <span>📍 {post.location_name} / </span>
+                          )}
+                          {format(new Date(post.created_at), 'M月d日 HH:mm', {
+                            locale: ja,
+                          })}
                         </div>
 
                         {/* アクションボタン */}
@@ -206,14 +238,18 @@ const MyTradePostsPage: React.FC = () => {
                           {post.status === 'active' && (
                             <>
                               <button
-                                onClick={() => handleStatusChange(post.id, 'completed')}
-                                className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                                onClick={() =>
+                                  void handleStatusChange(post.id, 'completed')
+                                }
+                                className="rounded bg-green-600 px-2 py-1 text-xs text-white transition-colors hover:bg-green-700"
                               >
                                 完了
                               </button>
                               <button
-                                onClick={() => handleStatusChange(post.id, 'cancelled')}
-                                className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                                onClick={() =>
+                                  void handleStatusChange(post.id, 'cancelled')
+                                }
+                                className="rounded bg-gray-600 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-700"
                               >
                                 キャンセル
                               </button>
@@ -221,15 +257,25 @@ const MyTradePostsPage: React.FC = () => {
                           )}
                           {post.status === 'cancelled' && (
                             <button
-                              onClick={() => handleStatusChange(post.id, 'active')}
-                              className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                              onClick={() =>
+                                void handleStatusChange(post.id, 'active')
+                              }
+                              className="rounded bg-blue-600 px-2 py-1 text-xs text-white transition-colors hover:bg-blue-700"
                             >
                               再開
                             </button>
                           )}
+                          {post.status !== 'completed' && (
+                            <Link
+                              to={`/trade-posts/${post.short_id || post.id}/edit`}
+                              className="rounded bg-yellow-600 px-2 py-1 text-xs text-white transition-colors hover:bg-yellow-700"
+                            >
+                              編集
+                            </Link>
+                          )}
                           <Link
                             to={`/trade-posts/${post.id}`}
-                            className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                            className="rounded bg-gray-500 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-600"
                           >
                             詳細
                           </Link>
@@ -238,7 +284,7 @@ const MyTradePostsPage: React.FC = () => {
                               setSelectedPostId(post.id);
                               setShowDeleteConfirm(true);
                             }}
-                            className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                            className="rounded bg-red-600 px-2 py-1 text-xs text-white transition-colors hover:bg-red-700"
                           >
                             削除
                           </button>
@@ -254,14 +300,16 @@ const MyTradePostsPage: React.FC = () => {
 
         {/* 削除確認ダイアログ */}
         {showDeleteConfirm && selectedPostId && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-sm">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">削除確認</h3>
-              <p className="text-gray-600 mb-6">この投稿を削除してもよろしいですか？</p>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="max-w-sm rounded-lg bg-white p-6">
+              <h3 className="mb-4 text-lg font-bold text-gray-900">削除確認</h3>
+              <p className="mb-6 text-gray-600">
+                この投稿を削除してもよろしいですか？
+              </p>
               <div className="flex gap-3">
                 <button
-                  onClick={() => handleDelete(selectedPostId)}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                  onClick={() => void handleDelete(selectedPostId)}
+                  className="flex-1 rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
                 >
                   削除する
                 </button>
@@ -270,7 +318,7 @@ const MyTradePostsPage: React.FC = () => {
                     setShowDeleteConfirm(false);
                     setSelectedPostId(null);
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
+                  className="flex-1 rounded bg-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-400"
                 >
                   キャンセル
                 </button>
