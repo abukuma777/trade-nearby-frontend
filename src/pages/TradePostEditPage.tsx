@@ -336,11 +336,11 @@ const TradePostEditPage: React.FC = () => {
               disabled={isSubmitDisabled}
             >
               <option value="active">募集中</option>
-              <option value="cancelled">キャンセル</option>
+              <option value="cancelled">非公開</option>
               {/* tradingやcompletedは直接選択できない */}
             </select>
             <p className="mt-1 text-xs text-gray-500">
-              ※ 完了ステータスは交換成立時に自動設定されます
+              ※ 取引中・完了ステータスはチャット機能から設定されます
             </p>
           </div>
 
@@ -495,7 +495,7 @@ const TradePostEditPage: React.FC = () => {
               disabled={isSubmitDisabled}
               className="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              キャンセル
+              戻る
             </button>
           </div>
         </form>

@@ -70,7 +70,7 @@ const MyTradePostsPage: React.FC = () => {
       active: '募集中',
       trading: '取引中',
       completed: '完了',
-      cancelled: 'キャンセル',
+      cancelled: '非公開',
     };
     return (
       <span
@@ -245,7 +245,7 @@ const MyTradePostsPage: React.FC = () => {
                             詳細
                           </Link>
 
-                          {/* 募集中: キャンセル、削除 */}
+                          {/* 募集中: 非公開にする、削除 */}
                           {post.status === 'active' && (
                             <>
                               <button
@@ -254,7 +254,7 @@ const MyTradePostsPage: React.FC = () => {
                                 }
                                 className="rounded bg-gray-600 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-700"
                               >
-                                キャンセル
+                                非公開にする
                               </button>
                               <button
                                 onClick={() => {
@@ -270,7 +270,7 @@ const MyTradePostsPage: React.FC = () => {
 
                           {/* 取引中: アクションなし（詳細のみ） */}
 
-                          {/* キャンセル済み: 再開 */}
+                          {/* 非公開: 再公開 */}
                           {post.status === 'cancelled' && (
                             <button
                               onClick={() =>
@@ -278,7 +278,7 @@ const MyTradePostsPage: React.FC = () => {
                               }
                               className="rounded bg-blue-600 px-2 py-1 text-xs text-white transition-colors hover:bg-blue-700"
                             >
-                              再開
+                              公開する
                             </button>
                           )}
 
@@ -303,7 +303,7 @@ const MyTradePostsPage: React.FC = () => {
                 <br />
                 削除された投稿は復元できません。
                 <br />
-                一時的に募集を停止したい場合はキャンセルをお使いください。
+                一時的に募集を停止したい場合は「非公開にする」をお使いください。
               </p>
               <div className="flex gap-3">
                 <button
@@ -319,7 +319,7 @@ const MyTradePostsPage: React.FC = () => {
                   }}
                   className="flex-1 rounded bg-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-400"
                 >
-                  キャンセル
+                  やめる
                 </button>
               </div>
             </div>
