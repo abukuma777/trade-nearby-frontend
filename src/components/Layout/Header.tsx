@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+
 import { useAuth } from '@/hooks/useAuth';
 
 interface HeaderProps {
@@ -7,19 +8,22 @@ interface HeaderProps {
   username?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, username = '' }) => {
+const Header: React.FC<HeaderProps> = ({
+  isAuthenticated = false,
+  username = '',
+}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { logout } = useAuth();
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     await logout();
     setIsMobileMenuOpen(false);
   };
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
+    <header className="sticky top-0 z-50 bg-white shadow-md">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex h-16 items-center justify-between">
           {/* ロゴ */}
           <Link to="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold text-blue-600">Trade</span>
@@ -27,23 +31,37 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, username = '' 
           </Link>
 
           {/* デスクトップナビゲーション */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/trade-posts" className="text-gray-700 hover:text-blue-600 transition-colors">
+          <nav className="hidden items-center space-x-6 md:flex">
+            <Link
+              to="/trade-posts"
+              className="text-gray-700 transition-colors hover:text-blue-600"
+            >
               交換投稿
+            </Link>
+            <Link
+              to="/statistics"
+              className="text-gray-700 transition-colors hover:text-blue-600"
+            >
+              統計
             </Link>
             {isAuthenticated && (
               <>
                 <Link
                   to="/trade-posts/my"
-                  className="text-gray-700 hover:text-blue-600 transition-colors"
+                  className="text-gray-700 transition-colors hover:text-blue-600"
                 >
                   マイ投稿
                 </Link>
                 <Link
                   to="/trade"
-                  className="text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1"
+                  className="flex items-center gap-1 text-gray-700 transition-colors hover:text-blue-600"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -58,19 +76,24 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, username = '' 
           </nav>
 
           {/* ユーザーメニュー/ログインボタン */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden items-center space-x-4 md:flex">
             {isAuthenticated ? (
               <>
                 <Link
                   to="/trade-posts/create"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
                 >
                   投稿作成
                 </Link>
-                <div className="relative group">
+                <div className="group relative">
                   <button className="flex items-center space-x-2 text-gray-700 hover:text-blue-600">
                     <span>{username || 'ユーザー'}</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -79,8 +102,11 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, username = '' 
                       />
                     </svg>
                   </button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                    <Link to="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                  <div className="invisible absolute right-0 mt-2 w-48 rounded-lg bg-white opacity-0 shadow-lg transition-all group-hover:visible group-hover:opacity-100">
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
                       プロフィール
                     </Link>
                     <Link
@@ -97,8 +123,8 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, username = '' 
                     </Link>
                     <hr className="my-2" />
                     <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      onClick={() => void handleLogout()}
+                      className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
                     >
                       ログアウト
                     </button>
@@ -109,13 +135,13 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, username = '' 
               <div className="flex space-x-3">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   ログイン
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
                 >
                   新規登録
                 </Link>
@@ -125,12 +151,17 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, username = '' 
 
           {/* モバイルメニューボタン */}
           <button
-            className="md:hidden p-2 relative"
+            className="relative p-2 md:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="メニュー"
           >
             {isMobileMenuOpen ? (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -139,7 +170,12 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, username = '' 
                 />
               </svg>
             ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -153,30 +189,42 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, username = '' 
 
         {/* モバイルメニュー */}
         {isMobileMenuOpen && (
-          <nav className="md:hidden py-4 border-t border-gray-200">
+          <nav className="border-t border-gray-200 py-4 md:hidden">
             <div className="flex flex-col space-y-3">
               <Link
                 to="/trade-posts"
-                className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                className="py-2 text-gray-700 transition-colors hover:text-blue-600"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 交換投稿
+              </Link>
+              <Link
+                to="/statistics"
+                className="py-2 text-gray-700 transition-colors hover:text-blue-600"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                統計
               </Link>
               {isAuthenticated && (
                 <>
                   <Link
                     to="/trade-posts/my"
-                    className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                    className="py-2 text-gray-700 transition-colors hover:text-blue-600"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     マイ投稿
                   </Link>
                   <Link
                     to="/trade"
-                    className="text-gray-700 hover:text-blue-600 transition-colors py-2 flex items-center gap-2"
+                    className="flex items-center gap-2 py-2 text-gray-700 transition-colors hover:text-blue-600"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -193,21 +241,21 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, username = '' 
                 <>
                   <Link
                     to="/trade-posts/create"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-center"
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-center text-white"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     投稿作成
                   </Link>
                   <Link
                     to="/profile"
-                    className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                    className="py-2 text-gray-700 transition-colors hover:text-blue-600"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     プロフィール
                   </Link>
                   <button
-                    onClick={handleLogout}
-                    className="text-gray-700 hover:text-blue-600 transition-colors py-2 text-left"
+                    onClick={() => void handleLogout()}
+                    className="py-2 text-left text-gray-700 transition-colors hover:text-blue-600"
                   >
                     ログアウト
                   </button>
@@ -216,14 +264,14 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated = false, username = '' 
                 <>
                   <Link
                     to="/login"
-                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg text-center"
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-center text-gray-700"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     ログイン
                   </Link>
                   <Link
                     to="/register"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-center"
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-center text-white"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     新規登録

@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import MyTradePostsPage from './pages/MyTradePostsPage';
 import ProfilePage from './pages/ProfilePage';
 import RegisterPage from './pages/RegisterPage';
+import StatisticsPage from './pages/StatisticsPage';
 // 交換リクエスト管理
 import TradeChatPage from './pages/TradeChatPage';
 import TradeDetailPage from './pages/TradeDetailPage';
@@ -75,6 +76,16 @@ function App(): JSX.Element {
           element={
             <MainLayout isAuthenticated={isAuthenticated} username={username}>
               <TradePostsPage />
+            </MainLayout>
+          }
+        />
+
+        {/* 統計ページ（認証不要） */}
+        <Route
+          path="/statistics"
+          element={
+            <MainLayout isAuthenticated={isAuthenticated} username={username}>
+              <StatisticsPage />
             </MainLayout>
           }
         />
