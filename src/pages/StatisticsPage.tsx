@@ -67,7 +67,7 @@ const StatisticsPage: React.FC = () => {
       0,
     );
     const activeCategories = categoryCounts.filter(
-      (c) => c.directCount > 0,
+      (c) => c.totalCount > 0,
     ).length;
     const totalCategories = categoryCounts.length;
 
@@ -105,9 +105,9 @@ const StatisticsPage: React.FC = () => {
     totalPosts: number;
   } => {
     const items = getFilteredByType(type);
-    const activeItems = items.filter((i) => i.directCount > 0);
-    const totalActive = items.reduce((sum, i) => sum + i.directCount, 0);
-    const totalAll = items.reduce((sum, i) => sum + i.allDirectCount, 0);
+    const activeItems = items.filter((i) => i.totalCount > 0);
+    const totalActive = items.reduce((sum, i) => sum + i.totalCount, 0);
+    const totalAll = items.reduce((sum, i) => sum + i.allTotalCount, 0);
 
     return {
       activeItems: activeItems.length,
@@ -254,9 +254,7 @@ const StatisticsPage: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {top5Items.map((item, index) => {
-                const activeDirectCount = item.directCount;
                 const activeTotalCount = item.totalCount;
-                const allDirectCount = item.allDirectCount;
                 const allTotalCount = item.allTotalCount;
 
                 const maxCount = Math.max(
@@ -307,10 +305,7 @@ const StatisticsPage: React.FC = () => {
                             現在出品中
                           </div>
                           <div className="font-bold text-blue-600">
-                            {activeDirectCount}件
-                            <span className="ml-1 text-xs text-gray-500">
-                              (子含: {activeTotalCount}件)
-                            </span>
+                            {activeTotalCount}件
                           </div>
                         </div>
                         <div>
@@ -318,10 +313,7 @@ const StatisticsPage: React.FC = () => {
                             取引完了含む
                           </div>
                           <div className="font-bold text-gray-900">
-                            {allDirectCount}件
-                            <span className="ml-1 text-xs text-gray-500">
-                              (子含: {allTotalCount}件)
-                            </span>
+                            {allTotalCount}件
                           </div>
                         </div>
                       </div>
