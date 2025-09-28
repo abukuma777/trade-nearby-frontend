@@ -8,8 +8,20 @@ import { Link } from 'react-router-dom';
 
 import { contentService, type CategoryCount } from '../services/contentService';
 
+interface HierarchyNode {
+  id: string;
+  name: string;
+  children: HierarchyNode[];
+}
+
+interface HierarchicalGroup {
+  parent: CategoryCount;
+  items: CategoryCount[];
+}
+
 const StatisticsPage: React.FC = () => {
   const [categoryCounts, setCategoryCounts] = useState<CategoryCount[]>([]);
+  const [hierarchyTree, setHierarchyTree] = useState<HierarchyNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<
@@ -24,8 +36,12 @@ const StatisticsPage: React.FC = () => {
   const fetchStatistics = async (): Promise<void> => {
     setLoading(true);
     try {
-      const counts = await contentService.getCategoryCounts();
+      const [counts, tree] = await Promise.all([
+        contentService.getCategoryCounts(),
+        contentService.getHierarchyTree(),
+      ]);
       setCategoryCounts(counts);
+      setHierarchyTree(tree as HierarchyNode[]);
     } catch (err) {
       setError('統計情報の取得に失敗しました');
       console.error('統計情報取得エラー:', err);
@@ -51,6 +67,115 @@ const StatisticsPage: React.FC = () => {
       .slice(0, 5);
   };
 
+  // 階層構造を反映したデータ取得
+  const getHierarchicalData = (): CategoryCount[] | HierarchicalGroup[] => {
+    if (selectedType === 'category') {
+      // カテゴリのTOP5
+      return getTop5('category');
+    }
+
+    const result: HierarchicalGroup[] = [];
+    const countsMap = new Map<string, CategoryCount>();
+    categoryCounts.forEach((c) => countsMap.set(c.id, c));
+
+    if (selectedType === 'genre') {
+      // 各カテゴリのジャンルTOP5
+      hierarchyTree.forEach((category) => {
+        const categoryCount = countsMap.get(category.id);
+        if (!categoryCount) {
+          return;
+        }
+
+        const genreCounts = category.children
+          .map((child) => countsMap.get(child.id))
+          .filter((c): c is CategoryCount => c !== undefined)
+          .sort((a, b) => {
+            const countA = showActiveOnly ? a.totalCount : a.allTotalCount;
+            const countB = showActiveOnly ? b.totalCount : b.allTotalCount;
+            return countB - countA;
+          })
+          .slice(0, 5);
+
+        if (
+          genreCounts.some(
+            (g) => (showActiveOnly ? g.totalCount : g.allTotalCount) > 0,
+          )
+        ) {
+          result.push({
+            parent: categoryCount,
+            items: genreCounts,
+          });
+        }
+      });
+    } else if (selectedType === 'series') {
+      // 各ジャンルのシリーズTOP5
+      hierarchyTree.forEach((category) => {
+        category.children.forEach((genre) => {
+          const genreCount = countsMap.get(genre.id);
+          if (!genreCount) {
+            return;
+          }
+
+          const seriesCounts = genre.children
+            .map((child) => countsMap.get(child.id))
+            .filter((c): c is CategoryCount => c !== undefined)
+            .sort((a, b) => {
+              const countA = showActiveOnly ? a.totalCount : a.allTotalCount;
+              const countB = showActiveOnly ? b.totalCount : b.allTotalCount;
+              return countB - countA;
+            })
+            .slice(0, 5);
+
+          if (
+            seriesCounts.some(
+              (s) => (showActiveOnly ? s.totalCount : s.allTotalCount) > 0,
+            )
+          ) {
+            result.push({
+              parent: genreCount,
+              items: seriesCounts,
+            });
+          }
+        });
+      });
+    } else if (selectedType === 'event') {
+      // 各シリーズのイベントTOP5
+      hierarchyTree.forEach((category) => {
+        category.children.forEach((genre) => {
+          genre.children.forEach((series) => {
+            const seriesCount = countsMap.get(series.id);
+            if (!seriesCount) {
+              return;
+            }
+
+            const eventCounts = series.children
+              .map((child) => countsMap.get(child.id))
+              .filter((c): c is CategoryCount => c !== undefined)
+              .sort((a, b) => {
+                const countA = showActiveOnly ? a.totalCount : a.allTotalCount;
+                const countB = showActiveOnly ? b.totalCount : b.allTotalCount;
+                return countB - countA;
+              })
+              .slice(0, 5);
+
+            if (
+              eventCounts.some(
+                (e) => (showActiveOnly ? e.totalCount : e.allTotalCount) > 0,
+              )
+            ) {
+              result.push({
+                parent: seriesCount,
+                items: eventCounts,
+              });
+            }
+          });
+        });
+      });
+    }
+
+    return result;
+  };
+
   // タイプ名の日本語化
   const getTypeName = (type: string): string => {
     switch (type) {
@@ -65,22 +190,6 @@ const StatisticsPage: React.FC = () => {
       default:
         return type;
     }
-  };
-
-  // 階層別統計の取得
-  const getTypeStats = (
-    type: string,
-  ): {
-    activeItems: number;
-    totalItems: number;
-  } => {
-    const items = getFilteredByType(type);
-    const activeItems = items.filter((i) => i.totalCount > 0);
-
-    return {
-      activeItems: activeItems.length,
-      totalItems: items.length,
-    };
   };
 
   if (loading) {
@@ -105,7 +214,7 @@ const StatisticsPage: React.FC = () => {
     );
   }
 
-  const top5Items = getTop5(selectedType);
+  const hierarchicalData = getHierarchicalData();
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -120,31 +229,19 @@ const StatisticsPage: React.FC = () => {
 
         {/* 階層別タブ */}
         <div className="mb-4 flex flex-wrap gap-2">
-          {(['category', 'genre', 'series', 'event'] as const).map((type) => {
-            const typeStats = getTypeStats(type);
-            return (
-              <button
-                key={type}
-                onClick={() => setSelectedType(type)}
-                className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                  selectedType === type
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <span>{getTypeName(type)}</span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs ${
-                    selectedType === type
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {typeStats.activeItems}/{typeStats.totalItems}
-                </span>
-              </button>
-            );
-          })}
+          {(['category', 'genre', 'series', 'event'] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => setSelectedType(type)}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                selectedType === type
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {getTypeName(type)}
+            </button>
+          ))}
         </div>
 
         {/* 表示切り替え */}
@@ -174,86 +271,178 @@ const StatisticsPage: React.FC = () => {
         </div>
 
         {/* 人気TOP5ランキング */}
-        <div className="rounded-lg bg-white p-4 shadow">
-          <h2 className="mb-4 text-lg font-bold text-gray-900">
-            🏆 {getTypeName(selectedType)} 人気TOP5
-          </h2>
+        {selectedType === 'category' ? (
+          // カテゴリのTOP5表示
+          <div className="rounded-lg bg-white p-4 shadow">
+            <h2 className="mb-4 text-lg font-bold text-gray-900">
+              🏆 {getTypeName(selectedType)} 人気TOP5
+            </h2>
 
-          {top5Items.length === 0 ? (
-            <p className="text-center text-gray-500">投稿データがありません</p>
-          ) : (
-            <div className="space-y-3">
-              {top5Items.map((item, index) => {
-                const displayCount = showActiveOnly
-                  ? item.totalCount
-                  : item.allTotalCount;
+            {(hierarchicalData as CategoryCount[]).length === 0 ? (
+              <p className="text-center text-gray-500">
+                投稿データがありません
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {(hierarchicalData as CategoryCount[]).map((item, index) => {
+                  const displayCount = showActiveOnly
+                    ? item.totalCount
+                    : item.allTotalCount;
 
-                const maxCount = Math.max(
-                  ...top5Items.map((i) =>
-                    showActiveOnly ? i.totalCount : i.allTotalCount,
-                  ),
-                );
-                const percentage =
-                  maxCount > 0 ? (displayCount / maxCount) * 100 : 0;
+                  const maxCount = Math.max(
+                    ...(hierarchicalData as CategoryCount[]).map((i) =>
+                      showActiveOnly ? i.totalCount : i.allTotalCount,
+                    ),
+                  );
+                  const percentage =
+                    maxCount > 0 ? (displayCount / maxCount) * 100 : 0;
 
-                return (
-                  <div key={item.id} className="relative">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {/* 順位 */}
-                        <span
-                          className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
-                            index === 0
-                              ? 'bg-yellow-400 text-white'
-                              : index === 1
-                                ? 'bg-gray-300 text-gray-700'
-                                : index === 2
-                                  ? 'bg-orange-400 text-white'
-                                  : 'bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          {index + 1}
-                        </span>
-
-                        {/* カテゴリ名 */}
-                        <div className="flex-1">
-                          <Link
-                            to={`/trade-posts?content_id=${item.id}&include_children=true`}
-                            className="font-medium text-gray-900 hover:text-blue-600 hover:underline"
+                  return (
+                    <div key={item.id} className="relative">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {/* 順位 */}
+                          <span
+                            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
+                              index === 0
+                                ? 'bg-yellow-400 text-white'
+                                : index === 1
+                                  ? 'bg-gray-300 text-gray-700'
+                                  : index === 2
+                                    ? 'bg-orange-400 text-white'
+                                    : 'bg-gray-100 text-gray-600'
+                            }`}
                           >
-                            {item.name}
-                          </Link>
+                            {index + 1}
+                          </span>
+
+                          {/* カテゴリ名 */}
+                          <div className="flex-1">
+                            <Link
+                              to={`/trade-posts?content_id=${item.id}&include_children=true`}
+                              className="font-medium text-gray-900 hover:text-blue-600 hover:underline"
+                            >
+                              {item.name}
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* 投稿数 */}
+                        <div className="text-right">
+                          <div className="text-xs text-gray-500">
+                            {showActiveOnly ? '現在出品中' : '取引完了含む'}
+                          </div>
+                          <div
+                            className={`font-bold ${
+                              showActiveOnly ? 'text-blue-600' : 'text-gray-900'
+                            }`}
+                          >
+                            {displayCount}件
+                          </div>
                         </div>
                       </div>
 
-                      {/* 投稿数 */}
-                      <div className="text-right">
-                        <div className="text-xs text-gray-500">
-                          {showActiveOnly ? '現在出品中' : '取引完了含む'}
-                        </div>
+                      {/* プログレスバー */}
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-200">
                         <div
-                          className={`font-bold ${
-                            showActiveOnly ? 'text-blue-600' : 'text-gray-900'
-                          }`}
-                        >
-                          {displayCount}件
-                        </div>
+                          className="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500"
+                          style={{ width: `${percentage}%` }}
+                        />
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          // 階層構造で表示
+          <div className="space-y-6">
+            {(hierarchicalData as HierarchicalGroup[]).length === 0 ? (
+              <div className="rounded-lg bg-white p-4 shadow">
+                <p className="text-center text-gray-500">
+                  投稿データがありません
+                </p>
+              </div>
+            ) : (
+              (hierarchicalData as HierarchicalGroup[]).map((group) => (
+                <div
+                  key={group.parent.id}
+                  className="rounded-lg bg-white p-4 shadow"
+                >
+                  <h3 className="mb-3 border-b pb-2 text-lg font-bold text-gray-900">
+                    {group.parent.name}
+                  </h3>
+                  <div className="space-y-2">
+                    {group.items.map((item: CategoryCount, index: number) => {
+                      const displayCount = showActiveOnly
+                        ? item.totalCount
+                        : item.allTotalCount;
 
-                    {/* プログレスバー */}
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-200">
-                      <div
-                        className="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
+                      const maxCount = Math.max(
+                        ...group.items.map((i: CategoryCount) =>
+                          showActiveOnly ? i.totalCount : i.allTotalCount,
+                        ),
+                      );
+                      const percentage =
+                        maxCount > 0 ? (displayCount / maxCount) * 100 : 0;
+
+                      return (
+                        <div key={item.id} className="relative">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {/* 順位 */}
+                              <span
+                                className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                                  index === 0
+                                    ? 'bg-yellow-400 text-white'
+                                    : index === 1
+                                      ? 'bg-gray-300 text-gray-700'
+                                      : index === 2
+                                        ? 'bg-orange-400 text-white'
+                                        : 'bg-gray-100 text-gray-600'
+                                }`}
+                              >
+                                {index + 1}
+                              </span>
+
+                              {/* 名前 */}
+                              <Link
+                                to={`/trade-posts?content_id=${item.id}&include_children=true`}
+                                className="text-sm font-medium text-gray-900 hover:text-blue-600 hover:underline"
+                              >
+                                {item.name}
+                              </Link>
+                            </div>
+
+                            {/* 投稿数 */}
+                            <div
+                              className={`text-sm font-bold ${
+                                showActiveOnly
+                                  ? 'text-blue-600'
+                                  : 'text-gray-900'
+                              }`}
+                            >
+                              {displayCount}件
+                            </div>
+                          </div>
+
+                          {/* プログレスバー */}
+                          <div className="mt-1 h-1 overflow-hidden rounded-full bg-gray-200">
+                            <div
+                              className="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
         {/* アクションボタン */}
         <div className="mt-6 text-center">
