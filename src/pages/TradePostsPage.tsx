@@ -6,23 +6,61 @@
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import CategorySelect, {
   CategorySelection,
 } from '../components/CategorySelect';
+import { contentService } from '../services/contentService';
 import { useTradePostStore } from '../stores/tradePostStore';
-
 
 const TradePostsPage: React.FC = () => {
   const { posts, loading, error, fetchPosts, clearError } = useTradePostStore();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URLパラメータから初期値を取得
+  const urlContentId = searchParams.get('content_id');
+  const urlIncludeChildren = searchParams.get('include_children') !== 'false';
 
   // カテゴリフィルターの状態
   const [categorySelection, setCategorySelection] = useState<CategorySelection>(
     {},
   );
-  const [includeChildren, setIncludeChildren] = useState(true);
+  const [includeChildren, setIncludeChildren] = useState(urlIncludeChildren);
   const [showFilter, setShowFilter] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [loadingCategory, setLoadingCategory] = useState(false);
+
+  // URLパラメータが変更されたときにフィルターを適用
+  useEffect(() => {
+    const initializeFromUrl = async (): Promise<void> => {
+      if (!isInitialized && urlContentId) {
+        setLoadingCategory(true);
+        try {
+          // URLから直接アクセスした場合、階層情報を取得
+          const selection =
+            await contentService.getSelectionFromContentId(urlContentId);
+          setCategorySelection(selection);
+          setIncludeChildren(urlIncludeChildren);
+          // content_idで検索を実行
+          void fetchPosts('active', urlContentId, urlIncludeChildren);
+        } catch (error) {
+          console.error('カテゴリ情報取得エラー:', error);
+          // エラーが発生しても投稿は取得を試みる
+          void fetchPosts('active', urlContentId, urlIncludeChildren);
+        } finally {
+          setLoadingCategory(false);
+          setIsInitialized(true);
+        }
+      } else if (!urlContentId && !isInitialized) {
+        // content_idが指定されていない場合は全件取得
+        void fetchPosts('active');
+        setIsInitialized(true);
+      }
+    };
+
+    void initializeFromUrl();
+  }, [urlContentId, urlIncludeChildren, fetchPosts, isInitialized]);
 
   // フィルターを適用して投稿を取得
   const applyFilter = (): void => {
@@ -33,21 +71,29 @@ const TradePostsPage: React.FC = () => {
       categorySelection.genre_id ||
       categorySelection.category_id;
 
-    void fetchPosts('active', contentId, includeChildren);
+    if (contentId) {
+      // URLパラメータを更新
+      const params = new URLSearchParams();
+      params.set('content_id', contentId);
+      params.set('include_children', includeChildren.toString());
+      setSearchParams(params);
+
+      void fetchPosts('active', contentId, includeChildren);
+    }
     setShowFilter(false); // フィルターを閉じる
   };
 
   // フィルターをクリア
   const clearFilter = (): void => {
     setCategorySelection({});
+    setSearchParams({}); // URLパラメータをクリア
     void fetchPosts('active');
     setShowFilter(false);
   };
 
   useEffect(() => {
-    void fetchPosts('active');
     return () => clearError();
-  }, [fetchPosts, clearError]);
+  }, [clearError]);
 
   // デバッグ用：取得したデータを確認
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -207,22 +253,35 @@ const TradePostsPage: React.FC = () => {
         {(categorySelection.category_name ||
           categorySelection.genre_name ||
           categorySelection.series_name ||
-          categorySelection.event_name) && (
+          categorySelection.event_name ||
+          (urlContentId && loadingCategory)) && (
           <div className="mb-4 flex items-center justify-between rounded-lg bg-blue-50 p-3">
             <div className="text-sm text-blue-900">
-              <span className="font-medium">フィルター: </span>
-              {[
-                categorySelection.category_name,
-                categorySelection.genre_name,
-                categorySelection.series_name,
-                categorySelection.event_name,
-              ]
-                .filter(Boolean)
-                .join(' > ')}
+              {loadingCategory ? (
+                <span>カテゴリ情報を読み込み中...</span>
+              ) : (
+                <>
+                  <span className="font-medium">フィルター: </span>
+                  {[
+                    categorySelection.category_name,
+                    categorySelection.genre_name,
+                    categorySelection.series_name,
+                    categorySelection.event_name,
+                  ]
+                    .filter(Boolean)
+                    .join(' > ')}
+                  {includeChildren && (
+                    <span className="ml-2 text-xs text-blue-700">
+                      （子カテゴリを含む）
+                    </span>
+                  )}
+                </>
+              )}
             </div>
             <button
               onClick={clearFilter}
               className="text-sm text-blue-600 underline hover:text-blue-800"
+              disabled={loadingCategory}
             >
               解除
             </button>

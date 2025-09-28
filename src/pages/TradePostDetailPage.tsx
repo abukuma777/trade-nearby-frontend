@@ -12,7 +12,6 @@ import CommentSection from '../components/trade/CommentSection';
 import { useAuthStore } from '../stores/authStore';
 import { useTradePostStore } from '../stores/tradePostStore';
 
-
 const TradePostDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -193,7 +192,9 @@ const TradePostDetailPage: React.FC = () => {
     currentIndex: number;
     onIndexChange: (index: number) => void;
   }): JSX.Element | null => {
-    if (!images || images.length <= 1) {return null;}
+    if (!images || images.length <= 1) {
+      return null;
+    }
 
     return (
       <div className="mt-4 flex gap-2 overflow-x-auto">
@@ -270,16 +271,22 @@ const TradePostDetailPage: React.FC = () => {
                     ).content_hierarchy.map((item, index, array) => (
                       <React.Fragment key={item.id}>
                         {index > 0 && <span className="mx-2">{'>'}</span>}
-                        <span
-                          className={`${
-                            index === array.length - 1
-                              ? 'font-medium text-gray-900'
-                              : 'cursor-pointer hover:text-blue-600'
-                          }`}
-                          title={item.name_kana ?? item.name}
-                        >
-                          {item.name}
-                        </span>
+                        {index < array.length - 1 ? (
+                          <Link
+                            to={`/trade-posts?content_id=${item.id}&include_children=true`}
+                            className="cursor-pointer hover:text-blue-600 hover:underline"
+                            title={item.name_kana ?? item.name}
+                          >
+                            {item.name}
+                          </Link>
+                        ) : (
+                          <span
+                            className="font-medium text-gray-900"
+                            title={item.name_kana ?? item.name}
+                          >
+                            {item.name}
+                          </span>
+                        )}
                       </React.Fragment>
                     ))}
                   </nav>
