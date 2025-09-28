@@ -20,7 +20,7 @@ export interface SimpleTradePost {
   want_item: string;
   description?: string;
   location_name?: string;
-  status: 'active' | 'completed' | 'cancelled';
+  status: 'active' | 'trading' | 'completed' | 'cancelled';
   created_at: string;
   updated_at: string;
   // 画像フィールドを追加
@@ -43,7 +43,7 @@ export interface UpdateTradePostData {
   want_item?: string;
   description?: string;
   location_name?: string;
-  status?: 'active' | 'completed' | 'cancelled';
+  status?: 'active' | 'trading' | 'completed' | 'cancelled';
   // 画像フィールドを追加
   give_item_images?: ImageData[];
   want_item_images?: ImageData[];
@@ -68,7 +68,9 @@ class TradePostService {
   ): Promise<SimpleTradePost[]> {
     try {
       const params: Record<string, string> = {};
-      if (status) {params.status = status;}
+      if (status) {
+        params.status = status;
+      }
       if (contentId) {
         params.content_id = contentId;
         if (includeChildren !== undefined) {
@@ -158,7 +160,7 @@ class TradePostService {
    */
   async updateStatus(
     id: string,
-    status: 'active' | 'completed' | 'cancelled',
+    status: 'active' | 'trading' | 'completed' | 'cancelled',
   ): Promise<SimpleTradePost> {
     try {
       const response = await apiClient.patch<{ data: SimpleTradePost }>(

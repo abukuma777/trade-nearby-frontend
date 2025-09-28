@@ -33,7 +33,7 @@ interface TradePostStore {
   updatePost: (id: string, data: UpdateTradePostData) => Promise<void>;
   updateStatus: (
     id: string,
-    status: 'active' | 'completed' | 'cancelled',
+    status: 'active' | 'trading' | 'completed' | 'cancelled',
   ) => Promise<void>;
   deletePost: (id: string) => Promise<void>;
   clearError: () => void;
@@ -163,7 +163,7 @@ export const useTradePostStore = create<TradePostStore>()(
       // ステータス更新
       updateStatus: async (
         id: string,
-        status: 'active' | 'completed' | 'cancelled',
+        status: 'active' | 'trading' | 'completed' | 'cancelled',
       ) => {
         set({ loading: true, error: null });
         try {

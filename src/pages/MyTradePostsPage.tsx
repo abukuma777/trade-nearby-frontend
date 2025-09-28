@@ -40,7 +40,7 @@ const MyTradePostsPage: React.FC = () => {
 
   const handleStatusChange = async (
     id: string,
-    status: 'active' | 'completed' | 'cancelled',
+    status: 'active' | 'trading' | 'completed' | 'cancelled',
   ): Promise<void> => {
     try {
       await updateStatus(id, status);
@@ -62,19 +62,21 @@ const MyTradePostsPage: React.FC = () => {
   const getStatusBadge = (status: string): JSX.Element => {
     const styles = {
       active: 'bg-green-100 text-green-800',
+      trading: 'bg-orange-100 text-orange-800',
       completed: 'bg-blue-100 text-blue-800',
       cancelled: 'bg-gray-100 text-gray-800',
     };
     const labels = {
       active: '募集中',
+      trading: '取引中',
       completed: '完了',
       cancelled: 'キャンセル',
     };
     return (
       <span
-        className={`rounded-full px-2 py-1 text-xs font-medium ${styles[status as keyof typeof styles]}`}
+        className={`rounded-full px-2 py-1 text-xs font-medium ${styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800'}`}
       >
-        {labels[status as keyof typeof labels]}
+        {labels[status as keyof typeof labels] || status}
       </span>
     );
   };
@@ -236,6 +238,26 @@ const MyTradePostsPage: React.FC = () => {
                         {/* アクションボタン */}
                         <div className="flex gap-2">
                           {post.status === 'active' && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  void handleStatusChange(post.id, 'completed')
+                                }
+                                className="rounded bg-green-600 px-2 py-1 text-xs text-white transition-colors hover:bg-green-700"
+                              >
+                                完了
+                              </button>
+                              <button
+                                onClick={() =>
+                                  void handleStatusChange(post.id, 'cancelled')
+                                }
+                                className="rounded bg-gray-600 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-700"
+                              >
+                                キャンセル
+                              </button>
+                            </>
+                          )}
+                          {post.status === 'trading' && (
                             <>
                               <button
                                 onClick={() =>
