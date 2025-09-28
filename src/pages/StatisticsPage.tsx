@@ -27,6 +27,9 @@ const StatisticsPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<
     'category' | 'genre' | 'series' | 'event'
   >('category');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedGenre, setSelectedGenre] = useState<string>('all');
+  const [selectedSeries, setSelectedSeries] = useState<string>('all');
   const [showActiveOnly, setShowActiveOnly] = useState(true);
 
   useEffect(() => {
@@ -79,8 +82,14 @@ const StatisticsPage: React.FC = () => {
     categoryCounts.forEach((c) => countsMap.set(c.id, c));
 
     if (selectedType === 'genre') {
+      // カテゴリフィルタリング対応
+      const categoriesToProcess =
+        selectedCategory === 'all'
+          ? hierarchyTree
+          : hierarchyTree.filter((cat) => cat.id === selectedCategory);
+
       // 各カテゴリのジャンルTOP5
-      hierarchyTree.forEach((category) => {
+      categoriesToProcess.forEach((category) => {
         const categoryCount = countsMap.get(category.id);
         if (!categoryCount) {
           return;
@@ -108,9 +117,19 @@ const StatisticsPage: React.FC = () => {
         }
       });
     } else if (selectedType === 'series') {
-      // 各ジャンルのシリーズTOP5
-      hierarchyTree.forEach((category) => {
-        category.children.forEach((genre) => {
+      // カテゴリ/ジャンルフィルタリング対応
+      const categoriesToProcess =
+        selectedCategory === 'all'
+          ? hierarchyTree
+          : hierarchyTree.filter((cat) => cat.id === selectedCategory);
+
+      categoriesToProcess.forEach((category) => {
+        const genresToProcess =
+          selectedGenre === 'all'
+            ? category.children
+            : category.children.filter((g) => g.id === selectedGenre);
+
+        genresToProcess.forEach((genre) => {
           const genreCount = countsMap.get(genre.id);
           if (!genreCount) {
             return;
@@ -139,10 +158,25 @@ const StatisticsPage: React.FC = () => {
         });
       });
     } else if (selectedType === 'event') {
-      // 各シリーズのイベントTOP5
-      hierarchyTree.forEach((category) => {
-        category.children.forEach((genre) => {
-          genre.children.forEach((series) => {
+      // カテゴリ/ジャンル/シリーズフィルタリング対応
+      const categoriesToProcess =
+        selectedCategory === 'all'
+          ? hierarchyTree
+          : hierarchyTree.filter((cat) => cat.id === selectedCategory);
+
+      categoriesToProcess.forEach((category) => {
+        const genresToProcess =
+          selectedGenre === 'all'
+            ? category.children
+            : category.children.filter((g) => g.id === selectedGenre);
+
+        genresToProcess.forEach((genre) => {
+          const seriesToProcess =
+            selectedSeries === 'all'
+              ? genre.children
+              : genre.children.filter((s) => s.id === selectedSeries);
+
+          seriesToProcess.forEach((series) => {
             const seriesCount = countsMap.get(series.id);
             if (!seriesCount) {
               return;
@@ -232,7 +266,20 @@ const StatisticsPage: React.FC = () => {
           {(['category', 'genre', 'series', 'event'] as const).map((type) => (
             <button
               key={type}
-              onClick={() => setSelectedType(type)}
+              onClick={() => {
+                setSelectedType(type);
+                // タブ切り替え時にフィルターをリセット
+                if (type === 'category') {
+                  setSelectedCategory('all');
+                  setSelectedGenre('all');
+                  setSelectedSeries('all');
+                } else if (type === 'genre') {
+                  setSelectedGenre('all');
+                  setSelectedSeries('all');
+                } else if (type === 'series') {
+                  setSelectedSeries('all');
+                }
+              }}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 selectedType === type
                   ? 'bg-blue-600 text-white'
@@ -243,6 +290,145 @@ const StatisticsPage: React.FC = () => {
             </button>
           ))}
         </div>
+
+        {/* フィルター */}
+        {(selectedType === 'genre' ||
+          selectedType === 'series' ||
+          selectedType === 'event') && (
+          <div className="mb-4 space-y-2">
+            {/* カテゴリフィルター */}
+            <div className="flex flex-wrap gap-2">
+              <span className="py-1.5 text-sm font-medium text-gray-600">
+                カテゴリ:
+              </span>
+              <button
+                onClick={() => {
+                  setSelectedCategory('all');
+                  setSelectedGenre('all');
+                  setSelectedSeries('all');
+                }}
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                  selectedCategory === 'all'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                全カテゴリ
+              </button>
+              {hierarchyTree.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => {
+                    setSelectedCategory(category.id);
+                    setSelectedGenre('all');
+                    setSelectedSeries('all');
+                  }}
+                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                    selectedCategory === category.id
+                      ? 'bg-green-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
+
+            {/* ジャンルフィルター（シリーズ、イベント選択時のみ） */}
+            {(selectedType === 'series' || selectedType === 'event') &&
+              selectedCategory !== 'all' &&
+              (() => {
+                const selectedCat = hierarchyTree.find(
+                  (c) => c.id === selectedCategory,
+                );
+                if (!selectedCat || selectedCat.children.length === 0)
+                  {return null;}
+
+                return (
+                  <div className="flex flex-wrap gap-2">
+                    <span className="py-1.5 text-sm font-medium text-gray-600">
+                      ジャンル:
+                    </span>
+                    <button
+                      onClick={() => {
+                        setSelectedGenre('all');
+                        setSelectedSeries('all');
+                      }}
+                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                        selectedGenre === 'all'
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      全ジャンル
+                    </button>
+                    {selectedCat.children.map((genre) => (
+                      <button
+                        key={genre.id}
+                        onClick={() => {
+                          setSelectedGenre(genre.id);
+                          setSelectedSeries('all');
+                        }}
+                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                          selectedGenre === genre.id
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        {genre.name}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
+
+            {/* シリーズフィルター（イベント選択時のみ） */}
+            {selectedType === 'event' &&
+              selectedGenre !== 'all' &&
+              (() => {
+                const selectedCat = hierarchyTree.find(
+                  (c) => c.id === selectedCategory,
+                );
+                if (!selectedCat) {return null;}
+                const selectedGen = selectedCat.children.find(
+                  (g) => g.id === selectedGenre,
+                );
+                if (!selectedGen || selectedGen.children.length === 0)
+                  {return null;}
+
+                return (
+                  <div className="flex flex-wrap gap-2">
+                    <span className="py-1.5 text-sm font-medium text-gray-600">
+                      シリーズ:
+                    </span>
+                    <button
+                      onClick={() => setSelectedSeries('all')}
+                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                        selectedSeries === 'all'
+                          ? 'bg-orange-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      全シリーズ
+                    </button>
+                    {selectedGen.children.map((series) => (
+                      <button
+                        key={series.id}
+                        onClick={() => setSelectedSeries(series.id)}
+                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                          selectedSeries === series.id
+                            ? 'bg-orange-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        {series.name}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
+          </div>
+        )}
 
         {/* 表示切り替え */}
         <div className="mb-4">
