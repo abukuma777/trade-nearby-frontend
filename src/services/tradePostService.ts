@@ -20,7 +20,7 @@ export interface SimpleTradePost {
   want_item: string;
   description?: string;
   location_name?: string;
-  status: 'active' | 'trading' | 'completed' | 'cancelled';
+  status: 'active' | 'trading' | 'completed' | 'private';
   created_at: string;
   updated_at: string;
   // 画像フィールドを追加
@@ -43,7 +43,7 @@ export interface UpdateTradePostData {
   want_item?: string;
   description?: string;
   location_name?: string;
-  status?: 'active' | 'trading' | 'completed' | 'cancelled';
+  status?: 'active' | 'trading' | 'completed' | 'private';
   // 画像フィールドを追加
   give_item_images?: ImageData[];
   want_item_images?: ImageData[];
@@ -160,7 +160,7 @@ class TradePostService {
    */
   async updateStatus(
     id: string,
-    status: 'active' | 'trading' | 'completed' | 'cancelled',
+    status: 'active' | 'trading' | 'completed' | 'private',
   ): Promise<SimpleTradePost> {
     try {
       const response = await apiClient.patch<{ data: SimpleTradePost }>(

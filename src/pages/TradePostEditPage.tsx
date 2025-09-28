@@ -32,7 +32,7 @@ const TradePostEditPage: React.FC = () => {
     want_item: '',
     description: '',
     location_name: '',
-    status: 'active' as 'active' | 'trading' | 'completed' | 'cancelled',
+    status: 'active' as 'active' | 'trading' | 'completed' | 'private',
   });
 
   // カテゴリ選択の状態
@@ -336,7 +336,7 @@ const TradePostEditPage: React.FC = () => {
               disabled={isSubmitDisabled}
             >
               <option value="active">募集中</option>
-              <option value="cancelled">非公開</option>
+              <option value="private">非公開</option>
               {/* tradingやcompletedは直接選択できない */}
             </select>
             <p className="mt-1 text-xs text-gray-500">

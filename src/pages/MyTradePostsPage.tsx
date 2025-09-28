@@ -40,7 +40,7 @@ const MyTradePostsPage: React.FC = () => {
 
   const handleStatusChange = async (
     id: string,
-    status: 'active' | 'trading' | 'completed' | 'cancelled',
+    status: 'active' | 'trading' | 'completed' | 'private',
   ): Promise<void> => {
     try {
       await updateStatus(id, status);
@@ -64,13 +64,13 @@ const MyTradePostsPage: React.FC = () => {
       active: 'bg-green-100 text-green-800',
       trading: 'bg-orange-100 text-orange-800',
       completed: 'bg-blue-100 text-blue-800',
-      cancelled: 'bg-gray-100 text-gray-800',
+      private: 'bg-gray-100 text-gray-800',
     };
     const labels = {
       active: '募集中',
       trading: '取引中',
       completed: '完了',
-      cancelled: '非公開',
+      private: '非公開',
     };
     return (
       <span
@@ -250,7 +250,7 @@ const MyTradePostsPage: React.FC = () => {
                             <>
                               <button
                                 onClick={() =>
-                                  void handleStatusChange(post.id, 'cancelled')
+                                  void handleStatusChange(post.id, 'private')
                                 }
                                 className="rounded bg-gray-600 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-700"
                               >
@@ -271,7 +271,7 @@ const MyTradePostsPage: React.FC = () => {
                           {/* 取引中: アクションなし（詳細のみ） */}
 
                           {/* 非公開: 再公開 */}
-                          {post.status === 'cancelled' && (
+                          {post.status === 'private' && (
                             <button
                               onClick={() =>
                                 void handleStatusChange(post.id, 'active')
