@@ -295,43 +295,32 @@ const StatisticsPage: React.FC = () => {
         {(selectedType === 'genre' ||
           selectedType === 'series' ||
           selectedType === 'event') && (
-          <div className="mb-4 space-y-2">
+          <div className="mb-4 flex flex-wrap gap-3">
             {/* カテゴリフィルター */}
-            <div className="flex flex-wrap gap-2">
-              <span className="py-1.5 text-sm font-medium text-gray-600">
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="category-filter"
+                className="text-sm font-medium text-gray-600"
+              >
                 カテゴリ:
-              </span>
-              <button
-                onClick={() => {
-                  setSelectedCategory('all');
+              </label>
+              <select
+                id="category-filter"
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
                   setSelectedGenre('all');
                   setSelectedSeries('all');
                 }}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                  selectedCategory === 'all'
-                    ? 'bg-green-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
-                全カテゴリ
-              </button>
-              {hierarchyTree.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => {
-                    setSelectedCategory(category.id);
-                    setSelectedGenre('all');
-                    setSelectedSeries('all');
-                  }}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                    selectedCategory === category.id
-                      ? 'bg-green-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  {category.name}
-                </button>
-              ))}
+                <option value="all">全カテゴリ</option>
+                {hierarchyTree.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* ジャンルフィルター（シリーズ、イベント選択時のみ） */}
@@ -341,43 +330,34 @@ const StatisticsPage: React.FC = () => {
                 const selectedCat = hierarchyTree.find(
                   (c) => c.id === selectedCategory,
                 );
-                if (!selectedCat || selectedCat.children.length === 0)
-                  {return null;}
+                if (!selectedCat || selectedCat.children.length === 0) {
+                  return null;
+                }
 
                 return (
-                  <div className="flex flex-wrap gap-2">
-                    <span className="py-1.5 text-sm font-medium text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="genre-filter"
+                      className="text-sm font-medium text-gray-600"
+                    >
                       ジャンル:
-                    </span>
-                    <button
-                      onClick={() => {
-                        setSelectedGenre('all');
+                    </label>
+                    <select
+                      id="genre-filter"
+                      value={selectedGenre}
+                      onChange={(e) => {
+                        setSelectedGenre(e.target.value);
                         setSelectedSeries('all');
                       }}
-                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                        selectedGenre === 'all'
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-100'
-                      }`}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     >
-                      全ジャンル
-                    </button>
-                    {selectedCat.children.map((genre) => (
-                      <button
-                        key={genre.id}
-                        onClick={() => {
-                          setSelectedGenre(genre.id);
-                          setSelectedSeries('all');
-                        }}
-                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                          selectedGenre === genre.id
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-white text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {genre.name}
-                      </button>
-                    ))}
+                      <option value="all">全ジャンル</option>
+                      {selectedCat.children.map((genre) => (
+                        <option key={genre.id} value={genre.id}>
+                          {genre.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 );
               })()}
@@ -385,45 +365,42 @@ const StatisticsPage: React.FC = () => {
             {/* シリーズフィルター（イベント選択時のみ） */}
             {selectedType === 'event' &&
               selectedGenre !== 'all' &&
+              selectedCategory !== 'all' &&
               (() => {
                 const selectedCat = hierarchyTree.find(
                   (c) => c.id === selectedCategory,
                 );
-                if (!selectedCat) {return null;}
+                if (!selectedCat) {
+                  return null;
+                }
                 const selectedGen = selectedCat.children.find(
                   (g) => g.id === selectedGenre,
                 );
-                if (!selectedGen || selectedGen.children.length === 0)
-                  {return null;}
+                if (!selectedGen || selectedGen.children.length === 0) {
+                  return null;
+                }
 
                 return (
-                  <div className="flex flex-wrap gap-2">
-                    <span className="py-1.5 text-sm font-medium text-gray-600">
-                      シリーズ:
-                    </span>
-                    <button
-                      onClick={() => setSelectedSeries('all')}
-                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                        selectedSeries === 'all'
-                          ? 'bg-orange-600 text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-100'
-                      }`}
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="series-filter"
+                      className="text-sm font-medium text-gray-600"
                     >
-                      全シリーズ
-                    </button>
-                    {selectedGen.children.map((series) => (
-                      <button
-                        key={series.id}
-                        onClick={() => setSelectedSeries(series.id)}
-                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                          selectedSeries === series.id
-                            ? 'bg-orange-600 text-white'
-                            : 'bg-white text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {series.name}
-                      </button>
-                    ))}
+                      シリーズ:
+                    </label>
+                    <select
+                      id="series-filter"
+                      value={selectedSeries}
+                      onChange={(e) => setSelectedSeries(e.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="all">全シリーズ</option>
+                      {selectedGen.children.map((series) => (
+                        <option key={series.id} value={series.id}>
+                          {series.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 );
               })()}
