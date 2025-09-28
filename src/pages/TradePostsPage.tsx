@@ -11,7 +11,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import CategorySelect, {
   CategorySelection,
 } from '../components/CategorySelect';
-import { contentService } from '../services/contentService';
+import { contentService, type CategoryCount } from '../services/contentService';
 import { useTradePostStore } from '../stores/tradePostStore';
 
 const TradePostsPage: React.FC = () => {
@@ -30,6 +30,8 @@ const TradePostsPage: React.FC = () => {
   const [showFilter, setShowFilter] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [loadingCategory, setLoadingCategory] = useState(false);
+  const [currentCategoryCount, setCurrentCategoryCount] =
+    useState<CategoryCount | null>(null);
 
   // URLパラメータが変更されたときにフィルターを適用
   useEffect(() => {
@@ -42,6 +44,11 @@ const TradePostsPage: React.FC = () => {
             await contentService.getSelectionFromContentId(urlContentId);
           setCategorySelection(selection);
           setIncludeChildren(urlIncludeChildren);
+
+          // 投稿数を取得
+          const count = await contentService.getCategoryCountById(urlContentId);
+          setCurrentCategoryCount(count || null);
+
           // content_idで検索を実行
           void fetchPosts('active', urlContentId, urlIncludeChildren);
         } catch (error) {
@@ -63,7 +70,7 @@ const TradePostsPage: React.FC = () => {
   }, [urlContentId, urlIncludeChildren, fetchPosts, isInitialized]);
 
   // フィルターを適用して投稿を取得
-  const applyFilter = (): void => {
+  const applyFilter = async (): Promise<void> => {
     // 最深階層のIDを取得
     const contentId =
       categorySelection.event_id ||
@@ -78,6 +85,14 @@ const TradePostsPage: React.FC = () => {
       params.set('include_children', includeChildren.toString());
       setSearchParams(params);
 
+      // 投稿数を取得
+      try {
+        const count = await contentService.getCategoryCountById(contentId);
+        setCurrentCategoryCount(count || null);
+      } catch (error) {
+        console.error('投稿数取得エラー:', error);
+      }
+
       void fetchPosts('active', contentId, includeChildren);
     }
     setShowFilter(false); // フィルターを閉じる
@@ -86,6 +101,7 @@ const TradePostsPage: React.FC = () => {
   // フィルターをクリア
   const clearFilter = (): void => {
     setCategorySelection({});
+    setCurrentCategoryCount(null);
     setSearchParams({}); // URLパラメータをクリア
     void fetchPosts('active');
     setShowFilter(false);
@@ -233,7 +249,7 @@ const TradePostsPage: React.FC = () => {
 
             <div className="mt-6 flex gap-2">
               <button
-                onClick={applyFilter}
+                onClick={() => void applyFilter()}
                 className="rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700"
                 disabled={!categorySelection.category_id}
               >
@@ -275,6 +291,12 @@ const TradePostsPage: React.FC = () => {
                       （子カテゴリを含む）
                     </span>
                   )}
+                  {currentCategoryCount && (
+                    <span className="ml-2 text-xs font-bold text-blue-700">
+                      (直接: {currentCategoryCount.directCount}件 / 子含む:{' '}
+                      {currentCategoryCount.totalCount}件)
+                    </span>
+                  )}
                 </>
               )}
             </div>
@@ -289,6 +311,19 @@ const TradePostsPage: React.FC = () => {
         )}
 
         {/* 投稿グリッド */}
+        <div className="mb-4 text-right text-sm text-gray-600">
+          {currentCategoryCount ? (
+            <span>
+              現在のフィルター:
+              {includeChildren
+                ? `${currentCategoryCount.totalCount}件の投稿を表示中`
+                : `${currentCategoryCount.directCount}件の投稿を表示中`}
+            </span>
+          ) : (
+            <span>全{posts.length}件の投稿を表示中</span>
+          )}
+        </div>
+
         {posts.length === 0 ? (
           <div className="rounded-lg bg-white p-8 text-center shadow">
             <p className="text-gray-500">現在、投稿はありません</p>

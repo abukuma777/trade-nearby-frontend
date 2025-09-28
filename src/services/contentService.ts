@@ -33,6 +33,14 @@ export interface HierarchyNode extends ContentHierarchy {
   children: HierarchyNode[];
 }
 
+export interface CategoryCount {
+  id: string;
+  name: string;
+  type: string;
+  directCount: number;
+  totalCount: number;
+}
+
 class ContentService {
   /**
    * カテゴリ一覧取得
@@ -127,6 +135,32 @@ class ContentService {
     } catch (error) {
       console.error('階層ツリー取得エラー:', error);
       throw error;
+    }
+  }
+
+  /**
+   * カテゴリごとの投稿数を取得
+   */
+  async getCategoryCounts(): Promise<CategoryCount[]> {
+    try {
+      const response = await apiClient.get<CategoryCount[]>('/content/counts');
+      return response.data || [];
+    } catch (error) {
+      console.error('カテゴリ投稿数取得エラー:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 特定カテゴリの投稿数をIDで取得
+   */
+  async getCategoryCountById(id: string): Promise<CategoryCount | undefined> {
+    try {
+      const counts = await this.getCategoryCounts();
+      return counts.find((count) => count.id === id);
+    } catch (error) {
+      console.error('カテゴリ投稿数取得エラー:', error);
+      return undefined;
     }
   }
 }

@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 
 import apiClient from '../services/api';
+import { contentService, type CategoryCount } from '../services/contentService';
 
 // 型定義
 interface ContentItem {
@@ -48,6 +49,9 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
   const [genres, setGenres] = useState<ContentItem[]>([]);
   const [series, setSeries] = useState<ContentItem[]>([]);
   const [events, setEvents] = useState<ContentItem[]>([]);
+  const [categoryCounts, setCategoryCounts] = useState<
+    Map<string, CategoryCount>
+  >(new Map());
 
   const [selectedCategory, setSelectedCategory] = useState<string>(
     initialSelection.category_id || '',
@@ -77,6 +81,7 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
   // カテゴリ一覧取得
   useEffect(() => {
     void fetchCategories();
+    void fetchCategoryCounts();
   }, []);
 
   // カテゴリ変更時
@@ -164,6 +169,19 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
     events,
   ]);
 
+  const fetchCategoryCounts = async (): Promise<void> => {
+    try {
+      const counts = await contentService.getCategoryCounts();
+      const countsMap = new Map<string, CategoryCount>();
+      counts.forEach((count) => {
+        countsMap.set(count.id, count);
+      });
+      setCategoryCounts(countsMap);
+    } catch (error) {
+      console.error('カテゴリ投稿数取得エラー:', error);
+    }
+  };
+
   const fetchCategories = async (): Promise<void> => {
     setLoading((prev) => ({ ...prev, categories: true }));
     try {
@@ -224,6 +242,15 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
     }
   };
 
+  // 投稿数表示用のフォーマット関数
+  const formatOptionWithCount = (item: ContentItem): string => {
+    const count = categoryCounts.get(item.id);
+    if (!count || (count.directCount === 0 && count.totalCount === 0)) {
+      return item.name;
+    }
+    return `${item.name} (直接: ${count.directCount}件 / 子含む: ${count.totalCount}件)`;
+  };
+
   return (
     <div className="space-y-4">
       {/* カテゴリ選択 */}
@@ -244,7 +271,7 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
           <option value="">選択してください</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
-              {category.name}
+              {formatOptionWithCount(category)}
             </option>
           ))}
         </select>
@@ -269,7 +296,7 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
             <option value="">選択してください</option>
             {genres.map((genre) => (
               <option key={genre.id} value={genre.id}>
-                {genre.name}
+                {formatOptionWithCount(genre)}
               </option>
             ))}
           </select>
@@ -295,7 +322,7 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
             <option value="">選択してください</option>
             {series.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name}
+                {formatOptionWithCount(s)}
               </option>
             ))}
           </select>
@@ -321,7 +348,7 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
             <option value="">選択してください</option>
             {events.map((event) => (
               <option key={event.id} value={event.id}>
-                {event.name}
+                {formatOptionWithCount(event)}
               </option>
             ))}
           </select>
