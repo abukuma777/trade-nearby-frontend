@@ -268,17 +268,7 @@ const MyTradePostsPage: React.FC = () => {
                             </>
                           )}
 
-                          {/* 取引中: キャンセルのみ */}
-                          {post.status === 'trading' && (
-                            <button
-                              onClick={() =>
-                                void handleStatusChange(post.id, 'cancelled')
-                              }
-                              className="rounded bg-gray-600 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-700"
-                            >
-                              キャンセル
-                            </button>
-                          )}
+                          {/* 取引中: アクションなし（詳細のみ） */}
 
                           {/* キャンセル済み: 再開 */}
                           {post.status === 'cancelled' && (
@@ -291,6 +281,8 @@ const MyTradePostsPage: React.FC = () => {
                               再開
                             </button>
                           )}
+
+                          {/* 完了: アクションなし（詳細のみ） */}
                         </div>
                       </div>
                     </div>

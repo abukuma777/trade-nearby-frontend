@@ -87,10 +87,17 @@ const TradePostEditPage: React.FC = () => {
       return;
     }
 
-    // 完了済みチェック
-    if (currentPost.status === 'completed') {
+    // 完了済み・取引中チェック
+    if (
+      currentPost.status === 'completed' ||
+      currentPost.status === 'trading'
+    ) {
+      const message =
+        currentPost.status === 'completed'
+          ? '完了済みの投稿は編集できません'
+          : '取引中の投稿は編集できません';
       setValidationErrors({
-        permission: '完了済みの投稿は編集できません',
+        permission: message,
       });
       setTimeout(() => navigate(`/trade-posts/${id}`), 2000);
       return;
@@ -329,9 +336,8 @@ const TradePostEditPage: React.FC = () => {
               disabled={isSubmitDisabled}
             >
               <option value="active">募集中</option>
-              <option value="trading">取引中</option>
               <option value="cancelled">キャンセル</option>
-              {/* completedは交換完了時のみ */}
+              {/* tradingやcompletedは直接選択できない */}
             </select>
             <p className="mt-1 text-xs text-gray-500">
               ※ 完了ステータスは交換成立時に自動設定されます
