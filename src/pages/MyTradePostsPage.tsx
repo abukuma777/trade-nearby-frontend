@@ -237,46 +237,50 @@ const MyTradePostsPage: React.FC = () => {
 
                         {/* アクションボタン */}
                         <div className="flex gap-2">
+                          {/* 詳細ボタンは常に表示（左端） */}
+                          <Link
+                            to={`/trade-posts/${post.id}`}
+                            className="rounded bg-gray-500 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-600"
+                          >
+                            詳細
+                          </Link>
+
+                          {/* 募集中: キャンセル、削除 */}
                           {post.status === 'active' && (
                             <>
                               <button
                                 onClick={() =>
-                                  void handleStatusChange(post.id, 'completed')
-                                }
-                                className="rounded bg-green-600 px-2 py-1 text-xs text-white transition-colors hover:bg-green-700"
-                              >
-                                完了
-                              </button>
-                              <button
-                                onClick={() =>
                                   void handleStatusChange(post.id, 'cancelled')
                                 }
                                 className="rounded bg-gray-600 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-700"
                               >
                                 キャンセル
                               </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedPostId(post.id);
+                                  setShowDeleteConfirm(true);
+                                }}
+                                className="rounded bg-red-600 px-2 py-1 text-xs text-white transition-colors hover:bg-red-700"
+                              >
+                                削除
+                              </button>
                             </>
                           )}
+
+                          {/* 取引中: キャンセルのみ */}
                           {post.status === 'trading' && (
-                            <>
-                              <button
-                                onClick={() =>
-                                  void handleStatusChange(post.id, 'completed')
-                                }
-                                className="rounded bg-green-600 px-2 py-1 text-xs text-white transition-colors hover:bg-green-700"
-                              >
-                                完了
-                              </button>
-                              <button
-                                onClick={() =>
-                                  void handleStatusChange(post.id, 'cancelled')
-                                }
-                                className="rounded bg-gray-600 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-700"
-                              >
-                                キャンセル
-                              </button>
-                            </>
+                            <button
+                              onClick={() =>
+                                void handleStatusChange(post.id, 'cancelled')
+                              }
+                              className="rounded bg-gray-600 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-700"
+                            >
+                              キャンセル
+                            </button>
                           )}
+
+                          {/* キャンセル済み: 再開 */}
                           {post.status === 'cancelled' && (
                             <button
                               onClick={() =>
@@ -287,29 +291,6 @@ const MyTradePostsPage: React.FC = () => {
                               再開
                             </button>
                           )}
-                          {post.status !== 'completed' && (
-                            <Link
-                              to={`/trade-posts/${post.short_id || post.id}/edit`}
-                              className="rounded bg-yellow-600 px-2 py-1 text-xs text-white transition-colors hover:bg-yellow-700"
-                            >
-                              編集
-                            </Link>
-                          )}
-                          <Link
-                            to={`/trade-posts/${post.id}`}
-                            className="rounded bg-gray-500 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-600"
-                          >
-                            詳細
-                          </Link>
-                          <button
-                            onClick={() => {
-                              setSelectedPostId(post.id);
-                              setShowDeleteConfirm(true);
-                            }}
-                            className="rounded bg-red-600 px-2 py-1 text-xs text-white transition-colors hover:bg-red-700"
-                          >
-                            削除
-                          </button>
                         </div>
                       </div>
                     </div>
@@ -326,7 +307,11 @@ const MyTradePostsPage: React.FC = () => {
             <div className="max-w-sm rounded-lg bg-white p-6">
               <h3 className="mb-4 text-lg font-bold text-gray-900">削除確認</h3>
               <p className="mb-6 text-gray-600">
-                この投稿を削除してもよろしいですか？
+                この投稿を完全に削除します。
+                <br />
+                削除された投稿は復元できません。
+                <br />
+                一時的に募集を停止したい場合はキャンセルをお使いください。
               </p>
               <div className="flex gap-3">
                 <button
