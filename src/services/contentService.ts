@@ -37,8 +37,10 @@ export interface CategoryCount {
   id: string;
   name: string;
   type: string;
-  directCount: number;
-  totalCount: number;
+  directCount: number; // アクティブな直接投稿数
+  totalCount: number; // アクティブな子含む投稿数
+  allDirectCount: number; // 全ステータスの直接投稿数
+  allTotalCount: number; // 全ステータスの子含む投稿数
 }
 
 class ContentService {

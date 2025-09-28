@@ -1,6 +1,6 @@
 /**
  * 統計ページ
- * カテゴリ別投稿数や人気ランキングを表示
+ * 階層別のTOP5ランキングを表示
  */
 
 import React, { useEffect, useState } from 'react';
@@ -12,7 +12,10 @@ const StatisticsPage: React.FC = () => {
   const [categoryCounts, setCategoryCounts] = useState<CategoryCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'total' | 'direct'>('total');
+  const [selectedType, setSelectedType] = useState<
+    'category' | 'genre' | 'series' | 'event'
+  >('category');
+  const [showActiveOnly, setShowActiveOnly] = useState(true);
 
   useEffect(() => {
     void fetchStatistics();
@@ -31,45 +34,86 @@ const StatisticsPage: React.FC = () => {
     }
   };
 
-  // カテゴリを階層タイプ別に分類
-  const getCategoriesByType = (type: string): CategoryCount[] => {
+  // 階層タイプ別にフィルター
+  const getFilteredByType = (type: string): CategoryCount[] => {
     return categoryCounts.filter((c) => c.type === type);
   };
 
-  // ランキング用にソート（投稿がある物のみ）
-  const getTopCategories = (limit: number = 10): CategoryCount[] => {
-    const activeCategories = categoryCounts.filter((c) =>
-      sortBy === 'total' ? c.totalCount > 0 : c.directCount > 0,
-    );
-
-    return activeCategories
+  // TOP5取得（子含む数でソート）
+  const getTop5 = (type: string): CategoryCount[] => {
+    const filtered = getFilteredByType(type);
+    return filtered
       .sort((a, b) => {
-        const countA = sortBy === 'total' ? a.totalCount : a.directCount;
-        const countB = sortBy === 'total' ? b.totalCount : b.directCount;
+        const countA = showActiveOnly ? a.totalCount : a.allTotalCount;
+        const countB = showActiveOnly ? b.totalCount : b.allTotalCount;
         return countB - countA;
       })
-      .slice(0, limit);
+      .slice(0, 5);
   };
 
   // 統計サマリー
   const getStatsSummary = (): {
+    activePosts: number;
     totalPosts: number;
-    categoriesWithPosts: number;
+    activeCategories: number;
     totalCategories: number;
   } => {
-    const totalPosts = categoryCounts.reduce(
+    const activePosts = categoryCounts.reduce(
       (sum, c) => Math.max(sum, c.totalCount),
       0,
     );
-    const categoriesWithPosts = categoryCounts.filter(
+    const totalPosts = categoryCounts.reduce(
+      (sum, c) => Math.max(sum, c.allTotalCount),
+      0,
+    );
+    const activeCategories = categoryCounts.filter(
       (c) => c.directCount > 0,
     ).length;
     const totalCategories = categoryCounts.length;
 
     return {
+      activePosts,
       totalPosts,
-      categoriesWithPosts,
+      activeCategories,
       totalCategories,
+    };
+  };
+
+  // タイプ名の日本語化
+  const getTypeName = (type: string): string => {
+    switch (type) {
+      case 'category':
+        return 'カテゴリ';
+      case 'genre':
+        return 'ジャンル';
+      case 'series':
+        return 'シリーズ';
+      case 'event':
+        return 'イベント';
+      default:
+        return type;
+    }
+  };
+
+  // 階層別統計の取得
+  const getTypeStats = (
+    type: string,
+  ): {
+    activeItems: number;
+    totalItems: number;
+    activePosts: number;
+    totalPosts: number;
+  } => {
+    const items = getFilteredByType(type);
+    const activeItems = items.filter((i) => i.directCount > 0);
+    const totalActive = items.reduce((sum, i) => sum + i.directCount, 0);
+    const totalAll = items.reduce((sum, i) => sum + i.allDirectCount, 0);
+
+    return {
+      activeItems: activeItems.length,
+      totalItems: items.length,
+      activePosts: totalActive,
+      totalPosts: totalAll,
     };
   };
 
@@ -96,7 +140,7 @@ const StatisticsPage: React.FC = () => {
   }
 
   const stats = getStatsSummary();
-  const topCategories = getTopCategories();
+  const top5Items = getTop5(selectedType);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -110,170 +154,236 @@ const StatisticsPage: React.FC = () => {
         </div>
 
         {/* サマリーカード */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-3">
+        <div className="mb-8 grid gap-4 sm:grid-cols-4">
+          <div className="rounded-lg bg-white p-6 shadow">
+            <div className="text-sm text-gray-600">アクティブ投稿</div>
+            <div className="text-3xl font-bold text-blue-600">
+              {stats.activePosts}
+            </div>
+            <div className="text-xs text-gray-500">現在出品中</div>
+          </div>
+
           <div className="rounded-lg bg-white p-6 shadow">
             <div className="text-sm text-gray-600">総投稿数</div>
-            <div className="text-3xl font-bold text-blue-600">
+            <div className="text-3xl font-bold text-green-600">
               {stats.totalPosts}
             </div>
-            <div className="text-xs text-gray-500">アクティブな投稿</div>
+            <div className="text-xs text-gray-500">取引完了含む</div>
           </div>
 
           <div className="rounded-lg bg-white p-6 shadow">
             <div className="text-sm text-gray-600">アクティブカテゴリ</div>
-            <div className="text-3xl font-bold text-green-600">
-              {stats.categoriesWithPosts}
+            <div className="text-3xl font-bold text-purple-600">
+              {stats.activeCategories}
             </div>
             <div className="text-xs text-gray-500">投稿があるカテゴリ</div>
           </div>
 
           <div className="rounded-lg bg-white p-6 shadow">
             <div className="text-sm text-gray-600">総カテゴリ数</div>
-            <div className="text-3xl font-bold text-purple-600">
+            <div className="text-3xl font-bold text-orange-600">
               {stats.totalCategories}
             </div>
             <div className="text-xs text-gray-500">全階層の合計</div>
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-2">
-          {/* 人気カテゴリランキング */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">
-                🏆 人気カテゴリTOP10
-              </h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSortBy('total')}
-                  className={`rounded px-3 py-1 text-sm ${
-                    sortBy === 'total'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700'
+        {/* 階層別タブ */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          {(['category', 'genre', 'series', 'event'] as const).map((type) => {
+            const typeStats = getTypeStats(type);
+            return (
+              <button
+                key={type}
+                onClick={() => setSelectedType(type)}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  selectedType === type
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <span>{getTypeName(type)}</span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    selectedType === type
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-600'
                   }`}
                 >
-                  子含む
-                </button>
-                <button
-                  onClick={() => setSortBy('direct')}
-                  className={`rounded px-3 py-1 text-sm ${
-                    sortBy === 'direct'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700'
-                  }`}
-                >
-                  直接のみ
-                </button>
-              </div>
-            </div>
+                  {typeStats.activeItems}/{typeStats.totalItems}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-            {topCategories.length === 0 ? (
-              <p className="text-gray-500">投稿データがありません</p>
-            ) : (
-              <div className="space-y-3">
-                {topCategories.map((category, index) => {
-                  const count =
-                    sortBy === 'total'
-                      ? category.totalCount
-                      : category.directCount;
-                  const percentage = (count / stats.totalPosts) * 100;
-
-                  return (
-                    <div key={category.id} className="relative">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
-                              index === 0
-                                ? 'bg-yellow-400 text-white'
-                                : index === 1
-                                  ? 'bg-gray-300 text-gray-700'
-                                  : index === 2
-                                    ? 'bg-orange-400 text-white'
-                                    : 'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            {index + 1}
-                          </span>
-                          <div>
-                            <Link
-                              to={`/trade-posts?content_id=${category.id}&include_children=${sortBy === 'total'}`}
-                              className="font-medium text-gray-900 hover:text-blue-600 hover:underline"
-                            >
-                              {category.name}
-                            </Link>
-                            <div className="text-xs text-gray-500">
-                              {category.type === 'category' && 'カテゴリ'}
-                              {category.type === 'genre' && 'ジャンル'}
-                              {category.type === 'series' && 'シリーズ'}
-                              {category.type === 'event' && 'イベント'}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-gray-900">
-                            {count}件
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {percentage.toFixed(1)}%
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* プログレスバー */}
-                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-200">
-                        <div
-                          className="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+        {/* 表示切り替え */}
+        <div className="mb-6 flex justify-end">
+          <div className="flex rounded-lg bg-white shadow">
+            <button
+              onClick={() => setShowActiveOnly(true)}
+              className={`px-4 py-2 text-sm font-medium ${
+                showActiveOnly
+                  ? 'rounded-l-lg bg-blue-600 text-white'
+                  : 'rounded-l-lg text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              現在出品中のみ
+            </button>
+            <button
+              onClick={() => setShowActiveOnly(false)}
+              className={`px-4 py-2 text-sm font-medium ${
+                !showActiveOnly
+                  ? 'rounded-r-lg bg-blue-600 text-white'
+                  : 'rounded-r-lg text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              取引完了含む
+            </button>
           </div>
+        </div>
 
-          {/* 階層別統計 */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="mb-4 text-xl font-bold text-gray-900">
-              📊 階層別統計
-            </h2>
+        {/* 人気TOP5ランキング */}
+        <div className="rounded-lg bg-white p-6 shadow">
+          <h2 className="mb-6 text-xl font-bold text-gray-900">
+            🏆 {getTypeName(selectedType)} 人気TOP5
+          </h2>
 
+          {top5Items.length === 0 ? (
+            <p className="text-center text-gray-500">投稿データがありません</p>
+          ) : (
             <div className="space-y-4">
-              {['category', 'genre', 'series', 'event'].map((type) => {
-                const items = getCategoriesByType(type);
-                const activeItems = items.filter((i) => i.directCount > 0);
-                const totalInType = items.reduce(
-                  (sum, i) => sum + i.directCount,
-                  0,
+              {top5Items.map((item, index) => {
+                const activeDirectCount = item.directCount;
+                const activeTotalCount = item.totalCount;
+                const allDirectCount = item.allDirectCount;
+                const allTotalCount = item.allTotalCount;
+
+                const maxCount = Math.max(
+                  ...top5Items.map((i) =>
+                    showActiveOnly ? i.totalCount : i.allTotalCount,
+                  ),
                 );
+                const currentCount = showActiveOnly
+                  ? activeTotalCount
+                  : allTotalCount;
+                const percentage =
+                  maxCount > 0 ? (currentCount / maxCount) * 100 : 0;
 
                 return (
-                  <div key={type} className="border-b pb-3 last:border-0">
+                  <div key={item.id} className="relative">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {type === 'category' && '🏷️ カテゴリ'}
-                          {type === 'genre' && '🎭 ジャンル'}
-                          {type === 'series' && '📚 シリーズ'}
-                          {type === 'event' && '🎪 イベント'}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {activeItems.length} / {items.length} アクティブ
+                      <div className="flex items-center gap-4">
+                        {/* 順位 */}
+                        <span
+                          className={`flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold ${
+                            index === 0
+                              ? 'bg-yellow-400 text-white'
+                              : index === 1
+                                ? 'bg-gray-300 text-gray-700'
+                                : index === 2
+                                  ? 'bg-orange-400 text-white'
+                                  : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {index + 1}
+                        </span>
+
+                        {/* カテゴリ名 */}
+                        <div className="flex-1">
+                          <Link
+                            to={`/trade-posts?content_id=${item.id}&include_children=true`}
+                            className="font-medium text-gray-900 hover:text-blue-600 hover:underline"
+                          >
+                            {item.name}
+                          </Link>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-bold text-gray-900">
-                          {totalInType}件
+
+                      {/* 投稿数 */}
+                      <div className="flex gap-8 text-right">
+                        <div>
+                          <div className="text-xs text-gray-500">
+                            現在出品中
+                          </div>
+                          <div className="font-bold text-blue-600">
+                            {activeDirectCount}件
+                            <span className="ml-1 text-xs text-gray-500">
+                              (子含: {activeTotalCount}件)
+                            </span>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">直接投稿</div>
+                        <div>
+                          <div className="text-xs text-gray-500">
+                            取引完了含む
+                          </div>
+                          <div className="font-bold text-gray-900">
+                            {allDirectCount}件
+                            <span className="ml-1 text-xs text-gray-500">
+                              (子含: {allTotalCount}件)
+                            </span>
+                          </div>
+                        </div>
                       </div>
+                    </div>
+
+                    {/* プログレスバー */}
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-200">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500"
+                        style={{ width: `${percentage}%` }}
+                      />
                     </div>
                   </div>
                 );
               })}
             </div>
+          )}
+        </div>
+
+        {/* 階層別統計サマリー */}
+        <div className="mt-8 rounded-lg bg-white p-6 shadow">
+          <h2 className="mb-4 text-xl font-bold text-gray-900">
+            📊 階層別統計サマリー
+          </h2>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {(['category', 'genre', 'series', 'event'] as const).map((type) => {
+              const typeStats = getTypeStats(type);
+
+              return (
+                <div key={type} className="rounded-lg border p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-medium text-gray-900">
+                      {type === 'category' && '🏷️'}
+                      {type === 'genre' && '🎭'}
+                      {type === 'series' && '📚'}
+                      {type === 'event' && '🎪'} {getTypeName(type)}
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">アクティブ</span>
+                      <span className="font-medium">
+                        {typeStats.activeItems}/{typeStats.totalItems}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">現在出品</span>
+                      <span className="font-medium text-blue-600">
+                        {typeStats.activePosts}件
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">総投稿数</span>
+                      <span className="font-medium">
+                        {typeStats.totalPosts}件
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
