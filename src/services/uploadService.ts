@@ -3,8 +3,9 @@
  * Supabase Storageへの画像アップロード、削除、管理機能
  */
 
+import { AxiosProgressEvent, AxiosError } from 'axios';
+
 import apiClient, { ApiResponse } from './api';
-import { AxiosProgressEvent } from 'axios';
 
 // ========== 型定義 ==========
 
@@ -38,14 +39,6 @@ export interface UploadOptions {
 }
 
 /**
- * 複数アップロードオプション
- */
-export interface MultipleUploadOptions extends Omit<UploadOptions, 'onProgress'> {
-  onProgress?: (progress: number, fileIndex: number) => void; // ファイルインデックス付きプログレス
-  onTotalProgress?: (progress: number) => void; // 全体のプログレス
-}
-
-/**
  * 削除リクエスト
  */
 export interface DeleteImageRequest {
@@ -62,7 +55,10 @@ class UploadService {
    * @param options アップロードオプション
    * @returns アップロードされた画像情報
    */
-  async uploadSingleImage(file: File, options: UploadOptions = {}): Promise<UploadedImage> {
+  async uploadSingleImage(
+    file: File,
+    options: UploadOptions = {},
+  ): Promise<UploadedImage> {
     const { type = 'item', onProgress, signal } = options;
 
     // FormDataの作成
@@ -95,84 +91,26 @@ class UploadService {
       }
 
       return response.data.data as UploadedImage;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Upload single image error:', error);
 
       // キャンセルエラーの場合
-      if (error.name === 'CanceledError') {
+      if (error instanceof Error && error.name === 'CanceledError') {
         throw new Error('アップロードがキャンセルされました');
       }
 
-      // エラーメッセージの取得
-      const errorMessage =
-        error.response?.data?.message || error.message || 'アップロードに失敗しました';
-
-      throw new Error(errorMessage);
-    }
-  }
-
-  /**
-   * 複数画像のアップロード
-   * @param files アップロードするファイル配列
-   * @param options アップロードオプション
-   * @returns アップロードされた画像情報の配列
-   */
-  async uploadMultipleImages(
-    files: File[],
-    options: MultipleUploadOptions = {},
-  ): Promise<UploadedImage[]> {
-    const { type = 'item', onProgress, onTotalProgress, signal } = options;
-
-    // ファイル数の検証（最大5枚）
-    if (files.length > 5) {
-      throw new Error('一度にアップロードできる画像は最大5枚です');
-    }
-
-    // FormDataの作成
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append('images', file);
-    });
-    formData.append('type', type);
-
-    try {
-      const response = await apiClient.post<ApiResponse<UploadedImage[]>>(
-        '/api/upload/multiple',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          onUploadProgress: (progressEvent: AxiosProgressEvent) => {
-            if (onTotalProgress && progressEvent.total) {
-              const percentCompleted = Math.round(
-                (progressEvent.loaded * 100) / progressEvent.total,
-              );
-              onTotalProgress(percentCompleted);
-            }
-          },
-          signal,
-        },
-      );
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'アップロードに失敗しました');
+      // Axiosエラーの場合
+      if (error instanceof AxiosError) {
+        const responseData = error.response?.data as ApiResponse | undefined;
+        const errorMessage =
+          responseData?.message ||
+          error.message ||
+          'アップロードに失敗しました';
+        throw new Error(errorMessage);
       }
 
-      return response.data.data as UploadedImage[];
-    } catch (error: any) {
-      console.error('Upload multiple images error:', error);
-
-      // キャンセルエラーの場合
-      if (error.name === 'CanceledError') {
-        throw new Error('アップロードがキャンセルされました');
-      }
-
-      // エラーメッセージの取得
-      const errorMessage =
-        error.response?.data?.message || error.message || 'アップロードに失敗しました';
-
-      throw new Error(errorMessage);
+      // その他のエラー
+      throw new Error('アップロードに失敗しました');
     }
   }
 
@@ -181,26 +119,37 @@ class UploadService {
    * @param bucket バケット名
    * @param filePath 削除するファイルのパス
    */
-  async deleteImage(bucket: 'item-images' | 'user-avatars', filePath: string): Promise<void> {
+  async deleteImage(
+    bucket: 'item-images' | 'user-avatars',
+    filePath: string,
+  ): Promise<void> {
     try {
-      const response = await apiClient.delete<ApiResponse>('/api/upload/delete', {
-        data: {
-          bucket,
-          filePath,
+      const response = await apiClient.delete<ApiResponse>(
+        '/api/upload/delete',
+        {
+          data: {
+            bucket,
+            filePath,
+          },
         },
-      });
+      );
 
       if (!response.data.success) {
         throw new Error(response.data.message || '削除に失敗しました');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Delete image error:', error);
 
-      // エラーメッセージの取得
-      const errorMessage =
-        error.response?.data?.message || error.message || '画像の削除に失敗しました';
+      // Axiosエラーの場合
+      if (error instanceof AxiosError) {
+        const responseData = error.response?.data as ApiResponse | undefined;
+        const errorMessage =
+          responseData?.message || error.message || '画像の削除に失敗しました';
+        throw new Error(errorMessage);
+      }
 
-      throw new Error(errorMessage);
+      // その他のエラー
+      throw new Error('画像の削除に失敗しました');
     }
   }
 
@@ -245,7 +194,13 @@ class UploadService {
    * @returns 検証結果
    */
   validateFileType(file: File): boolean {
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+    ];
     return allowedTypes.includes(file.type);
   }
 
@@ -256,7 +211,11 @@ class UploadService {
    * @param maxSizeInMB 各ファイルの最大サイズ（MB）
    * @returns 検証エラーメッセージ（エラーがない場合はnull）
    */
-  validateFiles(files: File[], maxFiles: number = 5, maxSizeInMB: number = 10): string | null {
+  validateFiles(
+    files: File[],
+    maxFiles: number = 5,
+    maxSizeInMB: number = 10,
+  ): string | null {
     // ファイル数チェック
     if (files.length > maxFiles) {
       return `アップロードできる画像は最大${maxFiles}枚です`;
