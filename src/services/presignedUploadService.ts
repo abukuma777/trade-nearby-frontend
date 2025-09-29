@@ -3,9 +3,10 @@
  * Pre-signed URLの代わりにSupabase SDKを使用
  */
 
-import apiClient, { ApiResponse } from './api';
-import { AxiosError } from 'axios';
 import { createClient } from '@supabase/supabase-js';
+import { AxiosError } from 'axios';
+
+import apiClient, { ApiResponse } from './api';
 
 // ========== 型定義 ==========
 
@@ -42,7 +43,9 @@ class PresignedUploadService {
    * Supabaseクライアントの初期化
    */
   private async initSupabaseClient(): Promise<unknown> {
-    if (this.supabaseClient) return this.supabaseClient;
+    if (this.supabaseClient) {
+      return this.supabaseClient;
+    }
 
     try {
       // サーバーから接続情報を取得
@@ -52,7 +55,7 @@ class PresignedUploadService {
           fileName: 'init.txt',
           fileType: 'image/jpeg',
           fileSize: 1,
-        }
+        },
       );
 
       if (response.data.success && response.data.data) {
@@ -71,26 +74,42 @@ class PresignedUploadService {
   /**
    * Supabase Storageを使用した直接アップロード
    */
-  async uploadImage(file: File, options: UploadOptions = {}): Promise<UploadedImage> {
+  async uploadImage(
+    file: File,
+    options: UploadOptions = {},
+  ): Promise<UploadedImage> {
     const { onProgress, signal } = options;
 
     try {
       // Step 1: サーバーからパス情報を取得
-      const presignedResponse = await apiClient.post<ApiResponse<PresignedUrlResponse>>(
+      const presignedResponse = await apiClient.post<
+        ApiResponse<PresignedUrlResponse>
+      >(
         '/upload/presigned-url',
         {
           fileName: file.name,
           fileType: file.type,
           fileSize: file.size,
         },
-        { signal }
+        { signal },
       );
 
       if (!presignedResponse.data.success || !presignedResponse.data.data) {
         throw new Error('アップロード情報の取得に失敗しました');
       }
 
-      const { bucketName, path, publicUrl, supabaseUrl, supabaseAnonKey } = presignedResponse.data.data;
+      const { bucketName, path, publicUrl, supabaseUrl, supabaseAnonKey } =
+        presignedResponse.data.data;
+
+      // デバッグログ
+      // eslint-disable-next-line no-console
+      console.log('Pre-signed URL response:', {
+        bucketName,
+        path,
+        publicUrl,
+        supabaseUrl: supabaseUrl ? '✓ Exists' : '✗ Missing',
+        supabaseAnonKey: supabaseAnonKey ? '✓ Exists' : '✗ Missing',
+      });
 
       // Step 2: Supabaseクライアントでアップロード
       if (supabaseUrl && supabaseAnonKey) {
@@ -103,7 +122,7 @@ class PresignedUploadService {
 
         // XHRでアップロード
         const xhr = new XMLHttpRequest();
-        
+
         // プログレス監視
         if (onProgress) {
           xhr.upload.addEventListener('progress', (e) => {
@@ -123,9 +142,9 @@ class PresignedUploadService {
               reject(new Error(`Upload failed: ${xhr.status}`));
             }
           };
-          
+
           xhr.onerror = () => reject(new Error('Network error'));
-          
+
           // アボート処理
           if (signal) {
             signal.addEventListener('abort', () => {
@@ -137,7 +156,7 @@ class PresignedUploadService {
 
         // Supabase Storage APIのURLを構築
         const uploadApiUrl = `${supabaseUrl}/storage/v1/object/${bucketName}/${path}`;
-        
+
         // アップロード実行
         xhr.open('POST', uploadApiUrl);
         xhr.setRequestHeader('Authorization', `Bearer ${supabaseAnonKey}`);
@@ -153,7 +172,6 @@ class PresignedUploadService {
           size: file.size,
           type: file.type,
         };
-
       } else {
         // フォールバック：従来のサーバー経由アップロード
         const formData = new FormData();
@@ -168,29 +186,30 @@ class PresignedUploadService {
             },
             onUploadProgress: (progressEvent) => {
               if (onProgress && progressEvent.total) {
-                const percentComplete = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                const percentComplete = Math.round(
+                  (progressEvent.loaded * 100) / progressEvent.total,
+                );
                 onProgress(percentComplete);
               }
             },
             signal,
-          }
+          },
         );
 
         if (!uploadResponse.data.success || !uploadResponse.data.data) {
           throw new Error('アップロードに失敗しました');
         }
 
-        return uploadResponse.data.data as UploadedImage;
+        return uploadResponse.data.data;
       }
-
     } catch (error) {
       console.error('Upload error:', error);
-      
+
       if (error instanceof AxiosError) {
         const responseData = error.response?.data as ApiResponse | undefined;
         throw new Error(responseData?.message || 'アップロードに失敗しました');
       }
-      
+
       throw error;
     }
   }
@@ -204,17 +223,19 @@ class PresignedUploadService {
       onProgress?: (progress: number, fileIndex: number) => void;
       onOverallProgress?: (progress: number) => void;
       signal?: AbortSignal;
-    } = {}
+    } = {},
   ): Promise<UploadedImage[]> {
     const { onProgress, onOverallProgress, signal } = options;
-    
+
     const progressMap = new Map<number, number>();
-    
+
     // 全体プログレス計算
     const updateOverallProgress = (): void => {
       if (onOverallProgress) {
-        const totalProgress = Array.from(progressMap.values())
-          .reduce((sum, progress) => sum + progress, 0);
+        const totalProgress = Array.from(progressMap.values()).reduce(
+          (sum, progress) => sum + progress,
+          0,
+        );
         const overallProgress = Math.round(totalProgress / files.length);
         onOverallProgress(overallProgress);
       }
@@ -226,18 +247,18 @@ class PresignedUploadService {
         signal,
         onProgress: (progress) => {
           progressMap.set(index, progress);
-          
+
           if (onProgress) {
             onProgress(progress, index);
           }
-          
+
           updateOverallProgress();
         },
-      }).then(result => ({
+      }).then((result) => ({
         ...result,
         order: index,
         is_main: index === 0,
-      }))
+      })),
     );
 
     return Promise.all(uploadPromises);
@@ -249,7 +270,7 @@ class PresignedUploadService {
   async deleteImage(path: string): Promise<void> {
     try {
       const response = await apiClient.delete<ApiResponse>(
-        `/upload/${encodeURIComponent(path)}`
+        `/upload/${encodeURIComponent(path)}`,
       );
 
       if (!response.data.success) {
@@ -257,12 +278,12 @@ class PresignedUploadService {
       }
     } catch (error) {
       console.error('Delete error:', error);
-      
+
       if (error instanceof AxiosError) {
         const responseData = error.response?.data as ApiResponse | undefined;
         throw new Error(responseData?.message || '画像の削除に失敗しました');
       }
-      
+
       throw error;
     }
   }
@@ -274,18 +295,18 @@ class PresignedUploadService {
     // ファイルタイプチェック
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
-      return { 
-        valid: false, 
-        error: '対応していないファイル形式です（JPEG、PNG、WebP、GIFのみ）' 
+      return {
+        valid: false,
+        error: '対応していないファイル形式です（JPEG、PNG、WebP、GIFのみ）',
       };
     }
 
     // ファイルサイズチェック（10MB）
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      return { 
-        valid: false, 
-        error: 'ファイルサイズが大きすぎます（最大10MB）' 
+      return {
+        valid: false,
+        error: 'ファイルサイズが大きすぎます（最大10MB）',
       };
     }
 
