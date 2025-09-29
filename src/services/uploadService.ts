@@ -68,7 +68,7 @@ class UploadService {
 
     try {
       const response = await apiClient.post<ApiResponse<UploadedImage>>(
-        '/api/upload/single',
+        '/upload/single',
         formData,
         {
           headers: {
@@ -125,7 +125,7 @@ class UploadService {
   ): Promise<void> {
     try {
       const response = await apiClient.delete<ApiResponse>(
-        '/api/upload/delete',
+        '/upload/delete',
         {
           data: {
             bucket,

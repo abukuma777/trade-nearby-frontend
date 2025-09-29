@@ -3,19 +3,20 @@
  */
 
 import React, { useState } from 'react';
-import { ImageUploader } from '@/components/upload';
+import { ImageUploader, AdvancedImageUploader } from '@/components/upload';
 import { UploadedImage } from '@/services/uploadService';
+import { UploadedImage as PresignedUploadedImage } from '@/services/presignedUploadService';
 
 const UploadTestPage: React.FC = () => {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
 
-  const addLog = (message: string) => {
+  const addLog = (message: string): void => {
     const timestamp = new Date().toLocaleTimeString();
     setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 9)]);
   };
 
-  const handleImagesChange = (images: UploadedImage[]) => {
+  const handleImagesChange = (images: UploadedImage[]): void => {
     setUploadedImages(images);
     addLog(`画像が変更されました: ${images.length}枚`);
     images.forEach((img, index) => {
@@ -28,10 +29,27 @@ const UploadTestPage: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">画像アップロードテスト</h1>
 
-        {/* テストケース1: 通常の複数画像アップロード */}
+        {/* テストケースNEW: Pre-signed URL方式 */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            テストケース1: 複数画像アップロード（最大5枚）
+            🆕 Pre-signed URL方式（高速・推奨）
+          </h2>
+          <AdvancedImageUploader
+            maxImages={5}
+            label="Pre-signed URLで直接アップロード"
+            onImagesChange={(images: PresignedUploadedImage[]) => {
+              addLog(`[Pre-signed] 画像変更: ${images.length}枚`);
+              images.forEach((img, idx) => {
+                addLog(`  画像${idx + 1}: ${img.path}`);
+              });
+            }}
+          />
+        </div>
+
+        {/* テストケース1: 通常の複数画像アップロード（旧方式） */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            テストケース1: 複数画像アップロード（最大5枚）- 旧方式
           </h2>
           <ImageUploader maxImages={5} uploadType="item" onImagesChange={handleImagesChange} />
         </div>
@@ -39,7 +57,7 @@ const UploadTestPage: React.FC = () => {
         {/* テストケース2: 単一画像アップロード（アバター） */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            テストケース2: アバター画像（1枚のみ）
+            テストケース2: アバター画像（1枚のみ）- 旧方式
           </h2>
           <ImageUploader
             maxImages={1}
@@ -80,11 +98,11 @@ const UploadTestPage: React.FC = () => {
               </p>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {uploadedImages.map((image, index) => (
-                  <div key={index} className="border rounded-lg p-3">
+                {uploadedImages.map((image) => (
+                  <div key={`image-${image.path}`} className="border rounded-lg p-3">
                     <img
                       src={image.thumbnail || image.url}
-                      alt={`Uploaded ${index + 1}`}
+                      alt={`Uploaded image`}
                       className="w-full h-32 object-cover rounded mb-2"
                     />
                     <p className="text-xs text-gray-500 truncate">{image.path}</p>
@@ -110,8 +128,8 @@ const UploadTestPage: React.FC = () => {
 
           <div className="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm">
             {logs.length > 0 ? (
-              logs.map((log, index) => (
-                <div key={index} className="mb-1">
+              logs.map((log, idx) => (
+                <div key={`${log.substring(0, 20)}-${idx}`} className="mb-1">
                   {log}
                 </div>
               ))

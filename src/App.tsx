@@ -19,6 +19,8 @@ import TradePostDetailPage from './pages/TradePostDetailPage';
 import TradePostEditPage from './pages/TradePostEditPage';
 import TradePostsPage from './pages/TradePostsPage';
 import UserTradePostsPage from './pages/UserTradePostsPage';
+// テストページ
+import UploadTestPage from './pages/UploadTest';
 
 import { PrivateRoute, GuestRoute } from '@/components/auth/PrivateRoute';
 import { useAuthStore } from '@/stores/authStore';
@@ -218,6 +220,16 @@ function App(): JSX.Element {
                 </div>
               </MainLayout>
             </PrivateRoute>
+          }
+        />
+
+        {/* 画像アップロードテストページ（開発用） */}
+        <Route
+          path="/upload-test"
+          element={
+            <MainLayout isAuthenticated={isAuthenticated} username={username}>
+              <UploadTestPage />
+            </MainLayout>
           }
         />
 
