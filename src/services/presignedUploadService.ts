@@ -148,8 +148,15 @@ class PresignedUploadService {
         const uploadApiUrl = `${supabaseUrl}/storage/v1/object/${bucketName}/${path}`;
 
         // アップロード実行
+        // ユーザーのJWTトークンを取得
+        const userToken = localStorage.getItem('token');
+
         xhr.open('POST', uploadApiUrl);
-        xhr.setRequestHeader('Authorization', `Bearer ${supabaseAnonKey}`);
+        // ユーザートークンがあれば優先、なければANON KEYを使用
+        xhr.setRequestHeader(
+          'Authorization',
+          `Bearer ${userToken || supabaseAnonKey}`,
+        );
         xhr.setRequestHeader('Content-Type', file.type);
         xhr.setRequestHeader('x-upsert', 'true'); // ファイルが既に存在する場合は上書き
         xhr.send(file);
