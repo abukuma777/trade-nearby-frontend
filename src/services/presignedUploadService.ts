@@ -101,16 +101,6 @@ class PresignedUploadService {
       const { bucketName, path, publicUrl, supabaseUrl, supabaseAnonKey } =
         presignedResponse.data.data;
 
-      // デバッグログ
-      // eslint-disable-next-line no-console
-      console.log('Pre-signed URL response:', {
-        bucketName,
-        path,
-        publicUrl,
-        supabaseUrl: supabaseUrl ? '✓ Exists' : '✗ Missing',
-        supabaseAnonKey: supabaseAnonKey ? '✓ Exists' : '✗ Missing',
-      });
-
       // Step 2: Supabaseクライアントでアップロード
       if (supabaseUrl && supabaseAnonKey) {
         // const supabase = createClient(supabaseUrl, supabaseAnonKey);
