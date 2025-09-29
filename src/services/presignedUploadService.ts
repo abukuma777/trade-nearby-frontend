@@ -150,7 +150,8 @@ class PresignedUploadService {
         // アップロード実行
         xhr.open('POST', uploadApiUrl);
         xhr.setRequestHeader('Authorization', `Bearer ${supabaseAnonKey}`);
-        xhr.setRequestHeader('x-upsert', 'false');
+        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.setRequestHeader('x-upsert', 'true'); // ファイルが既に存在する場合は上書き
         xhr.send(file);
 
         await uploadPromise;
