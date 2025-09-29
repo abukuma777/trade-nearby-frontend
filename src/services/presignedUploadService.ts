@@ -17,6 +17,7 @@ export interface PresignedUrlResponse {
   publicUrl: string;
   supabaseUrl?: string;
   supabaseAnonKey?: string;
+  supabaseAuthToken?: string; // Supabase認証用JWT
   expiresAt: string;
 }
 
@@ -98,8 +99,14 @@ class PresignedUploadService {
         throw new Error('アップロード情報の取得に失敗しました');
       }
 
-      const { bucketName, path, publicUrl, supabaseUrl, supabaseAnonKey } =
-        presignedResponse.data.data;
+      const {
+        bucketName,
+        path,
+        publicUrl,
+        supabaseUrl,
+        supabaseAnonKey,
+        supabaseAuthToken,
+      } = presignedResponse.data.data;
 
       // Step 2: Supabaseクライアントでアップロード
       if (supabaseUrl && supabaseAnonKey) {
@@ -148,14 +155,11 @@ class PresignedUploadService {
         const uploadApiUrl = `${supabaseUrl}/storage/v1/object/${bucketName}/${path}`;
 
         // アップロード実行
-        // ユーザーのJWTトークンを取得
-        const userToken = localStorage.getItem('token');
-
         xhr.open('POST', uploadApiUrl);
-        // ユーザートークンがあれば優先、なければANON KEYを使用
+        // Supabase認証用JWTがあれば優先使用、なければANON KEYを使用
         xhr.setRequestHeader(
           'Authorization',
-          `Bearer ${userToken || supabaseAnonKey}`,
+          `Bearer ${supabaseAuthToken || supabaseAnonKey}`,
         );
         xhr.setRequestHeader('Content-Type', file.type);
         xhr.setRequestHeader('x-upsert', 'true'); // ファイルが既に存在する場合は上書き
