@@ -2,9 +2,13 @@
  * Pre-signed URL方式を使用した改良版ImageUploaderコンポーネント
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { X, Upload, Image as ImageIcon, AlertCircle } from 'lucide-react';
-import { presignedUploadService, UploadedImage } from '@/services/presignedUploadService';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+
+import {
+  presignedUploadService,
+  UploadedImage,
+} from '@/services/presignedUploadService';
 
 export interface AdvancedImageUploaderProps {
   maxImages?: number;
@@ -67,7 +71,9 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
    */
   const handleFileSelect = useCallback(
     async (files: FileList | null) => {
-      if (!files || files.length === 0 || disabled) return;
+      if (!files || files.length === 0 || disabled) {
+        return;
+      }
 
       const fileArray = Array.from(files);
       const currentCount = previewImages.filter((img) => !img.error).length;
@@ -84,7 +90,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
       // 並列アップロード処理
       const uploadPromises = filesToUpload.map(async (file, index) => {
         const id = `${Date.now()}-${Math.random()}`;
-        
+
         // ファイル検証
         const validation = presignedUploadService.validateFile(file);
         if (!validation.valid) {
@@ -117,9 +123,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
             signal: controller.signal,
             onProgress: (progress) => {
               setPreviewImages((prev) =>
-                prev.map((img) => 
-                  img.id === id ? { ...img, progress } : img
-                )
+                prev.map((img) => (img.id === id ? { ...img, progress } : img)),
               );
             },
           });
@@ -137,8 +141,8 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
                     uploading: false,
                     progress: 100,
                   }
-                : img
-            )
+                : img,
+            ),
           );
 
           return uploadedImage;
@@ -150,10 +154,13 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
                 ? {
                     ...img,
                     uploading: false,
-                    error: error instanceof Error ? error.message : 'アップロードエラー',
+                    error:
+                      error instanceof Error
+                        ? error.message
+                        : 'アップロードエラー',
                   }
-                : img
-            )
+                : img,
+            ),
           );
           return null;
         } finally {
@@ -163,16 +170,27 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
 
       // アップロード完了を待って親コンポーネントに通知
       const results = await Promise.all(uploadPromises);
-      const successfulUploads = results.filter((r): r is UploadedImage => r !== null);
-      
+      const successfulUploads = results.filter(
+        (r): r is UploadedImage => r !== null,
+      );
+
       if (successfulUploads.length > 0) {
-        const allImages = previewImages
-          .filter((img) => !img.error && !img.uploading)
-          .concat(successfulUploads);
-        onImagesChange(allImages);
+        const completedImages = previewImages
+          .filter((img) => !img.error && !img.uploading && img.path)
+          .map(
+            (img): UploadedImage => ({
+              url: img.url,
+              path: img.path,
+              size: img.size,
+              type: img.type,
+              order: img.order,
+              is_main: img.is_main,
+            }),
+          );
+        onImagesChange(completedImages);
       }
     },
-    [previewImages, maxImages, disabled, onImagesChange]
+    [previewImages, maxImages, disabled, onImagesChange],
   );
 
   /**
@@ -181,7 +199,9 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
   const handleRemoveImage = useCallback(
     async (imageId: string) => {
       const imageToRemove = previewImages.find((img) => img.id === imageId);
-      if (!imageToRemove) return;
+      if (!imageToRemove) {
+        return;
+      }
 
       // アップロード中の場合はキャンセル
       if (imageToRemove.uploading) {
@@ -200,21 +220,34 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
 
       // リストから削除
       const newImages = previewImages.filter((img) => img.id !== imageId);
-      
+
       // メイン画像の再設定
       if (imageToRemove.is_main && newImages.length > 0) {
         newImages[0].is_main = true;
       }
-      
+
       // 順序の再設定
       newImages.forEach((img, index) => {
         img.order = index;
       });
 
       setPreviewImages(newImages);
-      onImagesChange(newImages.filter((img) => !img.error && !img.uploading));
+      onImagesChange(
+        newImages
+          .filter((img) => !img.error && !img.uploading)
+          .map(
+            (img): UploadedImage => ({
+              url: img.url,
+              path: img.path,
+              size: img.size,
+              type: img.type,
+              order: img.order,
+              is_main: img.is_main,
+            }),
+          ),
+      );
     },
-    [previewImages, onImagesChange]
+    [previewImages, onImagesChange],
   );
 
   /**
@@ -227,9 +260,22 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
         is_main: img.id === imageId,
       }));
       setPreviewImages(newImages);
-      onImagesChange(newImages.filter((img) => !img.error && !img.uploading));
+      onImagesChange(
+        newImages
+          .filter((img) => !img.error && !img.uploading)
+          .map(
+            (img): UploadedImage => ({
+              url: img.url,
+              path: img.path,
+              size: img.size,
+              type: img.type,
+              order: img.order,
+              is_main: img.is_main,
+            }),
+          ),
+      );
     },
-    [previewImages, onImagesChange]
+    [previewImages, onImagesChange],
   );
 
   /**
@@ -240,16 +286,29 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
       const newImages = [...previewImages];
       const [movedImage] = newImages.splice(fromIndex, 1);
       newImages.splice(toIndex, 0, movedImage);
-      
+
       // 順序の再設定
       newImages.forEach((img, index) => {
         img.order = index;
       });
 
       setPreviewImages(newImages);
-      onImagesChange(newImages.filter((img) => !img.error && !img.uploading));
+      onImagesChange(
+        newImages
+          .filter((img) => !img.error && !img.uploading)
+          .map(
+            (img): UploadedImage => ({
+              url: img.url,
+              path: img.path,
+              size: img.size,
+              type: img.type,
+              order: img.order,
+              is_main: img.is_main,
+            }),
+          ),
+      );
     },
-    [previewImages, onImagesChange]
+    [previewImages, onImagesChange],
   );
 
   // ドラッグ&ドロップハンドラー
@@ -287,35 +346,41 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
         void handleFileSelect(e.dataTransfer.files);
       }
     },
-    [disabled, handleFileSelect]
+    [disabled, handleFileSelect],
   );
 
-  const canAddMore = previewImages.filter((img) => !img.error).length < maxImages;
+  const canAddMore =
+    previewImages.filter((img) => !img.error).length < maxImages;
 
   return (
     <div className={`advanced-image-uploader ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          {label}
+        </label>
       )}
 
       {/* エラーメッセージ */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-700">
-          <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+        <div className="mb-4 flex items-center rounded-lg border border-red-200 bg-red-50 p-3 text-red-700">
+          <AlertCircle className="mr-2 h-5 w-5 flex-shrink-0" />
           <span className="text-sm">{error}</span>
         </div>
       )}
 
       {/* 画像プレビューグリッド */}
       {previewImages.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4">
+        <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {previewImages.map((image, index) => (
-            <div key={image.id} className="relative group rounded-lg overflow-hidden bg-gray-100">
+            <div
+              key={image.id}
+              className="group relative overflow-hidden rounded-lg bg-gray-100"
+            >
               <div className="aspect-square">
                 <img
                   src={image.url}
                   alt="Preview"
-                  className={`w-full h-full object-cover ${
+                  className={`h-full w-full object-cover ${
                     image.is_main ? 'ring-2 ring-blue-500' : ''
                   }`}
                 />
@@ -323,17 +388,17 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
 
               {/* メインバッジ */}
               {image.is_main && (
-                <span className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                <span className="absolute left-2 top-2 rounded bg-blue-500 px-2 py-1 text-xs text-white">
                   メイン
                 </span>
               )}
 
               {/* アップロード中オーバーレイ */}
               {image.uploading && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                  <div className="text-white text-center">
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                  <div className="text-center text-white">
                     <div className="mb-2">
-                      <div className="w-16 h-16 mx-auto border-4 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-white border-t-transparent" />
                     </div>
                     <span className="text-sm">{image.progress}%</span>
                   </div>
@@ -342,9 +407,9 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
 
               {/* エラー表示 */}
               {image.error && (
-                <div className="absolute inset-0 bg-red-500 bg-opacity-75 flex items-center justify-center p-2">
-                  <div className="text-white text-center">
-                    <AlertCircle className="w-8 h-8 mx-auto mb-1" />
+                <div className="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-75 p-2">
+                  <div className="text-center text-white">
+                    <AlertCircle className="mx-auto mb-1 h-8 w-8" />
                     <span className="text-xs">{image.error}</span>
                   </div>
                 </div>
@@ -352,12 +417,12 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
 
               {/* 操作ボタン */}
               {!image.uploading && !disabled && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black bg-opacity-50 opacity-0 transition-opacity group-hover:opacity-100">
                   {/* 順序変更 */}
                   {index > 0 && (
                     <button
                       onClick={() => void handleReorder(index, index - 1)}
-                      className="p-1.5 bg-white rounded-full hover:bg-gray-100"
+                      className="rounded-full bg-white p-1.5 hover:bg-gray-100"
                       type="button"
                       aria-label="左へ移動"
                     >
@@ -369,7 +434,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
                   {!image.is_main && !image.error && (
                     <button
                       onClick={() => handleSetMainImage(image.id)}
-                      className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                      className="rounded bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600"
                       type="button"
                     >
                       メイン
@@ -379,18 +444,18 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
                   {/* 削除 */}
                   <button
                     onClick={() => void handleRemoveImage(image.id)}
-                    className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    className="rounded-full bg-red-500 p-1.5 text-white hover:bg-red-600"
                     type="button"
                     aria-label="削除"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="h-4 w-4" />
                   </button>
 
                   {/* 順序変更 */}
                   {index < previewImages.length - 1 && (
                     <button
                       onClick={() => void handleReorder(index, index + 1)}
-                      className="p-1.5 bg-white rounded-full hover:bg-gray-100"
+                      className="rounded-full bg-white p-1.5 hover:bg-gray-100"
                       type="button"
                       aria-label="右へ移動"
                     >
@@ -417,14 +482,10 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled}
-              className={`
-                aspect-square border-2 border-dashed border-gray-300 rounded-lg
-                flex flex-col items-center justify-center transition-colors
-                ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-400 cursor-pointer'}
-              `}
+              className={`flex aspect-square flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition-colors ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-400'} `}
               type="button"
             >
-              <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
+              <ImageIcon className="mb-2 h-8 w-8 text-gray-400" />
               <span className="text-xs text-gray-500">追加</span>
             </button>
           )}
@@ -434,11 +495,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
       {/* ドロップゾーン（画像がない場合） */}
       {previewImages.length === 0 && canAddMore && (
         <div
-          className={`
-            border-2 border-dashed rounded-lg p-8 text-center transition-colors
-            ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
-            ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-          `}
+          className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'} ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} `}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
@@ -453,8 +510,10 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
           tabIndex={0}
           aria-label="画像をアップロード"
         >
-          <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600 mb-2">画像をドラッグ&ドロップまたはクリックして選択</p>
+          <Upload className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+          <p className="mb-2 text-gray-600">
+            画像をドラッグ&ドロップまたはクリックして選択
+          </p>
           <p className="text-sm text-gray-500">
             {maxImages > 1 ? `最大${maxImages}枚まで` : '1枚のみ'}
             ・JPEG, PNG, GIF, WebP対応・最大10MB
