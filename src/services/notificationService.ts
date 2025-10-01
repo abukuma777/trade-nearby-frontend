@@ -27,7 +27,11 @@ class NotificationService {
    */
   private getAuthHeader(): HeadersInit {
     const token = localStorage.getItem('access_token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    if (!token) {
+      console.warn('No access token found in localStorage');
+      return {};
+    }
+    return { Authorization: `Bearer ${token}` };
   }
 
   /**
@@ -146,12 +150,14 @@ class NotificationService {
    */
   async getUnreadNotifications(): Promise<Notification[]> {
     try {
+      const authHeader = this.getAuthHeader();
       const response = await fetch(
         `${API_URL}/api/notifications?unread_only=true`,
         {
+          method: 'GET',
           headers: {
-            ...this.getAuthHeader(),
             'Content-Type': 'application/json',
+            ...authHeader,
           },
         },
       );
@@ -181,12 +187,14 @@ class NotificationService {
     hasMore: boolean;
   }> {
     try {
+      const authHeader = this.getAuthHeader();
       const response = await fetch(
         `${API_URL}/api/notifications?page=${page}&limit=${limit}`,
         {
+          method: 'GET',
           headers: {
-            ...this.getAuthHeader(),
             'Content-Type': 'application/json',
+            ...authHeader,
           },
         },
       );
@@ -213,12 +221,14 @@ class NotificationService {
    */
   async getUnreadCount(): Promise<number> {
     try {
+      const authHeader = this.getAuthHeader();
       const response = await fetch(
         `${API_URL}/api/notifications/unread-count`,
         {
+          method: 'GET',
           headers: {
-            ...this.getAuthHeader(),
             'Content-Type': 'application/json',
+            ...authHeader,
           },
         },
       );
@@ -240,13 +250,14 @@ class NotificationService {
    */
   async markAsRead(notificationId: string): Promise<void> {
     try {
+      const authHeader = this.getAuthHeader();
       const response = await fetch(
         `${API_URL}/api/notifications/${notificationId}/read`,
         {
           method: 'PUT',
           headers: {
-            ...this.getAuthHeader(),
             'Content-Type': 'application/json',
+            ...authHeader,
           },
         },
       );
@@ -264,13 +275,14 @@ class NotificationService {
    */
   async markAllAsRead(): Promise<void> {
     try {
+      const authHeader = this.getAuthHeader();
       const response = await fetch(
         `${API_URL}/api/notifications/mark-all-read`,
         {
           method: 'PUT',
           headers: {
-            ...this.getAuthHeader(),
             'Content-Type': 'application/json',
+            ...authHeader,
           },
         },
       );
@@ -288,13 +300,14 @@ class NotificationService {
    */
   async deleteNotification(notificationId: string): Promise<void> {
     try {
+      const authHeader = this.getAuthHeader();
       const response = await fetch(
         `${API_URL}/api/notifications/${notificationId}`,
         {
           method: 'DELETE',
           headers: {
-            ...this.getAuthHeader(),
             'Content-Type': 'application/json',
+            ...authHeader,
           },
         },
       );
