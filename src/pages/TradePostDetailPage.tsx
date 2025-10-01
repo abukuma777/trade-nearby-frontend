@@ -29,7 +29,6 @@ const safeFormatDate = (
     }
     return format(date, formatStr, { locale: ja });
   } catch (error) {
-    console.error('日付フォーマットエラー:', error);
     return '不明';
   }
 };
@@ -54,14 +53,6 @@ const TradePostDetailPage: React.FC = () => {
     }
     return () => clearError();
   }, [id, fetchPost, clearError]);
-
-  // デバッグ用
-  useEffect(() => {
-    if (currentPost) {
-      // eslint-disable-next-line no-console
-      console.log('現在の投稿データ:', currentPost);
-    }
-  }, [currentPost]);
 
   if (loading) {
     return (
@@ -102,9 +93,6 @@ const TradePostDetailPage: React.FC = () => {
     onIndexChange: (index: number) => void;
     title: string;
   }): JSX.Element => {
-    // eslint-disable-next-line no-console
-    console.log(`${title} images:`, images);
-
     if (!images || images.length === 0) {
       return (
         <div className="flex h-96 items-center justify-center rounded-lg bg-gray-100">
@@ -472,8 +460,6 @@ const TradePostDetailPage: React.FC = () => {
                         window.confirm('この投稿を削除してもよろしいですか？')
                       ) {
                         // TODO: 削除処理
-                        // eslint-disable-next-line no-console
-                        console.log('削除機能は実装中です');
                       }
                       /* eslint-enable no-alert */
                     }}

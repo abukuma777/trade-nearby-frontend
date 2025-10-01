@@ -58,7 +58,7 @@ const TradePostEditPage: React.FC = () => {
       try {
         await fetchPost(id);
       } catch (err) {
-        console.error('投稿の取得に失敗しました:', err);
+        // エラーの場合は一覧画面にリダイレクト
         navigate('/trade-posts');
       }
     };
@@ -150,7 +150,7 @@ const TradePostEditPage: React.FC = () => {
           );
           setCategorySelection(selection);
         } catch (err) {
-          console.error('カテゴリ情報の取得に失敗しました:', err);
+          // カテゴリ情報が取得できなくても続行
         } finally {
           setLoadingCategory(false);
         }

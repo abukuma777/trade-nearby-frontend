@@ -125,15 +125,6 @@ class TradePostService {
       const response = await apiClient.get<{ data: SimpleTradePost }>(
         `/trade-posts/${id}`,
       );
-
-      // デバッグログ
-      // eslint-disable-next-line no-console
-      console.log('API Response:', response);
-      // eslint-disable-next-line no-console
-      console.log('Response data:', response.data);
-      // eslint-disable-next-line no-console
-      console.log('Response data.data:', response.data.data);
-
       return response.data.data;
     } catch (error) {
       console.error('投稿詳細取得エラー:', error);

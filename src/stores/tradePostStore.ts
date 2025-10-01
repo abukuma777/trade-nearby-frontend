@@ -102,13 +102,9 @@ export const useTradePostStore = create<TradePostStore>()(
         set({ loading: true, error: null });
         try {
           const currentPost = await tradePostService.getPost(id);
-          // eslint-disable-next-line no-console
-          console.log('Store: fetchPost result:', currentPost);
           set({ currentPost, loading: false });
         } catch (error) {
           const axiosError = error as AxiosErrorResponse;
-          // eslint-disable-next-line no-console
-          console.error('Store: fetchPost error:', error);
           set({
             error:
               axiosError.response?.data?.message || '投稿の取得に失敗しました',

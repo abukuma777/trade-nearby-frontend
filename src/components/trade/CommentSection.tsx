@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { commentService, Comment } from '../../services/commentService';
 import { useAuthStore } from '../../stores/authStore';
+
 import CommentForm from './CommentForm';
 
 interface CommentSectionProps {
@@ -12,7 +14,11 @@ interface CommentSectionProps {
   postStatus: string;
 }
 
-const CommentSection: React.FC<CommentSectionProps> = ({ postId, postUserId, postStatus }) => {
+const CommentSection: React.FC<CommentSectionProps> = ({
+  postId,
+  postUserId,
+  postStatus,
+}) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +26,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, postUserId, pos
   const navigate = useNavigate();
 
   // コメント一覧を取得
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
@@ -28,44 +34,46 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, postUserId, pos
       setComments(data);
     } catch (err) {
       setError('コメントの読み込みに失敗しました');
-      console.error(err);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchComments();
   }, [postId]);
 
+  useEffect(() => {
+    void fetchComments();
+  }, [postId, fetchComments]);
+
   // 新しいコメントを追加
-  const handleCommentAdded = (newComment: Comment) => {
+  const handleCommentAdded = (newComment: Comment): void => {
     setComments((prev) => [...prev, newComment]);
   };
 
   // コメントアバター表示
-  const CommentAvatar = ({ comment }: { comment: Comment }) => {
+  const CommentAvatar = ({ comment }: { comment: Comment }): JSX.Element => {
     if (comment.user?.avatar_url) {
       return (
         <img
           src={comment.user.avatar_url}
           alt={comment.user.display_name || comment.user.username}
-          className="w-10 h-10 rounded-full object-cover"
+          className="h-10 w-10 rounded-full object-cover"
         />
       );
     }
 
     // デフォルトアバター
     return (
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-        {(comment.user?.display_name || comment.user?.username || '?')[0].toUpperCase()}
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 font-semibold text-white">
+        {(comment.user?.display_name ||
+          comment.user?.username ||
+          '?')[0].toUpperCase()}
       </div>
     );
   };
 
   // 交換提案の承認/拒否処理
-  const handleAcceptOffer = async (commentId: string) => {
-    if (!window.confirm('この交換提案を承認して取引を開始しますか？')) return;
+  const handleAcceptOffer = async (commentId: string): Promise<void> => {
+    // eslint-disable-next-line no-alert
+    if (!window.confirm('この交換提案を承認して取引を開始しますか？')) {return;}
 
     try {
       const result = await commentService.acceptOffer(postId, commentId);
@@ -75,59 +83,71 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, postUserId, pos
       } else {
         // コメントを再取得
         await fetchComments();
+        // eslint-disable-next-line no-alert
         alert('交換を承認しました！');
       }
     } catch (err) {
-      console.error('交換提案の承認に失敗しました:', err);
       setError('交換提案の承認に失敗しました');
     }
   };
 
-  const handleRejectOffer = async (commentId: string) => {
-    if (!window.confirm('この交換提案を拒否しますか？')) return;
+  const handleRejectOffer = async (commentId: string): Promise<void> => {
+    // eslint-disable-next-line no-alert
+    if (!window.confirm('この交換提案を拒否しますか？')) {return;}
 
     try {
       await commentService.rejectOffer(postId, commentId);
       // コメントを更新
       await fetchComments();
+      // eslint-disable-next-line no-alert
       alert('交換提案を拒否しました');
     } catch (err) {
-      console.error('交換提案の拒否に失敗しました:', err);
       setError('交換提案の拒否に失敗しました');
     }
   };
 
   // 交換提案コメントの表示
-  const OfferBadge = ({ comment }: { comment: Comment }) => {
-    if (!comment.is_offer || !comment.related_post) return null;
+  const OfferBadge = ({
+    comment,
+  }: {
+    comment: Comment;
+  }): JSX.Element | null => {
+    if (!comment.is_offer || !comment.related_post) {return null;}
 
     const isPostOwner = user?.id === postUserId;
-    const isOfferPending = comment.offer_status === 'pending' || !comment.offer_status;
+    const isOfferPending =
+      comment.offer_status === 'pending' || !comment.offer_status;
 
     return (
-      <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded font-medium">
+      <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white">
             交換提案
           </span>
-          <span className="text-xs text-gray-500">以下のアイテムとの交換を提案しています</span>
+          <span className="text-xs text-gray-500">
+            以下のアイテムとの交換を提案しています
+          </span>
         </div>
         <div className="flex items-center gap-4">
           {comment.related_post.give_item_images?.[0] && (
             <img
               src={comment.related_post.give_item_images[0].url}
               alt={comment.related_post.give_item}
-              className="w-16 h-16 rounded object-cover"
+              className="h-16 w-16 rounded object-cover"
             />
           )}
           <div className="flex-1">
             <div className="text-sm">
               <span className="font-medium">譲: </span>
-              <span className="text-gray-700">{comment.related_post.give_item}</span>
+              <span className="text-gray-700">
+                {comment.related_post.give_item}
+              </span>
             </div>
             <div className="text-sm">
               <span className="font-medium">求: </span>
-              <span className="text-gray-700">{comment.related_post.want_item}</span>
+              <span className="text-gray-700">
+                {comment.related_post.want_item}
+              </span>
             </div>
           </div>
         </div>
@@ -136,14 +156,14 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, postUserId, pos
         {isPostOwner && isOfferPending && (
           <div className="mt-3 flex gap-2">
             <button
-              onClick={() => handleAcceptOffer(comment.id)}
-              className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+              onClick={() => void handleAcceptOffer(comment.id)}
+              className="rounded bg-green-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-green-700"
             >
               承認して取引開始
             </button>
             <button
-              onClick={() => handleRejectOffer(comment.id)}
-              className="px-3 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+              onClick={() => void handleRejectOffer(comment.id)}
+              className="rounded bg-red-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-700"
             >
               拒否
             </button>
@@ -154,10 +174,14 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, postUserId, pos
         {!isOfferPending && (
           <div className="mt-3">
             {comment.offer_status === 'accepted' && (
-              <span className="text-green-600 text-sm font-medium">✓ 承認済み</span>
+              <span className="text-sm font-medium text-green-600">
+                ✓ 承認済み
+              </span>
             )}
             {comment.offer_status === 'rejected' && (
-              <span className="text-red-600 text-sm font-medium">✗ 拒否済み</span>
+              <span className="text-sm font-medium text-red-600">
+                ✗ 拒否済み
+              </span>
             )}
           </div>
         )}
@@ -167,16 +191,16 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, postUserId, pos
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+      <div className="mt-6 rounded-lg bg-white p-6 shadow-lg">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-24 mb-4"></div>
+          <div className="mb-4 h-4 w-24 rounded bg-gray-200" />
           <div className="space-y-4">
             {[1, 2].map((i) => (
               <div key={i} className="flex gap-3">
-                <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                <div className="h-10 w-10 rounded-full bg-gray-200" />
                 <div className="flex-1">
-                  <div className="h-3 bg-gray-200 rounded w-32 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="mb-2 h-3 w-32 rounded bg-gray-200" />
+                  <div className="h-4 w-full rounded bg-gray-200" />
                 </div>
               </div>
             ))}
@@ -187,17 +211,23 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, postUserId, pos
   }
 
   return (
-    <div id="comment-section" className="bg-white rounded-lg shadow-lg mt-6">
+    <div id="comment-section" className="mt-6 rounded-lg bg-white shadow-lg">
       <div className="border-b p-6">
-        <h2 className="text-lg font-bold text-gray-900">コメント ({comments.length})</h2>
+        <h2 className="text-lg font-bold text-gray-900">
+          コメント ({comments.length})
+        </h2>
       </div>
 
       {/* コメント一覧 */}
       <div className="p-6">
-        {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded">{error}</div>}
+        {error && (
+          <div className="mb-4 rounded bg-red-50 p-3 text-red-700">{error}</div>
+        )}
 
         {comments.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">まだコメントがありません</div>
+          <div className="py-8 text-center text-gray-500">
+            まだコメントがありません
+          </div>
         ) : (
           <div className="space-y-6">
             {comments.map((comment) => (
@@ -209,21 +239,27 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, postUserId, pos
 
                 {/* コメント本体 */}
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="mb-1 flex items-center gap-2">
                     <span className="font-medium text-gray-900">
-                      {comment.user?.display_name || comment.user?.username || '名無しユーザー'}
+                      {comment.user?.display_name ||
+                        comment.user?.username ||
+                        '名無しユーザー'}
                     </span>
                     {comment.user_id === postUserId && (
-                      <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded">
+                      <span className="rounded bg-purple-100 px-2 py-0.5 text-xs text-purple-700">
                         投稿者
                       </span>
                     )}
                     <span className="text-xs text-gray-500">
-                      {format(new Date(comment.created_at), 'M月d日 HH:mm', { locale: ja })}
+                      {format(new Date(comment.created_at), 'M月d日 HH:mm', {
+                        locale: ja,
+                      })}
                     </span>
                   </div>
 
-                  <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                  <p className="whitespace-pre-wrap text-gray-700">
+                    {comment.content}
+                  </p>
 
                   {/* 交換提案バッジ */}
                   <OfferBadge comment={comment} />
@@ -236,7 +272,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, postUserId, pos
 
       {/* コメント投稿フォーム */}
       {postStatus === 'active' && (
-        <div className="border-t p-6 bg-gray-50">
+        <div className="border-t bg-gray-50 p-6">
           {isAuthenticated ? (
             <CommentForm
               postId={postId}
@@ -245,11 +281,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, postUserId, pos
               currentUserId={user?.id}
             />
           ) : (
-            <div className="text-center py-4">
-              <p className="text-gray-600 mb-3">コメントを投稿するにはログインが必要です</p>
+            <div className="py-4 text-center">
+              <p className="mb-3 text-gray-600">
+                コメントを投稿するにはログインが必要です
+              </p>
               <a
                 href="/login"
-                className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-block rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700"
               >
                 ログインする
               </a>

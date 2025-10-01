@@ -66,7 +66,7 @@ class PresignedUploadService {
         }
       }
     } catch (error) {
-      console.error('Failed to init Supabase client:', error);
+      // 初期化エラーは無視
     }
 
     return this.supabaseClient;
@@ -205,8 +205,6 @@ class PresignedUploadService {
         return uploadResponse.data.data;
       }
     } catch (error) {
-      console.error('Upload error:', error);
-
       if (error instanceof AxiosError) {
         const responseData = error.response?.data as ApiResponse | undefined;
         throw new Error(responseData?.message || 'アップロードに失敗しました');
@@ -279,8 +277,6 @@ class PresignedUploadService {
         throw new Error(response.data.message || '削除に失敗しました');
       }
     } catch (error) {
-      console.error('Delete error:', error);
-
       if (error instanceof AxiosError) {
         const responseData = error.response?.data as ApiResponse | undefined;
         throw new Error(responseData?.message || '画像の削除に失敗しました');

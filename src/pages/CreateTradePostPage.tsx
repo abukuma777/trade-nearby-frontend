@@ -97,14 +97,6 @@ const CreateTradePostPage: React.FC = () => {
         undefined;
 
       // 投稿データを作成（画像は既にアップロード済みなので、パス情報のみ送信）
-      // eslint-disable-next-line no-console
-      console.log('画像配列の状態:', {
-        giveItemImages,
-        wantItemImages,
-        giveLength: giveItemImages.length,
-        wantLength: wantItemImages.length,
-      });
-
       const postData = {
         ...formData,
         content_id,
@@ -118,9 +110,6 @@ const CreateTradePostPage: React.FC = () => {
             ? convertToTradePostImage(wantItemImages)
             : undefined,
       };
-
-      // eslint-disable-next-line no-console
-      console.log('送信データ:', JSON.stringify(postData, null, 2));
 
       await createPost(postData);
       navigate('/trade-posts/my');

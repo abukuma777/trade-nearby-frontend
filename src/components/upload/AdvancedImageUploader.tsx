@@ -175,11 +175,6 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
       if (successfulUploads.length > 0) {
         // アップロード成功した画像を直接親コンポーネントに通知
         // setPreviewImagesの更新を待たずに即座に通知
-        // eslint-disable-next-line no-console
-        console.log(
-          '画像アップロード完了 - 親コンポーネントに通知:',
-          successfulUploads,
-        );
 
         // 現在の完了済み画像を取得（アップロード中ではないもの）
         setPreviewImages((currentImages) => {
@@ -204,9 +199,6 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
 
           // 既存の完了済み画像と新しくアップロードした画像を結合
           const allCompleted = [...existingCompleted, ...successfulUploads];
-
-          // eslint-disable-next-line no-console
-          console.log('全画像リスト:', allCompleted);
 
           // 親コンポーネントに通知
           onImagesChange(allCompleted);
@@ -239,7 +231,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
         try {
           await presignedUploadService.deleteImage(imageToRemove.path);
         } catch (error) {
-          console.error('Failed to delete:', error);
+          // エラーは無視（画像削除の失敗はUIに影響しない）
         }
       }
 
