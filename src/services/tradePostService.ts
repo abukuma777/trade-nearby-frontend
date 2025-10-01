@@ -15,6 +15,22 @@ export interface TradePostImage {
   is_main: boolean; // メイン画像フラグ
 }
 
+// 旧型定義（後方互換性のため一時的に保持）
+// TODO: ImageUploadコンポーネント削除後に削除
+export interface ImageData {
+  url: string;
+  order?: number;
+  is_main?: boolean;
+}
+
+export interface UploadImageData {
+  base64Data: string;
+  fileName: string;
+  mimeType: string;
+  order?: number;
+  is_main?: boolean;
+}
+
 export interface SimpleTradePost {
   id: string;
   user_id: string;
@@ -180,6 +196,18 @@ class TradePostService {
       console.error('投稿削除エラー:', error);
       throw error;
     }
+  }
+
+  /**
+   * 画像アップロード（旧メソッド、後方互換性のため一時的に保持）
+   * @deprecated Pre-signed URL方式を使用してください
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  async uploadImages(_images: UploadImageData[]): Promise<ImageData[]> {
+    // ダミー実装（エラーを返す）
+    throw new Error(
+      'uploadImagesメソッドは非推奨です。AdvancedImageUploaderを使用してください。',
+    );
   }
 }
 
