@@ -94,7 +94,18 @@ export const useAuthStore = create<AuthState>()(
         // ユーザーIDを明示的にlocalStorageに保存
         if (user.id) {
           localStorage.setItem('userId', user.id);
-          console.log('ユーザーIDをlocalStorageに保存:', user.id);
+          // console.log('ユーザーIDをlocalStorageに保存:', user.id);
+        }
+
+        // アクセストークンをlocalStorageに保存
+        if (session.access_token) {
+          localStorage.setItem('access_token', session.access_token);
+          // console.log('アクセストークンをlocalStorageに保存');
+        }
+
+        // リフレッシュトークンをlocalStorageに保存
+        if (session.refresh_token) {
+          localStorage.setItem('refresh_token', session.refresh_token);
         }
 
         set({
@@ -175,7 +186,16 @@ export const useAuthStore = create<AuthState>()(
         // ストレージから復元した際に実行
         if (state && state.user?.id) {
           localStorage.setItem('userId', state.user.id);
-          console.log('ページリロード時にuserIDを復元:', state.user.id);
+          // console.log('ページリロード時にuserIDを復元:', state.user.id);
+        }
+
+        // セッション情報も復元
+        if (state && state.session?.access_token) {
+          localStorage.setItem('access_token', state.session.access_token);
+          // console.log('ページリロード時にaccess_tokenを復元');
+        }
+        if (state && state.session?.refresh_token) {
+          localStorage.setItem('refresh_token', state.session.refresh_token);
         }
       },
     },
@@ -183,8 +203,10 @@ export const useAuthStore = create<AuthState>()(
 );
 
 // セレクター関数
-export const selectUser = (state: AuthState) => state.user;
-export const selectIsAuthenticated = (state: AuthState) => state.isAuthenticated;
-export const selectIsLoading = (state: AuthState) => state.isLoading;
-export const selectError = (state: AuthState) => state.error;
-export const selectAccessToken = (state: AuthState) => state.getAccessToken();
+export const selectUser = (state: AuthState): User | null => state.user;
+export const selectIsAuthenticated = (state: AuthState): boolean =>
+  state.isAuthenticated;
+export const selectIsLoading = (state: AuthState): boolean => state.isLoading;
+export const selectError = (state: AuthState): string | null => state.error;
+export const selectAccessToken = (state: AuthState): string | null =>
+  state.getAccessToken();
