@@ -1,5 +1,5 @@
 /**
- * 交換投稿作成ページ（画像アップロード対応版）
+ * 交換投稿作成ページ（Pre-signed URL方式）
  */
 
 import React, { useState } from 'react';
@@ -8,12 +8,9 @@ import { useNavigate } from 'react-router-dom';
 import CategorySelect, {
   CategorySelection,
 } from '../components/CategorySelect';
-import ImageUpload from '../components/ImageUpload';
-import {
-  tradePostService,
-  ImageData,
-  UploadImageData,
-} from '../services/tradePostService';
+import { AdvancedImageUploader } from '../components/upload/AdvancedImageUploader';
+import { UploadedImage } from '../services/presignedUploadService';
+import { TradePostImage } from '../services/tradePostService';
 import { useTradePostStore } from '../stores/tradePostStore';
 
 const CreateTradePostPage: React.FC = () => {
@@ -32,10 +29,9 @@ const CreateTradePostPage: React.FC = () => {
     {},
   );
 
-  // 画像データの状態管理（Base64形式で一時保存）
-  const [giveItemImages, setGiveItemImages] = useState<ImageData[]>([]);
-  const [wantItemImages, setWantItemImages] = useState<ImageData[]>([]);
-  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  // アップロード済み画像の状態管理（Pre-signed URL方式）
+  const [giveItemImages, setGiveItemImages] = useState<UploadedImage[]>([]);
+  const [wantItemImages, setWantItemImages] = useState<UploadedImage[]>([]);
 
   const [validationErrors, setValidationErrors] = useState<{
     give_item?: string;
@@ -70,37 +66,18 @@ const CreateTradePostPage: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // Base64画像をサーバーにアップロード
-  const uploadImagesToServer = async (
-    images: ImageData[],
-  ): Promise<ImageData[]> => {
-    if (images.length === 0) {
-      return [];
-    }
-
-    const uploadData: UploadImageData[] = images.map((img, index) => {
-      // Base64データからファイル情報を抽出
-      const matches = img.url.match(/^data:([^;]+);base64,(.+)$/);
-      if (!matches) {
-        throw new Error('Invalid image data');
-      }
-
-      const mimeType = matches[1];
-      const base64Data = img.url; // そのまま送信
-      const extension = mimeType.split('/')[1];
-      const fileName = `image-${Date.now()}-${index}.${extension}`;
-
-      return {
-        base64Data,
-        fileName,
-        mimeType,
-        order: img.order,
-        is_main: img.is_main,
-      };
-    });
-
-    const uploadedImages = await tradePostService.uploadImages(uploadData);
-    return uploadedImages;
+  // UploadedImageをTradePostImageに変換
+  const convertToTradePostImage = (
+    images: UploadedImage[],
+  ): TradePostImage[] => {
+    return images.map((img) => ({
+      url: img.url,
+      path: img.path,
+      size: img.size,
+      type: img.type,
+      order: img.order || 0,
+      is_main: img.is_main || false,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
@@ -110,21 +87,7 @@ const CreateTradePostPage: React.FC = () => {
       return;
     }
 
-    setIsUploadingImages(true);
-
     try {
-      // 画像をサーバーにアップロード
-      let uploadedGiveImages: ImageData[] = [];
-      let uploadedWantImages: ImageData[] = [];
-
-      if (giveItemImages.length > 0) {
-        uploadedGiveImages = await uploadImagesToServer(giveItemImages);
-      }
-
-      if (wantItemImages.length > 0) {
-        uploadedWantImages = await uploadImagesToServer(wantItemImages);
-      }
-
       // 最深階層のIDをcontent_idとして設定
       const content_id =
         categorySelection.event_id ||
@@ -133,15 +96,19 @@ const CreateTradePostPage: React.FC = () => {
         categorySelection.category_id ||
         undefined;
 
-      // 投稿データを作成
+      // 投稿データを作成（画像は既にアップロード済みなので、パス情報のみ送信）
       const postData = {
         ...formData,
-        content_id, // 最深階層のIDを明示的に設定
-        category_hierarchy: categorySelection, // 階層情報も保持（将来の拡張用）
+        content_id,
+        category_hierarchy: categorySelection,
         give_item_images:
-          uploadedGiveImages.length > 0 ? uploadedGiveImages : undefined,
+          giveItemImages.length > 0
+            ? convertToTradePostImage(giveItemImages)
+            : undefined,
         want_item_images:
-          uploadedWantImages.length > 0 ? uploadedWantImages : undefined,
+          wantItemImages.length > 0
+            ? convertToTradePostImage(wantItemImages)
+            : undefined,
       };
 
       await createPost(postData);
@@ -149,14 +116,12 @@ const CreateTradePostPage: React.FC = () => {
     } catch (err) {
       setValidationErrors((prev) => ({
         ...prev,
-        images: '画像のアップロードに失敗しました。もう一度お試しください。',
+        images: '投稿の作成に失敗しました。もう一度お試しください。',
       }));
-    } finally {
-      setIsUploadingImages(false);
     }
   };
 
-  const isSubmitDisabled = loading || isUploadingImages;
+  const isSubmitDisabled = loading;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -230,13 +195,15 @@ const CreateTradePostPage: React.FC = () => {
           </div>
 
           {/* 譲るものの画像 */}
-          <ImageUpload
-            label="譲るものの画像（任意）"
-            images={giveItemImages}
-            onImagesChange={setGiveItemImages}
-            maxImages={3}
-            disabled={isSubmitDisabled}
-          />
+          <div className="mb-6">
+            <AdvancedImageUploader
+              label="譲るものの画像（任意）"
+              onImagesChange={setGiveItemImages}
+              initialImages={giveItemImages}
+              maxImages={3}
+              disabled={isSubmitDisabled}
+            />
+          </div>
 
           {/* 求めるもの */}
           <div className="mb-6">
@@ -268,13 +235,15 @@ const CreateTradePostPage: React.FC = () => {
           </div>
 
           {/* 求めるものの画像 */}
-          <ImageUpload
-            label="求めるものの画像（任意）"
-            images={wantItemImages}
-            onImagesChange={setWantItemImages}
-            maxImages={3}
-            disabled={isSubmitDisabled}
-          />
+          <div className="mb-6">
+            <AdvancedImageUploader
+              label="求めるものの画像（任意）"
+              onImagesChange={setWantItemImages}
+              initialImages={wantItemImages}
+              maxImages={3}
+              disabled={isSubmitDisabled}
+            />
+          </div>
 
           {/* 詳細説明 */}
           <div className="mb-6">
@@ -323,11 +292,7 @@ const CreateTradePostPage: React.FC = () => {
               disabled={isSubmitDisabled}
               className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isUploadingImages
-                ? '画像アップロード中...'
-                : loading
-                  ? '投稿中...'
-                  : '投稿する'}
+              {loading ? '投稿中...' : '投稿する'}
             </button>
             <button
               type="button"

@@ -5,10 +5,14 @@
 
 import apiClient from './api';
 
-export interface ImageData {
+// 統一された画像データ型（UploadedImageと互換）
+export interface TradePostImage {
   url: string;
-  order?: number;
-  is_main?: boolean;
+  path: string; // ストレージパス（Supabase Storage内のパス）
+  size?: number; // ファイルサイズ
+  type?: string; // MIMEタイプ
+  order: number; // 表示順序
+  is_main: boolean; // メイン画像フラグ
 }
 
 export interface SimpleTradePost {
@@ -24,8 +28,8 @@ export interface SimpleTradePost {
   created_at: string;
   updated_at: string;
   // 画像フィールドを追加
-  give_item_images?: ImageData[];
-  want_item_images?: ImageData[];
+  give_item_images?: TradePostImage[];
+  want_item_images?: TradePostImage[];
 }
 
 export interface CreateTradePostData {
@@ -33,9 +37,9 @@ export interface CreateTradePostData {
   want_item: string;
   description?: string;
   location_name?: string;
-  // 画像フィールドを追加
-  give_item_images?: ImageData[];
-  want_item_images?: ImageData[];
+  // 画像フィールドを追加（アップロード済み画像のパス情報）
+  give_item_images?: TradePostImage[];
+  want_item_images?: TradePostImage[];
 }
 
 export interface UpdateTradePostData {
@@ -45,16 +49,8 @@ export interface UpdateTradePostData {
   location_name?: string;
   status?: 'active' | 'trading' | 'completed' | 'private';
   // 画像フィールドを追加
-  give_item_images?: ImageData[];
-  want_item_images?: ImageData[];
-}
-
-export interface UploadImageData {
-  base64Data: string;
-  fileName: string;
-  mimeType: string;
-  order?: number;
-  is_main?: boolean;
+  give_item_images?: TradePostImage[];
+  want_item_images?: TradePostImage[];
 }
 
 class TradePostService {
@@ -182,22 +178,6 @@ class TradePostService {
       await apiClient.delete(`/trade-posts/${id}`);
     } catch (error) {
       console.error('投稿削除エラー:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 画像アップロード
-   */
-  async uploadImages(images: UploadImageData[]): Promise<ImageData[]> {
-    try {
-      const response = await apiClient.post<{ data: { urls: ImageData[] } }>(
-        '/trade-posts/upload-images',
-        { images },
-      );
-      return response.data.data.urls || [];
-    } catch (error) {
-      console.error('画像アップロードエラー:', error);
       throw error;
     }
   }
