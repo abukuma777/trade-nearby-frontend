@@ -493,12 +493,14 @@ const TradePostDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* コメントセクション */}
-        <CommentSection
-          postId={currentPost.id}
-          postUserId={currentPost.user_id}
-          postStatus={currentPost.status}
-        />
+        {/* コメントセクション - postIdが存在する場合のみレンダリング */}
+        {currentPost?.id && (
+          <CommentSection
+            postId={currentPost.id}
+            postUserId={currentPost.user_id}
+            postStatus={currentPost.status}
+          />
+        )}
       </div>
     </div>
   );
