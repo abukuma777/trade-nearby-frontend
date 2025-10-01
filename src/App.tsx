@@ -7,6 +7,7 @@ import CreateTradePostPage from './pages/CreateTradePostPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import MyTradePostsPage from './pages/MyTradePostsPage';
+import NotificationsPage from './pages/NotificationsPage';
 import ProfilePage from './pages/ProfilePage';
 import RegisterPage from './pages/RegisterPage';
 import StatisticsPage from './pages/StatisticsPage';
@@ -169,6 +170,18 @@ function App(): JSX.Element {
             <PrivateRoute>
               <MainLayout isAuthenticated={isAuthenticated} username={username}>
                 <TradeChatPage />
+              </MainLayout>
+            </PrivateRoute>
+          }
+        />
+
+        {/* 通知一覧（認証必要） */}
+        <Route
+          path="/notifications"
+          element={
+            <PrivateRoute>
+              <MainLayout isAuthenticated={isAuthenticated} username={username}>
+                <NotificationsPage />
               </MainLayout>
             </PrivateRoute>
           }
