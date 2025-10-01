@@ -112,8 +112,8 @@ const TradePostEditPage: React.FC = () => {
         (img: TradePostImage) => ({
           url: img.url,
           path: img.path || '',
-          size: img.size,
-          type: img.type,
+          size: img.size || 0,
+          type: img.type || 'image/jpeg',
           order: img.order || 0,
           is_main: img.is_main || false,
         }),
@@ -126,8 +126,8 @@ const TradePostEditPage: React.FC = () => {
         (img: TradePostImage) => ({
           url: img.url,
           path: img.path || '',
-          size: img.size,
-          type: img.type,
+          size: img.size || 0,
+          type: img.type || 'image/jpeg',
           order: img.order || 0,
           is_main: img.is_main || false,
         }),
