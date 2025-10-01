@@ -150,6 +150,12 @@ class NotificationService {
    */
   async getUnreadNotifications(): Promise<Notification[]> {
     try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        // No access token, skipping notification fetch
+        return [];
+      }
+
       const authHeader = this.getAuthHeader();
       const response = await fetch(
         `${API_URL}/api/notifications?unread_only=true`,
@@ -163,6 +169,13 @@ class NotificationService {
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Unauthorized: Token may be expired
+          // トークンをクリア
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          return [];
+        }
         throw new Error('Failed to fetch notifications');
       }
 
@@ -187,6 +200,12 @@ class NotificationService {
     hasMore: boolean;
   }> {
     try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        // No access token, skipping notification fetch
+        return { notifications: [], hasMore: false };
+      }
+
       const authHeader = this.getAuthHeader();
       const response = await fetch(
         `${API_URL}/api/notifications?page=${page}&limit=${limit}`,
@@ -200,6 +219,12 @@ class NotificationService {
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Unauthorized: Token may be expired
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          return { notifications: [], hasMore: false };
+        }
         throw new Error('Failed to fetch notifications');
       }
 
