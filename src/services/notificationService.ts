@@ -259,6 +259,7 @@ class NotificationService {
             'Content-Type': 'application/json',
             ...authHeader,
           },
+          body: JSON.stringify({}),
         },
       );
 
@@ -284,6 +285,7 @@ class NotificationService {
             'Content-Type': 'application/json',
             ...authHeader,
           },
+          body: JSON.stringify({}),
         },
       );
 

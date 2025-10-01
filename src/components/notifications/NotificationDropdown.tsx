@@ -23,20 +23,32 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
   // 初期化とリアルタイム接続
   useEffect(() => {
-    void notificationService.initialize(userId);
-    void loadNotifications();
-    void loadUnreadCount();
+    // 初回ロード時のみ実行
+    if (!notifications.length) {
+      void notificationService.initialize(userId);
+      void loadNotifications();
+      void loadUnreadCount();
+    }
 
     // 新着通知のリスナー登録
     const unsubscribe = notificationService.onNotification((notification) => {
-      setNotifications((prev) => [notification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
+      setNotifications((prev) => {
+        // 重複チェック
+        const isDuplicate = prev.some((n) => n.id === notification.id);
+        if (isDuplicate) {
+          return prev;
+        }
+        // 重複でない場合のみ未読カウントを増やす
+        setUnreadCount((prevCount) => prevCount + 1);
+        return [notification, ...prev];
+      });
     });
 
     // クリーンアップ
     return () => {
       unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   // ドロップダウン外クリックで閉じる
