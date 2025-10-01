@@ -1,11 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
 import { useAuth } from '@/hooks/useAuth';
+import type { User } from '@/stores/authStore';
 
 interface HeaderProps {
   isAuthenticated?: boolean;
   username?: string;
+}
+
+interface ApiResponse {
+  success: boolean;
+  data?: {
+    id?: string;
+    sub?: string;
+  };
+}
+
+interface UserWithSub extends User {
+  sub?: string;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -13,7 +27,43 @@ const Header: React.FC<HeaderProps> = ({
   username = '',
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { logout } = useAuth();
+  const [userId, setUserId] = useState<string | null>(null);
+  const { logout, user } = useAuth();
+
+  // ユーザーIDを取得
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const typedUser = user as UserWithSub;
+      const id: string | undefined = typedUser.id || typedUser.sub;
+      setUserId(id ?? null);
+    } else {
+      // APIからユーザー情報を取得
+      const token = localStorage.getItem('access_token');
+      if (token && isAuthenticated) {
+        void fetch(
+          `${String(import.meta.env.VITE_API_URL) || 'http://localhost:3000'}/api/auth/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+          .then(async (res) => {
+            const apiResponse = (await res.json()) as ApiResponse;
+            return apiResponse;
+          })
+          .then((data: ApiResponse) => {
+            if (data.success && data.data) {
+              const id = data.data.id || data.data.sub;
+              setUserId(id ?? null);
+            }
+          })
+          .catch((err: unknown) =>
+            console.error('Failed to get user ID:', err),
+          );
+      }
+    }
+  }, [isAuthenticated, user]);
 
   const handleLogout = async (): Promise<void> => {
     await logout();
@@ -79,6 +129,9 @@ const Header: React.FC<HeaderProps> = ({
           <div className="hidden items-center space-x-4 md:flex">
             {isAuthenticated ? (
               <>
+                {/* 通知ドロップダウン */}
+                {userId && <NotificationDropdown userId={userId} />}
+
                 <Link
                   to="/trade-posts/create"
                   className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
@@ -150,41 +203,48 @@ const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* モバイルメニューボタン */}
-          <button
-            className="relative p-2 md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="メニュー"
-          >
-            {isMobileMenuOpen ? (
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
+          <div className="flex items-center space-x-2 md:hidden">
+            {/* モバイル用通知ボタン */}
+            {isAuthenticated && userId && (
+              <NotificationDropdown userId={userId} />
             )}
-          </button>
+
+            <button
+              className="relative p-2"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="メニュー"
+            >
+              {isMobileMenuOpen ? (
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* モバイルメニュー */}
