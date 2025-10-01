@@ -1,6 +1,7 @@
 /**
  * 交換投稿詳細ページ
  * 画像スワイプ機能付き
+ * 日付処理のエラーハンドリング追加版
  */
 
 import { format } from 'date-fns';
@@ -11,6 +12,27 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import CommentSection from '../components/trade/CommentSection';
 import { useAuthStore } from '../stores/authStore';
 import { useTradePostStore } from '../stores/tradePostStore';
+
+// 安全な日付フォーマット関数
+const safeFormatDate = (
+  dateValue: string | null | undefined,
+  formatStr: string,
+): string => {
+  if (!dateValue) {
+    return '不明';
+  }
+
+  try {
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) {
+      return '不明';
+    }
+    return format(date, formatStr, { locale: ja });
+  } catch (error) {
+    console.error('日付フォーマットエラー:', error);
+    return '不明';
+  }
+};
 
 const TradePostDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -243,9 +265,7 @@ const TradePostDetailPage: React.FC = () => {
           </Link>
           <div className="text-sm text-gray-500">
             投稿日:{' '}
-            {format(new Date(currentPost.created_at), 'yyyy年M月d日 HH:mm', {
-              locale: ja,
-            })}
+            {safeFormatDate(currentPost.created_at, 'yyyy年M月d日 HH:mm')}
           </div>
         </div>
 
@@ -405,9 +425,7 @@ const TradePostDetailPage: React.FC = () => {
               <div>
                 <span className="font-medium text-gray-500">更新日：</span>
                 <span className="ml-2 text-gray-700">
-                  {format(new Date(currentPost.updated_at), 'M月d日 HH:mm', {
-                    locale: ja,
-                  })}
+                  {safeFormatDate(currentPost.updated_at, 'M月d日 HH:mm')}
                 </span>
               </div>
             </div>
