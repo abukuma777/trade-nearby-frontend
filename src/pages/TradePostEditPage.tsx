@@ -1,6 +1,5 @@
 /**
- * 交換投稿編集ページ
- * 既存投稿の内容を編集
+ * 交換投稿編集ページ（Pre-signed URL方式）
  */
 
 import React, { useState, useEffect } from 'react';
@@ -9,14 +8,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import CategorySelect, {
   CategorySelection,
 } from '../components/CategorySelect';
-import ImageUpload from '../components/ImageUpload';
+import { AdvancedImageUploader } from '../components/upload/AdvancedImageUploader';
 import { contentService } from '../services/contentService';
-import {
-  tradePostService,
-  ImageData,
-  UploadImageData,
-  SimpleTradePost,
-} from '../services/tradePostService';
+import { UploadedImage } from '../services/presignedUploadService';
+import { TradePostImage, SimpleTradePost } from '../services/tradePostService';
 import { useAuthStore } from '../stores/authStore';
 import { useTradePostStore } from '../stores/tradePostStore';
 
@@ -41,10 +36,9 @@ const TradePostEditPage: React.FC = () => {
   );
   const [loadingCategory, setLoadingCategory] = useState(false);
 
-  // 画像データの状態管理
-  const [giveItemImages, setGiveItemImages] = useState<ImageData[]>([]);
-  const [wantItemImages, setWantItemImages] = useState<ImageData[]>([]);
-  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  // アップロード済み画像の状態管理（Pre-signed URL方式）
+  const [giveItemImages, setGiveItemImages] = useState<UploadedImage[]>([]);
+  const [wantItemImages, setWantItemImages] = useState<UploadedImage[]>([]);
 
   const [validationErrors, setValidationErrors] = useState<{
     give_item?: string;
@@ -112,12 +106,33 @@ const TradePostEditPage: React.FC = () => {
       status: currentPost.status,
     });
 
-    // 既存画像の設定
+    // 既存画像をUploadedImage形式に変換
     if (currentPost.give_item_images) {
-      setGiveItemImages(currentPost.give_item_images);
+      const convertedImages: UploadedImage[] = currentPost.give_item_images.map(
+        (img: TradePostImage) => ({
+          url: img.url,
+          path: img.path || '',
+          size: img.size,
+          type: img.type,
+          order: img.order || 0,
+          is_main: img.is_main || false,
+        }),
+      );
+      setGiveItemImages(convertedImages);
     }
+
     if (currentPost.want_item_images) {
-      setWantItemImages(currentPost.want_item_images);
+      const convertedImages: UploadedImage[] = currentPost.want_item_images.map(
+        (img: TradePostImage) => ({
+          url: img.url,
+          path: img.path || '',
+          size: img.size,
+          type: img.type,
+          order: img.order || 0,
+          is_main: img.is_main || false,
+        }),
+      );
+      setWantItemImages(convertedImages);
     }
 
     // カテゴリ情報の取得
@@ -174,40 +189,18 @@ const TradePostEditPage: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // Base64画像をサーバーにアップロード
-  const uploadImagesToServer = async (
-    images: ImageData[],
-  ): Promise<ImageData[]> => {
-    // 既にURLの画像はそのまま返す
-    const existingImages = images.filter((img) => !img.url.startsWith('data:'));
-    const newImages = images.filter((img) => img.url.startsWith('data:'));
-
-    if (newImages.length === 0) {
-      return existingImages;
-    }
-
-    const uploadData: UploadImageData[] = newImages.map((img, index) => {
-      const matches = img.url.match(/^data:([^;]+);base64,(.+)$/);
-      if (!matches) {
-        throw new Error('Invalid image data');
-      }
-
-      const mimeType = matches[1];
-      const base64Data = img.url;
-      const extension = mimeType.split('/')[1];
-      const fileName = `image-${Date.now()}-${index}.${extension}`;
-
-      return {
-        base64Data,
-        fileName,
-        mimeType,
-        order: img.order,
-        is_main: img.is_main,
-      };
-    });
-
-    const uploadedImages = await tradePostService.uploadImages(uploadData);
-    return [...existingImages, ...uploadedImages];
+  // UploadedImageをTradePostImageに変換
+  const convertToTradePostImage = (
+    images: UploadedImage[],
+  ): TradePostImage[] => {
+    return images.map((img) => ({
+      url: img.url,
+      path: img.path,
+      size: img.size,
+      type: img.type,
+      order: img.order || 0,
+      is_main: img.is_main || false,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
@@ -217,21 +210,7 @@ const TradePostEditPage: React.FC = () => {
       return;
     }
 
-    setIsUploadingImages(true);
-
     try {
-      // 画像をサーバーにアップロード
-      let uploadedGiveImages: ImageData[] = [];
-      let uploadedWantImages: ImageData[] = [];
-
-      if (giveItemImages.length > 0) {
-        uploadedGiveImages = await uploadImagesToServer(giveItemImages);
-      }
-
-      if (wantItemImages.length > 0) {
-        uploadedWantImages = await uploadImagesToServer(wantItemImages);
-      }
-
       // 最深階層のIDをcontent_idとして設定
       const content_id =
         categorySelection.event_id ||
@@ -240,15 +219,19 @@ const TradePostEditPage: React.FC = () => {
         categorySelection.category_id ||
         undefined;
 
-      // 更新データを作成
+      // 更新データを作成（画像は既にアップロード済みなので、パス情報のみ送信）
       const updateData = {
         ...formData,
         content_id,
         category_hierarchy: categorySelection,
         give_item_images:
-          uploadedGiveImages.length > 0 ? uploadedGiveImages : undefined,
+          giveItemImages.length > 0
+            ? convertToTradePostImage(giveItemImages)
+            : undefined,
         want_item_images:
-          uploadedWantImages.length > 0 ? uploadedWantImages : undefined,
+          wantItemImages.length > 0
+            ? convertToTradePostImage(wantItemImages)
+            : undefined,
       };
 
       await updatePost(id, updateData);
@@ -258,12 +241,10 @@ const TradePostEditPage: React.FC = () => {
         ...prev,
         images: '更新に失敗しました。もう一度お試しください。',
       }));
-    } finally {
-      setIsUploadingImages(false);
     }
   };
 
-  const isSubmitDisabled = loading || isUploadingImages || loadingCategory;
+  const isSubmitDisabled = loading || loadingCategory;
 
   // ローディング中
   if (loading && !currentPost) {
@@ -388,13 +369,15 @@ const TradePostEditPage: React.FC = () => {
           </div>
 
           {/* 譲るものの画像 */}
-          <ImageUpload
-            label="譲るものの画像（任意）"
-            images={giveItemImages}
-            onImagesChange={setGiveItemImages}
-            maxImages={3}
-            disabled={isSubmitDisabled}
-          />
+          <div className="mb-6">
+            <AdvancedImageUploader
+              label="譲るものの画像（任意）"
+              onImagesChange={setGiveItemImages}
+              initialImages={giveItemImages}
+              maxImages={3}
+              disabled={isSubmitDisabled}
+            />
+          </div>
 
           {/* 求めるもの */}
           <div className="mb-6">
@@ -426,13 +409,15 @@ const TradePostEditPage: React.FC = () => {
           </div>
 
           {/* 求めるものの画像 */}
-          <ImageUpload
-            label="求めるものの画像（任意）"
-            images={wantItemImages}
-            onImagesChange={setWantItemImages}
-            maxImages={3}
-            disabled={isSubmitDisabled}
-          />
+          <div className="mb-6">
+            <AdvancedImageUploader
+              label="求めるものの画像（任意）"
+              onImagesChange={setWantItemImages}
+              initialImages={wantItemImages}
+              maxImages={3}
+              disabled={isSubmitDisabled}
+            />
+          </div>
 
           {/* 詳細説明 */}
           <div className="mb-6">
@@ -481,11 +466,7 @@ const TradePostEditPage: React.FC = () => {
               disabled={isSubmitDisabled}
               className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isUploadingImages
-                ? '画像アップロード中...'
-                : loading
-                  ? '更新中...'
-                  : '更新する'}
+              {loading ? '更新中...' : '更新する'}
             </button>
             <button
               type="button"
