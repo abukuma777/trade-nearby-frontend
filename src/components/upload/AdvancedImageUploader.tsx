@@ -131,18 +131,16 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
           // プレビューURLを解放
           URL.revokeObjectURL(preview.url);
 
-          // アップロード成功
+          // アップロード成功 - 状態を更新
+          const updatedPreview = {
+            ...preview,
+            ...uploadedImage,
+            uploading: false,
+            progress: 100,
+          };
+
           setPreviewImages((prev) =>
-            prev.map((img) =>
-              img.id === id
-                ? {
-                    ...img,
-                    ...uploadedImage,
-                    uploading: false,
-                    progress: 100,
-                  }
-                : img,
-            ),
+            prev.map((img) => (img.id === id ? updatedPreview : img)),
           );
 
           return uploadedImage;
@@ -175,19 +173,46 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
       );
 
       if (successfulUploads.length > 0) {
-        const completedImages = previewImages
-          .filter((img) => !img.error && !img.uploading && img.path)
-          .map(
-            (img): UploadedImage => ({
-              url: img.url,
-              path: img.path,
-              size: img.size,
-              type: img.type,
-              order: img.order,
-              is_main: img.is_main,
-            }),
-          );
-        onImagesChange(completedImages);
+        // アップロード成功した画像を直接親コンポーネントに通知
+        // setPreviewImagesの更新を待たずに即座に通知
+        // eslint-disable-next-line no-console
+        console.log(
+          '画像アップロード完了 - 親コンポーネントに通知:',
+          successfulUploads,
+        );
+
+        // 現在の完了済み画像を取得（アップロード中ではないもの）
+        setPreviewImages((currentImages) => {
+          const existingCompleted = currentImages
+            .filter(
+              (img) =>
+                !img.error &&
+                !img.uploading &&
+                img.path &&
+                !successfulUploads.some((newImg) => newImg.path === img.path),
+            )
+            .map(
+              (img): UploadedImage => ({
+                url: img.url,
+                path: img.path,
+                size: img.size,
+                type: img.type,
+                order: img.order,
+                is_main: img.is_main,
+              }),
+            );
+
+          // 既存の完了済み画像と新しくアップロードした画像を結合
+          const allCompleted = [...existingCompleted, ...successfulUploads];
+
+          // eslint-disable-next-line no-console
+          console.log('全画像リスト:', allCompleted);
+
+          // 親コンポーネントに通知
+          onImagesChange(allCompleted);
+
+          return currentImages;
+        });
       }
     },
     [previewImages, maxImages, disabled, onImagesChange],
