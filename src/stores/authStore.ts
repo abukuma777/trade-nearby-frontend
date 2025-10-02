@@ -94,7 +94,6 @@ export const useAuthStore = create<AuthState>()(
         // ユーザーIDを明示的にlocalStorageに保存
         if (user.id) {
           localStorage.setItem('userId', user.id);
-          // console.log('ユーザーIDをlocalStorageに保存:', user.id);
         }
 
         // アクセストークンをlocalStorageに保存
@@ -186,7 +185,6 @@ export const useAuthStore = create<AuthState>()(
         // ストレージから復元した際に実行
         if (state && state.user?.id) {
           localStorage.setItem('userId', state.user.id);
-          // console.log('ページリロード時にuserIDを復元:', state.user.id);
         }
 
         // セッション情報も復元

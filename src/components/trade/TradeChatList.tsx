@@ -2,11 +2,13 @@
  * チャットルーム一覧コンポーネント
  */
 
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+
 import apiClient from '@/services/api';
+import { useAuthStore } from '@/stores/authStore';
 
 interface User {
   id: string;
@@ -38,6 +40,12 @@ interface ChatRoom {
   user2?: User;
 }
 
+interface ApiResponse {
+  success: boolean;
+  data?: ChatRoom[];
+  message?: string;
+}
+
 interface TradeChatListProps {
   status?: 'active' | 'completed';
 }
@@ -47,103 +55,42 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ユーザーIDの取得方法を改善
-  const getUserId = () => {
-    // さまざまな方法でユーザーIDを取得試行
-    const attempts = [];
-
-    // 1. localStorageから直接取得
-    const storedUserId = localStorage.getItem('userId');
-    if (storedUserId) {
-      attempts.push({ source: 'localStorage.userId', value: storedUserId });
-      console.log('UserID from localStorage:', storedUserId);
-      return storedUserId;
-    }
-
-    // 2. auth情報から取得
-    const authDataStr = localStorage.getItem('auth');
-    if (authDataStr) {
-      try {
-        const authData = JSON.parse(authDataStr);
-        const possibleId =
-          authData.user?.id || authData.user?.sub || authData.userId || authData.sub;
-        if (possibleId) {
-          attempts.push({ source: 'auth data', value: possibleId });
-          console.log('UserID from auth data:', possibleId, 'Full auth:', authData);
-          return possibleId;
-        }
-      } catch (e) {
-        console.error('認証情報のパースに失敗:', e);
-      }
-    }
-
-    // 3. auth-storageから取得 (Auth0用)
-    const authStorageStr = localStorage.getItem('auth-storage');
-    if (authStorageStr) {
-      try {
-        const authStorage = JSON.parse(authStorageStr);
-        const possibleId = authStorage.state?.user?.id || authStorage.state?.user?.sub;
-        if (possibleId) {
-          attempts.push({ source: 'auth-storage', value: possibleId });
-          console.log('UserID from auth-storage:', possibleId);
-          return possibleId;
-        }
-      } catch (e) {
-        console.error('auth-storageのパースに失敗:', e);
-      }
-    }
-
-    console.warn('ユーザーIDが取得できませんでした。試行:', attempts);
-    console.log('localStorageの全キー:', Object.keys(localStorage));
-
-    return null;
-  };
-
-  const currentUserId = getUserId();
+  // authStoreからユーザー情報を取得
+  const user = useAuthStore((state) => state.user);
+  const currentUserId = user?.id;
 
   useEffect(() => {
-    loadChatRooms();
-  }, [status]); // statusが変わったら再読み込み
+    const loadChatRooms = async (): Promise<void> => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-  const loadChatRooms = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+        const response = await apiClient.get<ApiResponse>(
+          '/trade-chat/rooms/my',
+        );
 
-      const response = await apiClient.get('/trade-chat/rooms/my');
-
-      if (response.data.success) {
-        const rooms = response.data.data || [];
-        // statusに応じてフィルタリング
-        const filteredRooms = rooms.filter((room: ChatRoom) => room.status === status);
-        setChatRooms(filteredRooms);
-
-        // デバッグ情報
-        console.log('チャットルーム一覧:', filteredRooms);
-        console.log('現在のユーザーID:', currentUserId);
-        if (filteredRooms.length > 0) {
-          console.log('最初のルーム詳細:', {
-            room: filteredRooms[0],
-            user1: filteredRooms[0].user1,
-            user2: filteredRooms[0].user2,
-            user1_id: filteredRooms[0].user1_id,
-            user2_id: filteredRooms[0].user2_id,
-          });
+        if (response.data.success && response.data.data) {
+          const rooms = response.data.data;
+          // statusに応じてフィルタリング
+          const filteredRooms = rooms.filter((room) => room.status === status);
+          setChatRooms(filteredRooms);
+        } else {
+          setError('チャットルームの取得に失敗しました');
         }
-      } else {
-        setError('チャットルームの取得に失敗しました');
+      } catch (err) {
+        console.error('チャットルーム取得エラー:', err);
+        setError('チャットルームの取得中にエラーが発生しました');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error('チャットルーム取得エラー:', err);
-      setError('チャットルームの取得中にエラーが発生しました');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    void loadChatRooms();
+  }, [status]); // statusが変わったら再読み込み
 
   // 相手のユーザー情報を取得
   const getOtherUser = (room: ChatRoom): User | undefined => {
-    if (!currentUserId) return undefined;
+    if (!currentUserId) {return undefined;}
 
     if (room.user1_id === currentUserId) {
       return room.user2;
@@ -154,7 +101,7 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
 
   // 自分の投稿と相手の投稿を取得
   const getMyPost = (room: ChatRoom): TradePost | undefined => {
-    if (!currentUserId) return undefined;
+    if (!currentUserId) {return undefined;}
 
     if (room.user1_id === currentUserId) {
       return room.post1;
@@ -164,7 +111,7 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
   };
 
   const getOtherPost = (room: ChatRoom): TradePost | undefined => {
-    if (!currentUserId) return undefined;
+    if (!currentUserId) {return undefined;}
 
     if (room.user1_id === currentUserId) {
       return room.post2;
@@ -174,7 +121,7 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
   };
 
   // ステータスバッジの表示
-  const getStatusBadge = (roomStatus: string) => {
+  const getStatusBadge = (roomStatus: string): JSX.Element => {
     const styles = {
       active: 'bg-blue-100 text-blue-800',
       completed: 'bg-green-100 text-green-800',
@@ -187,7 +134,7 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
     };
     return (
       <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${styles[roomStatus as keyof typeof styles] || styles.active}`}
+        className={`rounded-full px-2 py-1 text-xs font-medium ${styles[roomStatus as keyof typeof styles] || styles.active}`}
       >
         {labels[roomStatus as keyof typeof labels] || roomStatus}
       </span>
@@ -196,8 +143,8 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
 
   if (isLoading) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <div className="py-12 text-center">
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
         <p className="mt-4 text-gray-600">読み込み中...</p>
       </div>
     );
@@ -205,11 +152,36 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
 
   if (error) {
     return (
-      <div className="text-center py-12 bg-red-50 rounded-lg">
+      <div className="rounded-lg bg-red-50 py-12 text-center">
         <p className="text-red-600">{error}</p>
         <button
-          onClick={loadChatRooms}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          onClick={(): void => {
+            const loadChatRooms = async (): Promise<void> => {
+              try {
+                setIsLoading(true);
+                setError(null);
+                const response = await apiClient.get<ApiResponse>(
+                  '/trade-chat/rooms/my',
+                );
+                if (response.data.success && response.data.data) {
+                  const rooms = response.data.data;
+                  const filteredRooms = rooms.filter(
+                    (room) => room.status === status,
+                  );
+                  setChatRooms(filteredRooms);
+                } else {
+                  setError('チャットルームの取得に失敗しました');
+                }
+              } catch (err) {
+                console.error('チャットルーム取得エラー:', err);
+                setError('チャットルームの取得中にエラーが発生しました');
+              } finally {
+                setIsLoading(false);
+              }
+            };
+            void loadChatRooms();
+          }}
+          className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
         >
           再読み込み
         </button>
@@ -219,9 +191,11 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
 
   if (chatRooms.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg">
+      <div className="rounded-lg bg-gray-50 py-12 text-center">
         <p className="text-gray-500">
-          {status === 'completed' ? '完了した取引はありません' : '進行中の取引チャットはありません'}
+          {status === 'completed'
+            ? '完了した取引はありません'
+            : '進行中の取引チャットはありません'}
         </p>
       </div>
     );
@@ -234,22 +208,12 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
         const myPost = getMyPost(room);
         const otherPost = getOtherPost(room);
 
-        // デバッグ: 各ルームのユーザー情報を確認
-        console.log(`Room ${room.id}:`, {
-          currentUserId,
-          room_user1_id: room.user1_id,
-          room_user2_id: room.user2_id,
-          otherUser,
-          room_user1: room.user1,
-          room_user2: room.user2,
-        });
-
         // ユーザー名の取得を改善
-        const getUserName = () => {
-          if (otherUser?.display_name) return otherUser.display_name;
-          if (otherUser?.username) return otherUser.username;
-          if (otherUser?.name) return otherUser.name;
-          if (otherUser?.id) return `ユーザー${otherUser.id.slice(-4)}`;
+        const getUserName = (): string => {
+          if (otherUser?.display_name) {return otherUser.display_name;}
+          if (otherUser?.username) {return otherUser.username;}
+          if (otherUser?.name) {return otherUser.name;}
+          if (otherUser?.id) {return `ユーザー${otherUser.id.slice(-4)}`;}
           return '不明なユーザー';
         };
 
@@ -257,20 +221,20 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
           <Link
             key={room.id}
             to={`/chat/${room.id}`}
-            className="block bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+            className="block rounded-lg border bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
           >
             {/* ヘッダー */}
-            <div className="flex justify-between items-start mb-4">
+            <div className="mb-4 flex items-start justify-between">
               <div className="flex items-center space-x-3">
                 {otherUser?.avatar_url ? (
                   <img
                     src={otherUser.avatar_url}
                     alt={getUserName()}
-                    className="w-10 h-10 rounded-full"
+                    className="h-10 w-10 rounded-full"
                   />
                 ) : (
-                  <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                    <span className="text-gray-600 font-semibold">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
+                    <span className="font-semibold text-gray-600">
                       {getUserName()[0].toUpperCase()}
                     </span>
                   </div>
@@ -289,19 +253,25 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
             </div>
 
             {/* 交換内容 */}
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
               {/* 自分の投稿 */}
-              <div className="border rounded-lg p-3 bg-gray-50">
-                <h4 className="text-xs font-medium text-gray-600 mb-2">あなたの投稿</h4>
+              <div className="rounded-lg border bg-gray-50 p-3">
+                <h4 className="mb-2 text-xs font-medium text-gray-600">
+                  あなたの投稿
+                </h4>
                 {myPost ? (
                   <div className="space-y-1">
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-gray-500">譲)</span>
-                      <span className="text-sm font-medium">{myPost.give_item}</span>
+                      <span className="text-sm font-medium">
+                        {myPost.give_item}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-gray-500">求)</span>
-                      <span className="text-sm font-medium">{myPost.want_item}</span>
+                      <span className="text-sm font-medium">
+                        {myPost.want_item}
+                      </span>
                     </div>
                   </div>
                 ) : (
@@ -310,17 +280,23 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
               </div>
 
               {/* 相手の投稿 */}
-              <div className="border rounded-lg p-3 bg-gray-50">
-                <h4 className="text-xs font-medium text-gray-600 mb-2">相手の投稿</h4>
+              <div className="rounded-lg border bg-gray-50 p-3">
+                <h4 className="mb-2 text-xs font-medium text-gray-600">
+                  相手の投稿
+                </h4>
                 {otherPost ? (
                   <div className="space-y-1">
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-gray-500">譲)</span>
-                      <span className="text-sm font-medium">{otherPost.give_item}</span>
+                      <span className="text-sm font-medium">
+                        {otherPost.give_item}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-gray-500">求)</span>
-                      <span className="text-sm font-medium">{otherPost.want_item}</span>
+                      <span className="text-sm font-medium">
+                        {otherPost.want_item}
+                      </span>
                     </div>
                   </div>
                 ) : (
@@ -333,7 +309,12 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
             {status === 'active' ? (
               <div className="mt-4 flex items-center justify-end text-blue-600">
                 <span className="text-sm">チャットを開く</span>
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="ml-1 h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -345,7 +326,12 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
             ) : (
               <div className="mt-4 flex items-center justify-end text-gray-500">
                 <span className="text-sm">取引完了</span>
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="ml-1 h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
