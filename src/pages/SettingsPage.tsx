@@ -3,7 +3,7 @@ import { FiBell, FiCheck, FiUser, FiLock } from 'react-icons/fi';
 
 import { useAuthStore } from '@/stores/authStore';
 
-type NotificationSetting = 'all' | 'own_posts_only' | 'offers_only' | 'none';
+type NotificationSetting = 'all' | 'offers_only' | 'none';
 
 interface SettingsResponse {
   success: boolean;
@@ -106,20 +106,13 @@ const SettingsPage: React.FC = () => {
       value: 'all' as const,
       label: 'すべての通知を受け取る',
       description:
-        '自分の投稿へのコメント、交換提案、コメントへの返信など、すべての通知を受け取ります',
+        'コメント、交換提案、取引チャット、返信など、すべての通知を受け取ります',
       icon: '🔔',
     },
     {
-      value: 'own_posts_only' as const,
-      label: '自分の投稿への通知のみ',
-      description: '自分の投稿へのコメントと交換提案のみ通知を受け取ります',
-      icon: '📝',
-    },
-    {
       value: 'offers_only' as const,
-      label: '交換提案と取引チャットのみ',
-      description:
-        '交換提案に関する通知と、取引が成立した後のチャットメッセージを受け取ります',
+      label: '取引関連の通知のみ',
+      description: '交換提案と取引成立後のチャットメッセージのみ受け取ります',
       icon: '🤝',
     },
     {
