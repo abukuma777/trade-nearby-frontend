@@ -23,6 +23,11 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
   // 初期化とリアルタイム接続
   useEffect(() => {
+    // userIdがない場合は何もしない
+    if (!userId) {
+      return;
+    }
+
     // 初回ロード時のみ実行
     if (!notifications.length) {
       void notificationService.initialize(userId);
