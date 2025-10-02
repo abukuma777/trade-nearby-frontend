@@ -28,7 +28,9 @@ const SettingsPage: React.FC = () => {
   // 設定を取得
   useEffect(() => {
     const fetchSettings = async (): Promise<void> => {
-      if (!user?.id) {return;}
+      if (!user?.id) {
+        return;
+      }
 
       setLoading(true);
       try {
@@ -60,7 +62,9 @@ const SettingsPage: React.FC = () => {
 
   // 設定を保存
   const handleSaveSettings = async (): Promise<void> => {
-    if (!user?.id) {return;}
+    if (!user?.id) {
+      return;
+    }
 
     setSaving(true);
     setMessage(null);
@@ -113,8 +117,9 @@ const SettingsPage: React.FC = () => {
     },
     {
       value: 'offers_only' as const,
-      label: '交換提案のみ',
-      description: '交換提案に関する通知のみ受け取ります',
+      label: '交換提案と取引チャットのみ',
+      description:
+        '交換提案に関する通知と、取引が成立した後のチャットメッセージを受け取ります',
       icon: '🤝',
     },
     {
