@@ -10,6 +10,7 @@ import MyTradePostsPage from './pages/MyTradePostsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import ProfilePage from './pages/ProfilePage';
 import RegisterPage from './pages/RegisterPage';
+import SettingsPage from './pages/SettingsPage';
 import StatisticsPage from './pages/StatisticsPage';
 // 交換リクエスト管理
 import TradeChatPage from './pages/TradeChatPage';
@@ -225,10 +226,7 @@ function App(): JSX.Element {
           element={
             <PrivateRoute>
               <MainLayout isAuthenticated={isAuthenticated} username={username}>
-                <div className="container mx-auto px-4 py-8">
-                  <h1 className="text-3xl font-bold">設定</h1>
-                  <p className="mt-4 text-gray-600">設定ページ（実装予定）</p>
-                </div>
+                <SettingsPage />
               </MainLayout>
             </PrivateRoute>
           }
