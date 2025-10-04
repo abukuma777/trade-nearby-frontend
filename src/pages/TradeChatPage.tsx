@@ -3,8 +3,8 @@
  * trade_chat_roomsテーブルを使用した取引専用チャット
  */
 
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -72,9 +72,22 @@ const TradeChatPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCompletingTransaction, setIsCompletingTransaction] = useState(false);
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // メッセージをリロード
+  const loadMessages = useCallback(async (): Promise<void> => {
+    if (!chatRoomId) return;
+    try {
+      const messagesData = await tradeChatService.getMessages(chatRoomId);
+      setMessages(messagesData);
+    } catch (err) {
+      console.error('メッセージ更新エラー:', err);
+    }
+  }, [chatRoomId]);
 
   // チャットルーム情報とメッセージを取得
   useEffect(() => {
@@ -91,10 +104,6 @@ const TradeChatPage: React.FC = () => {
 
         // メッセージを取得
         const messagesData = await tradeChatService.getMessages(chatRoomId);
-        // eslint-disable-next-line no-console
-        console.log('取得したメッセージ:', messagesData);
-        // eslint-disable-next-line no-console
-        console.log('最初のメッセージの詳細:', messagesData[0]);
         setMessages(messagesData);
       } catch (err) {
         console.error('チャットルーム読み込みエラー:', err);
@@ -104,33 +113,31 @@ const TradeChatPage: React.FC = () => {
       }
     };
 
-    loadChatRoom();
+    void loadChatRoom();
 
     // 定期的にメッセージを更新（ポーリング）
     const interval = setInterval(() => {
       if (!document.hidden) {
-        loadMessages();
+        void loadMessages();
       }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [chatRoomId]);
+  }, [chatRoomId, loadMessages]);
 
   // メッセージをリロード
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async (): Promise<void> => {
     if (!chatRoomId) return;
     try {
       const messagesData = await tradeChatService.getMessages(chatRoomId);
-      // eslint-disable-next-line no-console
-      console.log('メッセージ更新:', messagesData);
       setMessages(messagesData);
     } catch (err) {
       console.error('メッセージ更新エラー:', err);
     }
-  };
+  }, [chatRoomId]);
 
   // メッセージ送信
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
     if (!newMessage.trim() || !chatRoomId || isSending) return;
@@ -154,25 +161,25 @@ const TradeChatPage: React.FC = () => {
   };
 
   // 取引を完了
-  const handleCompleteTransaction = async () => {
-    if (!chatRoomId || !window.confirm('取引を完了しますか？この操作は取り消せません。')) {
+  const handleCompleteTransaction = async (): Promise<void> => {
+    if (!chatRoomId || isCompletingTransaction) {
       return;
     }
 
+    setIsCompletingTransaction(true);
     try {
       await tradeChatService.completeTransaction(chatRoomId);
-      alert('取引が完了しました！');
       navigate('/trade-posts/my');
     } catch (err) {
       console.error('取引完了エラー:', err);
       setError('取引の完了に失敗しました');
+    } finally {
+      setIsCompletingTransaction(false);
     }
   };
 
   // スクロールを最下部へ
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('現在のメッセージ数:', messages.length, messages);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -251,13 +258,37 @@ const TradeChatPage: React.FC = () => {
 
           {/* ステータス表示 */}
           {chatRoom.status === 'active' ? (
-            <button
-              onClick={handleCompleteTransaction}
-              className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
-            >
-              <CheckCircle size={16} />
-              取引完了
-            </button>
+            showCompleteConfirm ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">本当に完了？</span>
+                <button
+                  onClick={handleCompleteTransaction}
+                  disabled={isCompletingTransaction}
+                  className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-1"
+                >
+                  {isCompletingTransaction ? (
+                    <Loader className="animate-spin" size={16} />
+                  ) : (
+                    <CheckCircle size={16} />
+                  )}
+                  はい
+                </button>
+                <button
+                  onClick={(): void => setShowCompleteConfirm(false)}
+                  className="px-3 py-1.5 bg-gray-400 text-white text-sm rounded-lg hover:bg-gray-500"
+                >
+                  キャンセル
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={(): void => setShowCompleteConfirm(true)}
+                className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
+              >
+                <CheckCircle size={16} />
+                取引完了
+              </button>
+            )
           ) : (
             <span className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm rounded-lg">
               取引完了済み
@@ -333,10 +364,10 @@ const TradeChatPage: React.FC = () => {
               ref={messageInputRef}
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={(e) => {
+              onKeyDown={(e): void => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  handleSendMessage(e);
+                  void handleSendMessage(e);
                 }
               }}
               placeholder="メッセージを入力..."
