@@ -310,12 +310,10 @@ const ProfilePage: React.FC = () => {
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
           onSuccess={async () => {
-            console.log('ProfilePage: 更新後の処理を実行');
             // 強制的にコンポーネントを再レンダリング
             forceUpdate();
             // キャッシュを無視して再取得
             await refetchUser();
-            console.log('ProfilePage: 更新完了');
           }}
         />
       )}

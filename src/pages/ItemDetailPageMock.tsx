@@ -8,7 +8,7 @@ import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 
 import { mockItems } from '@/__mocks__/itemMocks';
-import { categoryLabels, conditionLabels, statusLabels, Item } from '@/types/item';
+import { categoryLabels, conditionLabels, statusLabels } from '@/types/item';
 
 const ItemDetailPageMock: React.FC = () => {
   const { id } = useParams<{ id: string }>();

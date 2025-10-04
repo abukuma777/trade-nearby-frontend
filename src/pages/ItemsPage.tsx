@@ -51,7 +51,7 @@ const ItemsPage: React.FC = () => {
   }, []);
 
   // React Queryを使用してデータ取得
-  const { data, isLoading, error, refetch } = useItems({
+  const { data, isLoading, error } = useItems({
     ...queryParams,
     limit: queryParams.limit || 12,
   });

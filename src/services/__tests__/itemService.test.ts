@@ -30,7 +30,6 @@ describe('ItemService Integration Tests', () => {
       'should fetch items without parameters',
       async () => {
         if (skipTests) {
-          console.log('Test skipped: Backend not available');
           return;
         }
 

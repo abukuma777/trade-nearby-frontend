@@ -3,7 +3,7 @@
  * 個別アイテムの詳細情報を表示
  */
 
-import { ArrowLeft, MapPin, Calendar, Tag, Package, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Tag, Edit, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 

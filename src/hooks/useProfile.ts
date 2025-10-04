@@ -102,13 +102,10 @@ export const useUpdateProfile = () => {
 
   return useMutation<User, Error, Partial<User>>({
     mutationFn: async (updates) => {
-      console.log('[useUpdateProfile] 更新リクエスト:', updates);
       const result = await authService.updateProfile(updates);
-      console.log('[useUpdateProfile] APIレスポンス:', result);
       return result;
     },
     onSuccess: (updatedUser) => {
-      console.log('[useUpdateProfile] 更新成功、キャッシュを更新:', updatedUser);
 
       // キャッシュを更新
       queryClient.setQueryData(profileQueryKeys.current(), updatedUser);

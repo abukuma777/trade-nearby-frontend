@@ -4,7 +4,6 @@
  */
 
 import {
-  Star,
   Package,
   CheckCircle,
   Clock,
@@ -23,7 +22,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { RatingDisplay } from '@/components/trade';
-import { UserProfile, UserStats, getRatingColor, getRatingLabel } from '@/types/user';
+import { UserProfile, UserStats, getRatingLabel } from '@/types/user';
 
 interface UserInfoDetailProps {
   userId: string;
