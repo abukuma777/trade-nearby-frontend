@@ -12,7 +12,7 @@ import ItemList from '@/components/items/ItemList';
 import Pagination from '@/components/items/Pagination';
 import { useItems } from '@/hooks/useItems';
 import { useAuthStore } from '@/stores/authStore';
-import { ItemsQueryParams } from '@/types/item';
+import { Item, ItemsQueryParams } from '@/types/item';
 // モックデータ（開発用 - 実際のAPIが動作したらコメントアウト）
 // import { mockItemsResponse } from '@/__mocks__/itemMocks';
 
@@ -27,28 +27,42 @@ const ItemsPage: React.FC = () => {
     const params: ItemsQueryParams = {};
 
     const page = searchParams.get('page');
-    if (page) {params.page = parseInt(page, 10);}
+    if (page) {
+      params.page = parseInt(page, 10);
+    }
 
     const limit = searchParams.get('limit');
-    if (limit) {params.limit = parseInt(limit, 10);}
+    if (limit) {
+      params.limit = parseInt(limit, 10);
+    }
 
     const category = searchParams.get('category');
-    if (category) {params.category = category as ItemsQueryParams['category'];}
+    if (category) {
+      params.category = category as ItemsQueryParams['category'];
+    }
 
     const status = searchParams.get('status');
-    if (status) {params.status = status as ItemsQueryParams['status'];}
+    if (status) {
+      params.status = status as ItemsQueryParams['status'];
+    }
 
     const search = searchParams.get('search');
-    if (search) {params.search = search;}
+    if (search) {
+      params.search = search;
+    }
 
     const sort = searchParams.get('sort');
-    if (sort) {params.sort = sort as ItemsQueryParams['sort'];}
+    if (sort) {
+      params.sort = sort as ItemsQueryParams['sort'];
+    }
 
     const tags = searchParams.get('tags');
-    if (tags) {params.tags = tags.split(',');}
+    if (tags) {
+      params.tags = tags.split(',');
+    }
 
     setQueryParams(params);
-  }, []);
+  }, [searchParams]);
 
   // React Queryを使用してデータ取得
   const { data, isLoading, error } = useItems({
@@ -62,7 +76,7 @@ const ItemsPage: React.FC = () => {
   // const error = null;
 
   // フィルター変更時の処理
-  const handleFilterChange = (filters: ItemsQueryParams) => {
+  const handleFilterChange = (filters: ItemsQueryParams): void => {
     // URLパラメータを更新
     const newParams = new URLSearchParams();
 
@@ -93,7 +107,7 @@ const ItemsPage: React.FC = () => {
   };
 
   // ページ変更時の処理
-  const handlePageChange = (page: number) => {
+  const handlePageChange = (page: number): void => {
     const newParams = { ...queryParams, page };
     handleFilterChange(newParams);
 
@@ -102,20 +116,22 @@ const ItemsPage: React.FC = () => {
   };
 
   // アイテムクリック時の処理
-  const handleItemClick = (item: any) => {
+  const handleItemClick = (item: Item): void => {
     navigate(`/items/${item.id}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="border-b border-gray-200 bg-white">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">グッズ一覧</h1>
               <p className="mt-1 text-sm text-gray-600">
-                {data ? `${data.total}件のグッズが見つかりました` : '読み込み中...'}
+                {data
+                  ? `${data.total}件のグッズが見つかりました`
+                  : '読み込み中...'}
               </p>
             </div>
 
@@ -123,7 +139,7 @@ const ItemsPage: React.FC = () => {
             {isAuthenticated && (
               <Link
                 to="/items/create"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                className="flex items-center space-x-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
               >
                 <Plus size={20} />
                 <span>出品する</span>
@@ -168,7 +184,7 @@ const ItemsPage: React.FC = () => {
       {isAuthenticated && (
         <Link
           to="/items/create"
-          className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center justify-center z-50"
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-colors hover:bg-blue-700 lg:hidden"
           aria-label="出品する"
         >
           <Plus size={24} />

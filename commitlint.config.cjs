@@ -16,7 +16,7 @@ module.exports = {
     // 'scope-empty': [2, 'never'],           // スコープ任意化のため削除
     'subject-empty': [2, 'never'],            // 件名必須
     'subject-max-length': [2, 'always', 75],  // 75字以内
-    // 'subject-case': [2, 'always', 'lower-case'],  // 大文字制限解除
+    'subject-case': [0],                       // 大文字始まりを許可
     // 'body-min-length': [2, 'always', 30],  // 本文任意化のため削除
     'body-max-line-length': [0],              // 本文の行長制限なし
     'body-leading-blank': [2, 'always'],

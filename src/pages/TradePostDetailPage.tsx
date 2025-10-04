@@ -28,7 +28,7 @@ const safeFormatDate = (
       return '不明';
     }
     return format(date, formatStr, { locale: ja });
-  } catch (error) {
+  } catch {
     return '不明';
   }
 };

@@ -2,6 +2,22 @@ import { useAuthStore } from '../stores/authStore';
 
 import { API_BASE_URL } from './api.config';
 
+// APIレスポンス用の型定義
+interface ApiResponse<T> {
+  data?: T;
+  message?: string;
+  error?: string;
+}
+
+// ユーザーのアクティブな投稿の型
+interface UserActivePost {
+  id: string;
+  give_item: string;
+  want_item: string;
+  give_item_images?: Array<{ url: string; is_main?: boolean }>;
+  status: string;
+}
+
 export interface Comment {
   id: string;
   post_id: string;
@@ -38,15 +54,17 @@ class CommentService {
    */
   async getCommentsByPostId(postId: string): Promise<Comment[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/trade-posts/${postId}/comments`);
+      const response = await fetch(
+        `${API_BASE_URL}/trade-posts/${postId}/comments`,
+      );
 
       if (!response.ok) {
         throw new Error('コメントの取得に失敗しました');
       }
 
-      const result = await response.json();
+      const result = (await response.json()) as ApiResponse<Comment[]>;
       return result.data || [];
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching comments:', error);
       throw error;
     }
@@ -55,7 +73,10 @@ class CommentService {
   /**
    * コメントを投稿
    */
-  async createComment(postId: string, data: CreateCommentData): Promise<Comment> {
+  async createComment(
+    postId: string,
+    data: CreateCommentData,
+  ): Promise<Comment> {
     try {
       // authストアからアクセストークンを取得
       const accessToken = useAuthStore.getState().getAccessToken();
@@ -64,23 +85,26 @@ class CommentService {
         throw new Error('認証が必要です');
       }
 
-      const response = await fetch(`${API_BASE_URL}/trade-posts/${postId}/comments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+      const response = await fetch(
+        `${API_BASE_URL}/trade-posts/${postId}/comments`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(data),
         },
-        body: JSON.stringify(data),
-      });
+      );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'コメントの投稿に失敗しました');
+        const errorData = (await response.json()) as ApiResponse<never>;
+        throw new Error(errorData.message || 'コメントの投稿に失敗しました');
       }
 
-      const result = await response.json();
-      return result.data;
-    } catch (error) {
+      const result = (await response.json()) as ApiResponse<Comment>;
+      return result.data as Comment;
+    } catch (error: unknown) {
       console.error('Error creating comment:', error);
       throw error;
     }
@@ -89,17 +113,19 @@ class CommentService {
   /**
    * ユーザーのアクティブな投稿一覧を取得（交換提案用）
    */
-  async getUserActivePosts(userId: string): Promise<any[]> {
+  async getUserActivePosts(userId: string): Promise<UserActivePost[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}/active-posts`);
+      const response = await fetch(
+        `${API_BASE_URL}/users/${userId}/active-posts`,
+      );
 
       if (!response.ok) {
         throw new Error('投稿の取得に失敗しました');
       }
 
-      const result = await response.json();
+      const result = (await response.json()) as ApiResponse<UserActivePost[]>;
       return result.data || [];
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching user active posts:', error);
       throw error;
     }
@@ -137,13 +163,23 @@ class CommentService {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || '交換提案の承認に失敗しました');
+        const errorData = (await response.json()) as ApiResponse<never>;
+        throw new Error(errorData.error || '交換提案の承認に失敗しました');
       }
 
-      const result = await response.json();
-      return result.data;
-    } catch (error) {
+      const result = (await response.json()) as ApiResponse<{
+        message: string;
+        myPostId: string;
+        partnerPostId: string;
+        chatRoomId?: string;
+      }>;
+      return result.data as {
+        message: string;
+        myPostId: string;
+        partnerPostId: string;
+        chatRoomId?: string;
+      };
+    } catch (error: unknown) {
       console.error('Error accepting offer:', error);
       throw error;
     }
@@ -179,13 +215,19 @@ class CommentService {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || '交換提案の拒否に失敗しました');
+        const errorData = (await response.json()) as ApiResponse<never>;
+        throw new Error(errorData.error || '交換提案の拒否に失敗しました');
       }
 
-      const result = await response.json();
-      return result.data;
-    } catch (error) {
+      const result = (await response.json()) as ApiResponse<{
+        message: string;
+        commentId: string;
+      }>;
+      return result.data as {
+        message: string;
+        commentId: string;
+      };
+    } catch (error: unknown) {
       console.error('Error rejecting offer:', error);
       throw error;
     }

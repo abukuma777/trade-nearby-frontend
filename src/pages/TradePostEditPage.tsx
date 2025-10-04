@@ -57,7 +57,7 @@ const TradePostEditPage: React.FC = () => {
 
       try {
         await fetchPost(id);
-      } catch (err) {
+      } catch {
         // エラーの場合は一覧画面にリダイレクト
         navigate('/trade-posts');
       }
@@ -149,7 +149,7 @@ const TradePostEditPage: React.FC = () => {
             postWithHierarchy.content_id,
           );
           setCategorySelection(selection);
-        } catch (err) {
+        } catch {
           // カテゴリ情報が取得できなくても続行
         } finally {
           setLoadingCategory(false);
@@ -236,7 +236,7 @@ const TradePostEditPage: React.FC = () => {
 
       await updatePost(id, updateData);
       navigate(`/trade-posts/${id}`);
-    } catch (err) {
+    } catch {
       setValidationErrors((prev) => ({
         ...prev,
         images: '更新に失敗しました。もう一度お試しください。',

@@ -20,7 +20,9 @@ describe('ItemService Integration Tests', () => {
     try {
       await fetch('http://localhost:3001/health');
     } catch {
-      console.warn('Backend server is not running. Skipping integration tests.');
+      console.warn(
+        'Backend server is not running. Skipping integration tests.',
+      );
       skipTests = true;
     }
   });
@@ -42,7 +44,7 @@ describe('ItemService Integration Tests', () => {
           expect(response.page).toBe(1);
           expect(response.limit).toBeGreaterThan(0);
           expect(response.totalPages).toBeGreaterThanOrEqual(0);
-        } catch (error) {
+        } catch (error: unknown) {
           // バックエンドが起動していない場合はスキップ
           console.warn('Could not connect to backend:', error);
         }
@@ -53,7 +55,9 @@ describe('ItemService Integration Tests', () => {
     it(
       'should fetch items with query parameters',
       async () => {
-        if (skipTests) {return;}
+        if (skipTests) {
+          return;
+        }
 
         const params: ItemsQueryParams = {
           page: 1,
@@ -76,7 +80,7 @@ describe('ItemService Integration Tests', () => {
               expect(item.category).toBe('anime');
             }
           });
-        } catch (error) {
+        } catch (error: unknown) {
           console.warn('Could not connect to backend:', error);
         }
       },
@@ -86,7 +90,9 @@ describe('ItemService Integration Tests', () => {
     it(
       'should handle search parameter',
       async () => {
-        if (skipTests) {return;}
+        if (skipTests) {
+          return;
+        }
 
         const params: ItemsQueryParams = {
           search: '鬼滅',
@@ -97,7 +103,7 @@ describe('ItemService Integration Tests', () => {
 
           expect(response).toBeDefined();
           expect(response.items).toBeInstanceOf(Array);
-        } catch (error) {
+        } catch (error: unknown) {
           console.warn('Could not connect to backend:', error);
         }
       },
@@ -109,7 +115,9 @@ describe('ItemService Integration Tests', () => {
     it(
       'should handle item not found error',
       async () => {
-        if (skipTests) {return;}
+        if (skipTests) {
+          return;
+        }
 
         const nonExistentId = 'non-existent-id-12345';
 
@@ -117,9 +125,11 @@ describe('ItemService Integration Tests', () => {
           await itemService.getItem(nonExistentId);
           // エラーが発生しなかった場合はテスト失敗
           expect(true).toBe(false);
-        } catch (error: any) {
+        } catch (error: unknown) {
           // 404エラーを期待
-          expect(error.response?.status).toBe(404);
+          expect(
+            (error as { response?: { status?: number } }).response?.status,
+          ).toBe(404);
         }
       },
       TEST_TIMEOUT,
@@ -130,7 +140,9 @@ describe('ItemService Integration Tests', () => {
     it(
       'should fetch nearby items with location',
       async () => {
-        if (skipTests) {return;}
+        if (skipTests) {
+          return;
+        }
 
         const params = {
           lat: 35.6762,
@@ -151,7 +163,7 @@ describe('ItemService Integration Tests', () => {
               expect(item.distance).toBeGreaterThanOrEqual(0);
             }
           });
-        } catch (error) {
+        } catch (error: unknown) {
           console.warn('Could not connect to backend:', error);
         }
       },
@@ -162,17 +174,19 @@ describe('ItemService Integration Tests', () => {
   describe('Error Handling', () => {
     it('should handle network errors gracefully', async () => {
       // 一時的に不正なURLを設定
-      const originalBaseURL = import.meta.env.VITE_API_URL;
-      import.meta.env.VITE_API_URL = 'http://localhost:99999';
+      const originalBaseURL = import.meta.env.VITE_API_URL as
+        | string
+        | undefined;
+      import.meta.env.VITE_API_URL = 'http://localhost:99999' as string;
 
       try {
         await itemService.getItems();
         expect(true).toBe(false); // エラーが発生するはず
-      } catch (error) {
+      } catch (error: unknown) {
         expect(error).toBeDefined();
       } finally {
         // 元のURLに戻す
-        import.meta.env.VITE_API_URL = originalBaseURL;
+        import.meta.env.VITE_API_URL = originalBaseURL as string;
       }
     });
   });
@@ -183,7 +197,9 @@ describe('ItemService Integration Tests', () => {
  */
 describe('Mock Data Tests', () => {
   it('should import mock data correctly', async () => {
-    const { mockItems, mockItemsResponse } = await import('@/__mocks__/itemMocks');
+    const { mockItems, mockItemsResponse } = await import(
+      '@/__mocks__/itemMocks'
+    );
 
     expect(mockItems).toBeDefined();
     expect(mockItems.length).toBeGreaterThan(0);

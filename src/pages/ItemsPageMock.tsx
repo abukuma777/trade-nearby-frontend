@@ -7,16 +7,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 // import { useItems } from '@/hooks/useItems';
-import {
-  mockItemsResponse,
-  searchMockItems,
-  getMockItemsByCategory,
-  getMockItemsByStatus,
-} from '@/__mocks__/itemMocks';
+import { mockItemsResponse, searchMockItems } from '@/__mocks__/itemMocks';
 import ItemFilter from '@/components/items/ItemFilter';
 import ItemList from '@/components/items/ItemList';
 import Pagination from '@/components/items/Pagination';
-import { ItemsQueryParams } from '@/types/item';
+import { Item, ItemsQueryParams } from '@/types/item';
 // モックデータを使用
 
 const ItemsPage: React.FC = () => {
@@ -32,28 +27,42 @@ const ItemsPage: React.FC = () => {
     const params: ItemsQueryParams = {};
 
     const page = searchParams.get('page');
-    if (page) {params.page = parseInt(page, 10);}
+    if (page) {
+      params.page = parseInt(page, 10);
+    }
 
     const limit = searchParams.get('limit');
-    if (limit) {params.limit = parseInt(limit, 10);}
+    if (limit) {
+      params.limit = parseInt(limit, 10);
+    }
 
     const category = searchParams.get('category');
-    if (category) {params.category = category as ItemsQueryParams['category'];}
+    if (category) {
+      params.category = category as ItemsQueryParams['category'];
+    }
 
     const status = searchParams.get('status');
-    if (status) {params.status = status as ItemsQueryParams['status'];}
+    if (status) {
+      params.status = status as ItemsQueryParams['status'];
+    }
 
     const search = searchParams.get('search');
-    if (search) {params.search = search;}
+    if (search) {
+      params.search = search;
+    }
 
     const sort = searchParams.get('sort');
-    if (sort) {params.sort = sort as ItemsQueryParams['sort'];}
+    if (sort) {
+      params.sort = sort as ItemsQueryParams['sort'];
+    }
 
     const tags = searchParams.get('tags');
-    if (tags) {params.tags = tags.split(',');}
+    if (tags) {
+      params.tags = tags.split(',');
+    }
 
     setQueryParams(params);
-  }, []);
+  }, [searchParams]);
 
   // モックデータのフィルタリング
   useEffect(() => {
@@ -76,9 +85,15 @@ const ItemsPage: React.FC = () => {
 
     // ソート
     if (queryParams.sort === 'created_at') {
-      items.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      items.sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
     } else if (queryParams.sort === '-created_at') {
-      items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      items.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
     }
 
     // ページネーション
@@ -102,7 +117,7 @@ const ItemsPage: React.FC = () => {
   const error = null;
 
   // フィルター変更時の処理
-  const handleFilterChange = (filters: ItemsQueryParams) => {
+  const handleFilterChange = (filters: ItemsQueryParams): void => {
     // URLパラメータを更新
     const newParams = new URLSearchParams();
 
@@ -133,7 +148,7 @@ const ItemsPage: React.FC = () => {
   };
 
   // ページ変更時の処理
-  const handlePageChange = (page: number) => {
+  const handlePageChange = (page: number): void => {
     const newParams = { ...queryParams, page };
     handleFilterChange(newParams);
 
@@ -142,14 +157,14 @@ const ItemsPage: React.FC = () => {
   };
 
   // アイテムクリック時の処理
-  const handleItemClick = (item: any) => {
+  const handleItemClick = (item: Item): void => {
     navigate(`/items/${item.id}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* テストモード表示 */}
-      <div className="bg-yellow-50 border-b border-yellow-200">
+      <div className="border-b border-yellow-200 bg-yellow-50">
         <div className="container mx-auto px-4 py-2">
           <p className="text-sm text-yellow-800">
             🧪 テストモード：モックデータを使用しています（アイテム数:{' '}
@@ -159,22 +174,29 @@ const ItemsPage: React.FC = () => {
       </div>
 
       {/* ヘッダー */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="border-b border-gray-200 bg-white">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">グッズ一覧</h1>
               <p className="mt-1 text-sm text-gray-600">
-                {data ? `${data.total}件のグッズが見つかりました` : '読み込み中...'}
+                {data
+                  ? `${data.total}件のグッズが見つかりました`
+                  : '読み込み中...'}
               </p>
             </div>
 
             {/* 出品ボタン（認証済みユーザーのみ） */}
             <button
               onClick={() => navigate('/items/new')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+              className="flex items-center space-x-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -222,11 +244,21 @@ const ItemsPage: React.FC = () => {
       {/* フローティングアクションボタン（モバイル用） */}
       <button
         onClick={() => navigate('/items/new')}
-        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center justify-center z-50"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-colors hover:bg-blue-700 lg:hidden"
         aria-label="出品する"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        <svg
+          className="h-6 w-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 4v16m8-8H4"
+          />
         </svg>
       </button>
     </div>

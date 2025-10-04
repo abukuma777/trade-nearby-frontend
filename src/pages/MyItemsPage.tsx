@@ -10,8 +10,15 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 
 import MyItemCard from '@/components/items/MyItemCard';
 import Pagination from '@/components/items/Pagination';
-import { useItems, useDeleteItem, useToggleItemVisibility } from '@/hooks/useItems';
+import {
+  useItems,
+  useDeleteItem,
+  useToggleItemVisibility,
+} from '@/hooks/useItems';
 import { useAuthStore } from '@/stores/authStore';
+
+// スケルトンローダー用の固定キー配列
+const SKELETON_ITEMS = ['sk-1', 'sk-2', 'sk-3', 'sk-4', 'sk-5', 'sk-6'];
 
 const MyItemsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,12 +26,16 @@ const MyItemsPage: React.FC = () => {
   const { user, isAuthenticated } = useAuthStore();
 
   // statusとvisibilityを分離
-  const [selectedStatus, setSelectedStatus] = useState<'active' | 'reserved' | 'traded' | 'all'>(
-    'all',
-  );
-  const [selectedVisibility, setSelectedVisibility] = useState<'public' | 'private'>('public');
+  const [selectedStatus, setSelectedStatus] = useState<
+    'active' | 'reserved' | 'traded' | 'all'
+  >('all');
+  const [selectedVisibility, setSelectedVisibility] = useState<
+    'public' | 'private'
+  >('public');
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
+    null,
+  );
 
   // 削除用のmutation
   const deleteItemMutation = useDeleteItem();
@@ -53,7 +64,10 @@ const MyItemsPage: React.FC = () => {
     const status = searchParams.get('status');
     if (
       status &&
-      (status === 'all' || status === 'active' || status === 'reserved' || status === 'traded')
+      (status === 'all' ||
+        status === 'active' ||
+        status === 'reserved' ||
+        status === 'traded')
     ) {
       setSelectedStatus(status);
     }
@@ -136,10 +150,13 @@ const MyItemsPage: React.FC = () => {
     try {
       // 現在のアイテムを取得
       const currentItem = data?.items.find((item) => item.id === itemId);
-      if (!currentItem) {return;}
+      if (!currentItem) {
+        return;
+      }
 
       // 新しいvisibilityを決定
-      const newVisibility = currentItem.visibility === 'public' ? 'private' : 'public';
+      const newVisibility =
+        currentItem.visibility === 'public' ? 'private' : 'public';
 
       // APIを呼び出し
       await toggleVisibilityMutation.mutateAsync({
@@ -148,7 +165,9 @@ const MyItemsPage: React.FC = () => {
       });
 
       // 成功メッセージ
-      toast.success(`アイテムを${newVisibility === 'public' ? '公開' : '非公開'}にしました`);
+      toast.success(
+        `アイテムを${newVisibility === 'public' ? '公開' : '非公開'}にしました`,
+      );
 
       // リストを再取得
       void refetch();
@@ -186,13 +205,15 @@ const MyItemsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="border-b border-gray-200 bg-white">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Package size={32} className="text-blue-600" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{getTitle()}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {getTitle()}
+                </h1>
                 <p className="mt-1 text-sm text-gray-600">
                   {data ? `${data.total}件` : '読み込み中...'}
                 </p>
@@ -202,7 +223,7 @@ const MyItemsPage: React.FC = () => {
             {/* 新規出品ボタン */}
             <Link
               to="/items/create"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+              className="flex items-center space-x-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
             >
               <Plus size={20} />
               <span>新規出品</span>
@@ -214,14 +235,16 @@ const MyItemsPage: React.FC = () => {
       {/* メインコンテンツ */}
       <div className="container mx-auto px-4 py-8">
         {/* フィルター */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="mb-6 rounded-lg bg-white p-4 shadow-sm">
           {/* ステータスフィルター */}
           <div className="mb-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">ステータス</h3>
+            <h3 className="mb-2 text-sm font-semibold text-gray-700">
+              ステータス
+            </h3>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => handleStatusChange('all')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`rounded-lg px-4 py-2 font-medium transition-colors ${
                   selectedStatus === 'all'
                     ? 'bg-indigo-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -231,7 +254,7 @@ const MyItemsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => handleStatusChange('active')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`rounded-lg px-4 py-2 font-medium transition-colors ${
                   selectedStatus === 'active'
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -241,7 +264,7 @@ const MyItemsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => handleStatusChange('reserved')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`rounded-lg px-4 py-2 font-medium transition-colors ${
                   selectedStatus === 'reserved'
                     ? 'bg-yellow-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -251,7 +274,7 @@ const MyItemsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => handleStatusChange('traded')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`rounded-lg px-4 py-2 font-medium transition-colors ${
                   selectedStatus === 'traded'
                     ? 'bg-gray-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -264,11 +287,13 @@ const MyItemsPage: React.FC = () => {
 
           {/* 公開状態フィルター */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">公開状態</h3>
+            <h3 className="mb-2 text-sm font-semibold text-gray-700">
+              公開状態
+            </h3>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => handleVisibilityChange('public')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`rounded-lg px-4 py-2 font-medium transition-colors ${
                   selectedVisibility === 'public'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -278,7 +303,7 @@ const MyItemsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => handleVisibilityChange('private')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`rounded-lg px-4 py-2 font-medium transition-colors ${
                   selectedVisibility === 'private'
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -292,7 +317,7 @@ const MyItemsPage: React.FC = () => {
 
         {/* エラー表示 */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center space-x-2">
+          <div className="mb-6 flex items-center space-x-2 rounded-lg border border-red-200 bg-red-50 p-4">
             <AlertCircle className="text-red-600" size={20} />
             <p className="text-red-800">エラー: {error.message}</p>
           </div>
@@ -300,15 +325,17 @@ const MyItemsPage: React.FC = () => {
 
         {/* アイテムリスト */}
         {!isLoading && data && data.items.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <Package size={64} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">{getTitle()}はありません</h3>
-            <p className="text-gray-600 mb-6">
+          <div className="rounded-lg bg-white p-12 text-center shadow-sm">
+            <Package size={64} className="mx-auto mb-4 text-gray-400" />
+            <h3 className="mb-2 text-lg font-semibold text-gray-900">
+              {getTitle()}はありません
+            </h3>
+            <p className="mb-6 text-gray-600">
               新しいグッズを出品して、他のユーザーと交換してみましょう！
             </p>
             <Link
               to="/items/create"
-              className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center space-x-2 rounded-lg bg-blue-600 px-6 py-3 text-white transition-colors hover:bg-blue-700"
             >
               <Plus size={20} />
               <span>グッズを出品する</span>
@@ -318,35 +345,37 @@ const MyItemsPage: React.FC = () => {
           <>
             {/* アイテムグリッド */}
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                 {/* スケルトンローダー */}
-                {Array.from({ length: 6 }).map((_, index) => (
+                {SKELETON_ITEMS.map((key) => (
                   <div
-                    key={`skeleton-${index}`}
-                    className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse"
+                    key={key}
+                    className="animate-pulse overflow-hidden rounded-lg bg-white shadow-md"
                   >
                     <div className="aspect-square bg-gray-300" />
                     <div className="p-4">
-                      <div className="h-6 bg-gray-300 rounded mb-2" />
-                      <div className="h-4 bg-gray-200 rounded mb-2" />
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-3" />
+                      <div className="mb-2 h-6 rounded bg-gray-300" />
+                      <div className="mb-2 h-4 rounded bg-gray-200" />
+                      <div className="mb-3 h-4 w-3/4 rounded bg-gray-200" />
                       <div className="flex space-x-2">
-                        <div className="h-8 bg-gray-200 rounded flex-1" />
-                        <div className="h-8 bg-gray-200 rounded flex-1" />
+                        <div className="h-8 flex-1 rounded bg-gray-200" />
+                        <div className="h-8 flex-1 rounded bg-gray-200" />
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                 {data?.items.map((item) => (
                   <MyItemCard
                     key={item.id}
                     item={item}
                     onEdit={handleEditItem}
                     onDelete={(itemId) => setShowDeleteConfirm(itemId)}
-                    onToggleVisibility={() => void handleToggleVisibility(item.id)}
+                    onToggleVisibility={() =>
+                      void handleToggleVisibility(item.id)
+                    }
                     onClick={handleItemClick}
                   />
                 ))}
@@ -370,22 +399,24 @@ const MyItemsPage: React.FC = () => {
 
       {/* 削除確認モーダル */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold mb-4">アイテムを削除しますか？</h3>
-            <p className="text-gray-600 mb-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6">
+            <h3 className="mb-4 text-lg font-semibold">
+              アイテムを削除しますか？
+            </h3>
+            <p className="mb-6 text-gray-600">
               この操作は取り消せません。本当にこのアイテムを削除してもよろしいですか？
             </p>
             <div className="flex space-x-3">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                className="flex-1 rounded-lg bg-gray-200 px-4 py-2 text-gray-800 transition-colors hover:bg-gray-300"
               >
                 キャンセル
               </button>
               <button
                 onClick={() => void handleDeleteItem(showDeleteConfirm)}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
                 disabled={deleteItemMutation.isPending}
               >
                 {deleteItemMutation.isPending ? '削除中...' : '削除する'}
@@ -398,7 +429,7 @@ const MyItemsPage: React.FC = () => {
       {/* フローティングアクションボタン（モバイル用） */}
       <Link
         to="/items/create"
-        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center justify-center z-40"
+        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-colors hover:bg-blue-700 lg:hidden"
         aria-label="新規出品"
       >
         <Plus size={24} />

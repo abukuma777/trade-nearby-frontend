@@ -47,7 +47,9 @@ const TradeDetailPage: React.FC = () => {
 
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'detail' | 'chat'>('detail');
-  const [processingAction, setProcessingAction] = useState<'accept' | 'reject' | 'cancel' | null>(null);
+  const [processingAction, setProcessingAction] = useState<
+    'accept' | 'reject' | 'cancel' | null
+  >(null);
 
   // データ読み込み
   useEffect(() => {
@@ -60,7 +62,10 @@ const TradeDetailPage: React.FC = () => {
   }, [id, loadRequestDetail, clearMessages]);
 
   // 評価送信ハンドラー
-  const handleRatingSubmit = async (rating: number, comment: string): Promise<void> => {
+  const handleRatingSubmit = async (
+    rating: number,
+    comment: string,
+  ): Promise<void> => {
     await completeRequest(currentRequest!.id, { rating, comment });
     setShowRatingModal(false);
     navigate('/trade');
@@ -71,13 +76,13 @@ const TradeDetailPage: React.FC = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse">
-          <div className="h-8 w-64 bg-gray-200 rounded mb-6" />
-          <div className="bg-white rounded-lg p-6 space-y-4">
-            <div className="h-6 bg-gray-200 rounded w-3/4" />
-            <div className="h-4 bg-gray-200 rounded w-1/2" />
-            <div className="grid grid-cols-2 gap-4 mt-6">
-              <div className="h-32 bg-gray-200 rounded" />
-              <div className="h-32 bg-gray-200 rounded" />
+          <div className="mb-6 h-8 w-64 rounded bg-gray-200" />
+          <div className="space-y-4 rounded-lg bg-white p-6">
+            <div className="h-6 w-3/4 rounded bg-gray-200" />
+            <div className="h-4 w-1/2 rounded bg-gray-200" />
+            <div className="mt-6 grid grid-cols-2 gap-4">
+              <div className="h-32 rounded bg-gray-200" />
+              <div className="h-32 rounded bg-gray-200" />
             </div>
           </div>
         </div>
@@ -89,13 +94,17 @@ const TradeDetailPage: React.FC = () => {
   if (error || !currentRequest) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
           <AlertCircle className="mx-auto mb-4 text-red-500" size={48} />
-          <h2 className="text-2xl font-bold text-red-600 mb-2">エラーが発生しました</h2>
-          <p className="text-red-600 mb-4">{error || 'リクエストが見つかりませんでした'}</p>
+          <h2 className="mb-2 text-2xl font-bold text-red-600">
+            エラーが発生しました
+          </h2>
+          <p className="mb-4 text-red-600">
+            {error || 'リクエストが見つかりませんでした'}
+          </p>
           <button
             onClick={() => navigate('/trade')}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
           >
             一覧に戻る
           </button>
@@ -107,10 +116,14 @@ const TradeDetailPage: React.FC = () => {
   // ユーザータイプの判定
   const isSender = user?.id === currentRequest.from_user_id;
   const isReceiver = user?.id === currentRequest.to_user_id;
-  const otherUser = isSender ? currentRequest.to_user : currentRequest.from_user;
+  const otherUser = isSender
+    ? currentRequest.to_user
+    : currentRequest.from_user;
 
   // ステータスアイコンと色の取得
-  const getStatusDisplay = (status: string): { icon: JSX.Element; color: string; label: string } => {
+  const getStatusDisplay = (
+    status: string,
+  ): { icon: JSX.Element; color: string; label: string } => {
     switch (status) {
       case 'pending':
         return {
@@ -163,7 +176,9 @@ const TradeDetailPage: React.FC = () => {
       variant: 'info',
     });
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     setProcessingAction('accept');
     try {
@@ -185,7 +200,9 @@ const TradeDetailPage: React.FC = () => {
       variant: 'warning',
     });
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     setProcessingAction('reject');
     try {
@@ -207,7 +224,9 @@ const TradeDetailPage: React.FC = () => {
       variant: 'warning',
     });
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     setProcessingAction('cancel');
     try {
@@ -222,25 +241,31 @@ const TradeDetailPage: React.FC = () => {
 
   // アイテムの分離
   const offerItems =
-    currentRequest.trade_request_items?.filter((item) => item.type === 'offer') || [];
+    currentRequest.trade_request_items?.filter(
+      (item) => item.type === 'offer',
+    ) || [];
   const requestItems =
-    currentRequest.trade_request_items?.filter((item) => item.type === 'request') || [];
+    currentRequest.trade_request_items?.filter(
+      (item) => item.type === 'request',
+    ) || [];
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto max-w-4xl px-4 py-8">
       {/* ヘッダー */}
       <div className="mb-6">
         <button
           onClick={() => navigate('/trade')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+          className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft size={20} />
           <span>一覧に戻る</span>
         </button>
 
-        <div className="flex justify-between items-start">
+        <div className="flex items-start justify-between">
           <h1 className="text-3xl font-bold">交換リクエスト詳細</h1>
-          <div className={`px-4 py-2 rounded-full flex items-center gap-2 ${statusDisplay.color}`}>
+          <div
+            className={`flex items-center gap-2 rounded-full px-4 py-2 ${statusDisplay.color}`}
+          >
             {statusDisplay.icon}
             <span className="font-medium">{statusDisplay.label}</span>
           </div>
@@ -249,10 +274,10 @@ const TradeDetailPage: React.FC = () => {
 
       {/* タブナビゲーション（trading時のみ表示） */}
       {currentRequest.status === 'trading' && (
-        <div className="flex gap-4 mb-6 border-b">
+        <div className="mb-6 flex gap-4 border-b">
           <button
             onClick={(): void => setActiveTab('detail')}
-            className={`pb-2 px-1 border-b-2 transition-colors ${
+            className={`border-b-2 px-1 pb-2 transition-colors ${
               activeTab === 'detail'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -262,7 +287,7 @@ const TradeDetailPage: React.FC = () => {
           </button>
           <button
             onClick={(): void => setActiveTab('chat')}
-            className={`pb-2 px-1 border-b-2 transition-colors flex items-center gap-2 ${
+            className={`flex items-center gap-2 border-b-2 px-1 pb-2 transition-colors ${
               activeTab === 'chat'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -285,26 +310,26 @@ const TradeDetailPage: React.FC = () => {
         />
       ) : (
         // 詳細画面
-        <div className="bg-white rounded-lg shadow-sm border">
+        <div className="rounded-lg border bg-white shadow-sm">
           {/* 相手ユーザー情報 */}
-          <div className="p-6 border-b">
+          <div className="border-b p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {otherUser?.avatar_url ? (
                   <img
                     src={otherUser.avatar_url}
                     alt={otherUser.display_name}
-                    className="w-12 h-12 rounded-full"
+                    className="h-12 w-12 rounded-full"
                   />
                 ) : (
-                  <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                    <span className="text-gray-600 font-semibold text-lg">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-300">
+                    <span className="text-lg font-semibold text-gray-600">
                       {otherUser?.display_name?.[0]?.toUpperCase() || '?'}
                     </span>
                   </div>
                 )}
                 <div>
-                  <p className="font-medium text-lg">
+                  <p className="text-lg font-medium">
                     {otherUser?.display_name || '不明なユーザー'}
                   </p>
                   <p className="text-sm text-gray-500">
@@ -323,29 +348,35 @@ const TradeDetailPage: React.FC = () => {
 
           {/* メッセージ */}
           {currentRequest.message && (
-            <div className="p-6 border-b">
+            <div className="border-b p-6">
               <div className="flex items-start gap-2">
-                <MessageSquare size={20} className="text-gray-400 mt-1" />
+                <MessageSquare size={20} className="mt-1 text-gray-400" />
                 <div className="flex-1">
-                  <h3 className="font-medium mb-2">メッセージ</h3>
-                  <p className="text-gray-700 whitespace-pre-wrap">{currentRequest.message}</p>
+                  <h3 className="mb-2 font-medium">メッセージ</h3>
+                  <p className="whitespace-pre-wrap text-gray-700">
+                    {currentRequest.message}
+                  </p>
                 </div>
               </div>
             </div>
           )}
 
           {/* アイテム情報 */}
-          <div className="p-6 border-b">
-            <h3 className="font-medium mb-4">交換アイテム</h3>
-            <div className="grid md:grid-cols-2 gap-6">
+          <div className="border-b p-6">
+            <h3 className="mb-4 font-medium">交換アイテム</h3>
+            <div className="grid gap-6 md:grid-cols-2">
               {/* 提供アイテム */}
               <div>
-                <h4 className="text-sm font-medium text-gray-600 mb-3">
-                  {isSender ? 'あなたが提供' : `${otherUser?.display_name}が提供`}
+                <h4 className="mb-3 text-sm font-medium text-gray-600">
+                  {isSender
+                    ? 'あなたが提供'
+                    : `${otherUser?.display_name}が提供`}
                 </h4>
                 <div className="space-y-2">
                   {offerItems.length > 0 ? (
-                    offerItems.map((item) => <ItemCard key={item.item_id} item={item.items} />)
+                    offerItems.map((item) => (
+                      <ItemCard key={item.item_id} item={item.items} />
+                    ))
                   ) : (
                     <p className="text-sm text-gray-500">アイテム情報なし</p>
                   )}
@@ -353,9 +384,14 @@ const TradeDetailPage: React.FC = () => {
               </div>
 
               {/* 矢印（モバイル時は非表示） */}
-              <div className="hidden md:flex items-center justify-center absolute left-1/2 transform -translate-x-1/2">
+              <div className="absolute left-1/2 hidden -translate-x-1/2 transform items-center justify-center md:flex">
                 <div className="text-gray-400">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="h-8 w-8"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -368,12 +404,16 @@ const TradeDetailPage: React.FC = () => {
 
               {/* 希望アイテム */}
               <div>
-                <h4 className="text-sm font-medium text-gray-600 mb-3">
-                  {isSender ? `${otherUser?.display_name}が提供` : 'あなたが提供'}
+                <h4 className="mb-3 text-sm font-medium text-gray-600">
+                  {isSender
+                    ? `${otherUser?.display_name}が提供`
+                    : 'あなたが提供'}
                 </h4>
                 <div className="space-y-2">
                   {requestItems.length > 0 ? (
-                    requestItems.map((item) => <ItemCard key={item.item_id} item={item.items} />)
+                    requestItems.map((item) => (
+                      <ItemCard key={item.item_id} item={item.items} />
+                    ))
                   ) : (
                     <p className="text-sm text-gray-500">アイテム情報なし</p>
                   )}
@@ -384,8 +424,8 @@ const TradeDetailPage: React.FC = () => {
 
           {/* 待ち合わせ情報 */}
           {(currentRequest.meeting_place || currentRequest.meeting_date) && (
-            <div className="p-6 border-b">
-              <h3 className="font-medium mb-3">待ち合わせ情報</h3>
+            <div className="border-b p-6">
+              <h3 className="mb-3 font-medium">待ち合わせ情報</h3>
               <div className="space-y-2">
                 {currentRequest.meeting_place && (
                   <div className="flex items-center gap-2 text-gray-700">
@@ -396,7 +436,11 @@ const TradeDetailPage: React.FC = () => {
                 {currentRequest.meeting_date && (
                   <div className="flex items-center gap-2 text-gray-700">
                     <Calendar size={18} className="text-gray-400" />
-                    <span>{new Date(currentRequest.meeting_date).toLocaleString('ja-JP')}</span>
+                    <span>
+                      {new Date(currentRequest.meeting_date).toLocaleString(
+                        'ja-JP',
+                      )}
+                    </span>
                   </div>
                 )}
               </div>
@@ -405,21 +449,21 @@ const TradeDetailPage: React.FC = () => {
 
           {/* アクションボタン */}
           {currentRequest.status === 'pending' && (
-            <div className="p-6 bg-gray-50">
+            <div className="bg-gray-50 p-6">
               <div className="flex justify-end gap-3">
                 {isReceiver ? (
                   <>
                     <button
                       onClick={(): void => void handleReject()}
                       disabled={processingAction !== null}
-                      className="px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="rounded-lg border border-red-600 px-4 py-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {processingAction === 'reject' ? '拒否中...' : '拒否する'}
                     </button>
                     <button
                       onClick={(): void => void handleAccept()}
                       disabled={processingAction !== null}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {processingAction === 'accept' ? '承認中...' : '承認する'}
                     </button>
@@ -428,9 +472,11 @@ const TradeDetailPage: React.FC = () => {
                   <button
                     onClick={(): void => void handleCancel()}
                     disabled={processingAction !== null}
-                    className="px-4 py-2 text-gray-600 border border-gray-600 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-lg border border-gray-600 px-4 py-2 text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {processingAction === 'cancel' ? 'キャンセル中...' : 'キャンセル'}
+                    {processingAction === 'cancel'
+                      ? 'キャンセル中...'
+                      : 'キャンセル'}
                   </button>
                 )}
               </div>
@@ -439,17 +485,17 @@ const TradeDetailPage: React.FC = () => {
 
           {/* 取引中の場合の案内と完了ボタン */}
           {currentRequest.status === 'trading' && (
-            <div className="p-6 bg-blue-50">
+            <div className="bg-blue-50 p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-700 font-medium">取引が進行中です</p>
-                  <p className="text-blue-600 text-sm mt-1">
+                  <p className="font-medium text-blue-700">取引が進行中です</p>
+                  <p className="mt-1 text-sm text-blue-600">
                     チャットで詳細を相談し、実際に交換が完了したら「交換を完了」ボタンを押してください
                   </p>
                 </div>
                 <button
                   onClick={(): void => setShowRatingModal(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap"
+                  className="whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                 >
                   交換を完了
                 </button>
@@ -477,20 +523,36 @@ const TradeDetailPage: React.FC = () => {
   );
 };
 
+// アイテムカードコンポーネント用の型定義
+interface ItemCardData {
+  id: string;
+  images?: string[];
+  title: string;
+  category: string;
+  condition: string;
+}
+
 // アイテムカードコンポーネント
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ItemCard: React.FC<{ item?: any }> = ({ item }) => {
+const ItemCard: React.FC<{ item?: ItemCardData }> = ({ item }) => {
   if (!item) {
-    return <div className="p-3 bg-gray-100 rounded-lg text-sm text-gray-500">アイテム情報なし</div>;
+    return (
+      <div className="rounded-lg bg-gray-100 p-3 text-sm text-gray-500">
+        アイテム情報なし
+      </div>
+    );
   }
 
   return (
     <Link
       to={`/items/${item.id}`}
-      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+      className="flex items-center gap-3 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
     >
       {item.images?.[0] && (
-        <img src={item.images[0]} alt={item.title} className="w-16 h-16 object-cover rounded" />
+        <img
+          src={item.images[0]}
+          alt={item.title}
+          className="h-16 w-16 rounded object-cover"
+        />
       )}
       <div className="flex-1">
         <p className="font-medium">{item.title}</p>

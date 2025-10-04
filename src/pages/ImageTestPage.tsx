@@ -30,7 +30,7 @@ const ImageTestPage: React.FC = () => {
     },
   ];
 
-  const testImage = async (url: string) => {
+  const testImage = async (url: string): Promise<void> => {
     setLoading(true);
     setError('');
 
@@ -40,12 +40,14 @@ const ImageTestPage: React.FC = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      console.log('画像URLアクセス成功:', url);
-      console.log('Response Headers:', response.headers);
+      // 画像アクセス成功ログ
+      // console.log('画像URLアクセス成功:', url);
+      // console.log('Response Headers:', response.headers);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       setError(`アクセスエラー: ${errorMsg}`);
-      console.error('画像URLアクセスエラー:', err);
+      // エラーログ
+      // console.error('画像URLアクセスエラー:', err);
     } finally {
       setLoading(false);
     }
@@ -53,40 +55,47 @@ const ImageTestPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">画像表示テストページ</h1>
+      <div className="container mx-auto max-w-4xl px-4">
+        <h1 className="mb-8 text-3xl font-bold text-gray-900">
+          画像表示テストページ
+        </h1>
 
         {/* カスタムURL入力 */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">カスタムURL テスト</h2>
+        <div className="mb-8 rounded-lg bg-white p-6 shadow">
+          <h2 className="mb-4 text-xl font-semibold">カスタムURL テスト</h2>
           <div className="flex gap-2">
             <input
               type="text"
               value={testUrl}
               onChange={(e) => setTestUrl(e.target.value)}
               placeholder="画像URLを入力..."
-              className="flex-1 px-4 py-2 border rounded-lg"
+              className="flex-1 rounded-lg border px-4 py-2"
             />
             <button
-              onClick={() => testImage(testUrl)}
+              onClick={() => void testImage(testUrl)}
               disabled={!testUrl || loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {loading ? 'テスト中...' : 'テスト'}
             </button>
           </div>
-          {error && <div className="mt-2 text-red-600 text-sm">{error}</div>}
+          {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
           {testUrl && (
             <div className="mt-4">
-              <p className="text-sm text-gray-600 mb-2">画像プレビュー:</p>
+              <p className="mb-2 text-sm text-gray-600">画像プレビュー:</p>
               <img
                 src={testUrl}
                 alt="Test"
-                className="max-w-full h-auto rounded-lg shadow"
-                onLoad={() => console.log('画像読み込み成功:', testUrl)}
+                className="h-auto max-w-full rounded-lg shadow"
+                onLoad={() => {
+                  // 画像読み込み成功ログ
+                  // console.log('画像読み込み成功:', testUrl);
+                }}
                 onError={(e) => {
-                  console.error('画像読み込みエラー:', testUrl);
-                  console.error('Error event:', e);
+                  // 画像読み込みエラーログ
+                  const target = e.currentTarget;
+                  target.src =
+                    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2VlZSIvPgogIDx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjIwMCIgeT0iMTUwIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjE5cHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pgo8L3N2Zz4=';
                 }}
               />
             </div>
@@ -94,29 +103,34 @@ const ImageTestPage: React.FC = () => {
         </div>
 
         {/* サンプル画像 */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">DBに保存されている画像のテスト</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {sampleImages.map((image, index) => (
-              <div key={index} className="border rounded-lg p-4">
-                <h3 className="font-medium mb-2">{image.title}</h3>
-                <p className="text-xs text-gray-500 mb-2 break-all">{image.url}</p>
+        <div className="rounded-lg bg-white p-6 shadow">
+          <h2 className="mb-4 text-xl font-semibold">
+            DBに保存されている画像のテスト
+          </h2>
+          <div className="grid gap-6 md:grid-cols-2">
+            {sampleImages.map((image) => (
+              <div
+                key={`sample-${image.title}`}
+                className="rounded-lg border p-4"
+              >
+                <h3 className="mb-2 font-medium">{image.title}</h3>
+                <p className="mb-2 break-all text-xs text-gray-500">
+                  {image.url}
+                </p>
 
                 {/* 画像表示テスト */}
                 <div className="mb-4">
                   <img
                     src={image.url}
                     alt={image.title}
-                    className="w-full h-48 object-cover rounded-lg"
+                    className="h-48 w-full rounded-lg object-cover"
                     onLoad={(e) => {
-                      console.log(`✅ 画像${index + 1}読み込み成功:`, image.title);
-                      const img = e.currentTarget;
-                      console.log(`  サイズ: ${img.naturalWidth}x${img.naturalHeight}`);
+                      // 画像読み込み成功ログ
+                      const _img = e.currentTarget;
+                      // サイズ: ${_img.naturalWidth}x${_img.naturalHeight}
                     }}
                     onError={(e) => {
-                      console.error(`❌ 画像${index + 1}読み込みエラー:`, image.title);
-                      console.error('  URL:', image.url);
-                      console.error('  Error:', e);
+                      // 画像読み込みエラーログ
                       // エラー時はプレースホルダーを表示
                       e.currentTarget.src =
                         'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2VlZSIvPgogIDx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjIwMCIgeT0iMTUwIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjE5cHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pgo8L3N2Zz4=';
@@ -126,8 +140,8 @@ const ImageTestPage: React.FC = () => {
 
                 {/* アクセステストボタン */}
                 <button
-                  onClick={() => testImage(image.url)}
-                  className="w-full px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                  onClick={() => void testImage(image.url)}
+                  className="w-full rounded bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700"
                 >
                   URLアクセステスト
                 </button>
@@ -137,9 +151,9 @@ const ImageTestPage: React.FC = () => {
         </div>
 
         {/* デバッグ情報 */}
-        <div className="mt-8 bg-gray-100 rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">デバッグ情報</h2>
-          <div className="text-sm space-y-2">
+        <div className="mt-8 rounded-lg bg-gray-100 p-6">
+          <h2 className="mb-4 text-xl font-semibold">デバッグ情報</h2>
+          <div className="space-y-2 text-sm">
             <p>
               <strong>現在のURL:</strong> {window.location.href}
             </p>

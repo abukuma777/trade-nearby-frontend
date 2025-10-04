@@ -81,7 +81,9 @@ const TradeChatPage: React.FC = () => {
 
   // メッセージをリロード
   const loadMessages = useCallback(async (): Promise<void> => {
-    if (!chatRoomId) {return;}
+    if (!chatRoomId) {
+      return;
+    }
     try {
       const messagesData = await tradeChatService.getMessages(chatRoomId);
       setMessages(messagesData);
@@ -92,9 +94,11 @@ const TradeChatPage: React.FC = () => {
 
   // チャットルーム情報とメッセージを取得
   useEffect(() => {
-    if (!chatRoomId) {return;}
+    if (!chatRoomId) {
+      return;
+    }
 
-    const loadChatRoom = async () => {
+    const loadChatRoom = async (): Promise<void> => {
       try {
         setIsLoading(true);
         setError(null);
@@ -130,7 +134,9 @@ const TradeChatPage: React.FC = () => {
   const handleSendMessage = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
-    if (!newMessage.trim() || !chatRoomId || isSending) {return;}
+    if (!newMessage.trim() || !chatRoomId || isSending) {
+      return;
+    }
 
     try {
       setIsSending(true);
@@ -177,7 +183,7 @@ const TradeChatPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <Loader className="animate-spin" size={48} />
         </div>
       </div>
@@ -188,13 +194,15 @@ const TradeChatPage: React.FC = () => {
   if (error || !chatRoom) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
           <AlertCircle className="mx-auto mb-4 text-red-500" size={48} />
-          <h2 className="text-2xl font-bold text-red-600 mb-2">エラー</h2>
-          <p className="text-red-600 mb-4">{error || 'チャットルームが見つかりません'}</p>
+          <h2 className="mb-2 text-2xl font-bold text-red-600">エラー</h2>
+          <p className="mb-4 text-red-600">
+            {error || 'チャットルームが見つかりません'}
+          </p>
           <button
             onClick={() => navigate('/trade-posts/my')}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
           >
             投稿一覧に戻る
           </button>
@@ -210,9 +218,9 @@ const TradeChatPage: React.FC = () => {
   const otherPost = isUser1 ? chatRoom.post2 : chatRoom.post1;
 
   return (
-    <div className="container mx-auto px-4 py-4 max-w-4xl">
+    <div className="container mx-auto max-w-4xl px-4 py-4">
       {/* ヘッダー */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="sticky top-0 z-10 border-b bg-white">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <button
@@ -228,18 +236,21 @@ const TradeChatPage: React.FC = () => {
                 <img
                   src={otherUser.avatar_url}
                   alt={otherUser.display_name || otherUser.username}
-                  className="w-10 h-10 rounded-full"
+                  className="h-10 w-10 rounded-full"
                 />
               ) : (
-                <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                  <span className="text-gray-600 font-semibold">
-                    {(otherUser?.display_name || otherUser?.username)?.[0]?.toUpperCase() || '?'}
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
+                  <span className="font-semibold text-gray-600">
+                    {(otherUser?.display_name ||
+                      otherUser?.username)?.[0]?.toUpperCase() || '?'}
                   </span>
                 </div>
               )}
               <div>
                 <p className="font-semibold">
-                  {otherUser?.display_name || otherUser?.username || '不明なユーザー'}
+                  {otherUser?.display_name ||
+                    otherUser?.username ||
+                    '不明なユーザー'}
                 </p>
                 <p className="text-xs text-gray-500">取引チャット</p>
               </div>
@@ -254,7 +265,7 @@ const TradeChatPage: React.FC = () => {
                 <button
                   onClick={() => void handleCompleteTransaction()}
                   disabled={isCompletingTransaction}
-                  className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-1"
+                  className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700 disabled:opacity-50"
                 >
                   {isCompletingTransaction ? (
                     <Loader className="animate-spin" size={16} />
@@ -265,7 +276,7 @@ const TradeChatPage: React.FC = () => {
                 </button>
                 <button
                   onClick={(): void => setShowCompleteConfirm(false)}
-                  className="px-3 py-1.5 bg-gray-400 text-white text-sm rounded-lg hover:bg-gray-500"
+                  className="rounded-lg bg-gray-400 px-3 py-1.5 text-sm text-white hover:bg-gray-500"
                 >
                   キャンセル
                 </button>
@@ -273,27 +284,27 @@ const TradeChatPage: React.FC = () => {
             ) : (
               <button
                 onClick={(): void => setShowCompleteConfirm(true)}
-                className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
+                className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700"
               >
                 <CheckCircle size={16} />
                 取引完了
               </button>
             )
           ) : (
-            <span className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm rounded-lg">
+            <span className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-600">
               取引完了済み
             </span>
           )}
         </div>
 
         {/* 取引アイテム情報 */}
-        <div className="px-4 pb-3 flex gap-2 text-sm">
-          <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded">
+        <div className="flex gap-2 px-4 pb-3 text-sm">
+          <div className="flex items-center gap-1 rounded bg-blue-50 px-2 py-1 text-blue-700">
             <Package size={14} />
             <span>譲: {myPost?.give_item}</span>
           </div>
           <span className="flex items-center text-gray-400">⇔</span>
-          <div className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded">
+          <div className="flex items-center gap-1 rounded bg-green-50 px-2 py-1 text-green-700">
             <Package size={14} />
             <span>求: {otherPost?.give_item}</span>
           </div>
@@ -306,10 +317,12 @@ const TradeChatPage: React.FC = () => {
         style={{ height: 'calc(100vh - 300px)' }}
       >
         {messages.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="py-8 text-center">
             <MessageSquare className="mx-auto mb-4 text-gray-400" size={48} />
             <p className="text-gray-500">メッセージはまだありません</p>
-            <p className="text-sm text-gray-400 mt-2">最初のメッセージを送ってみましょう</p>
+            <p className="mt-2 text-sm text-gray-400">
+              最初のメッセージを送ってみましょう
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -322,15 +335,19 @@ const TradeChatPage: React.FC = () => {
                   className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      isMyMessage ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200'
+                    className={`max-w-xs rounded-lg px-4 py-2 lg:max-w-md ${
+                      isMyMessage
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-200 bg-white'
                     }`}
                   >
-                    <p className={`text-sm ${isMyMessage ? 'text-white' : 'text-gray-900'}`}>
+                    <p
+                      className={`text-sm ${isMyMessage ? 'text-white' : 'text-gray-900'}`}
+                    >
                       {message.message}
                     </p>
                     <p
-                      className={`text-xs mt-1 ${isMyMessage ? 'text-blue-100' : 'text-gray-500'}`}
+                      className={`mt-1 text-xs ${isMyMessage ? 'text-blue-100' : 'text-gray-500'}`}
                     >
                       {formatDistanceToNow(new Date(message.created_at), {
                         addSuffix: true,
@@ -348,8 +365,11 @@ const TradeChatPage: React.FC = () => {
 
       {/* メッセージ入力エリア */}
       {chatRoom.status === 'active' && (
-        <div className="bg-white border-t p-4">
-          <form onSubmit={handleSendMessage} className="flex gap-2">
+        <div className="border-t bg-white p-4">
+          <form
+            onSubmit={(e) => void handleSendMessage(e)}
+            className="flex gap-2"
+          >
             <textarea
               ref={messageInputRef}
               value={newMessage}
@@ -361,16 +381,20 @@ const TradeChatPage: React.FC = () => {
                 }
               }}
               placeholder="メッセージを入力..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 resize-none rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={1}
               disabled={isSending}
             />
             <button
               type="submit"
               disabled={!newMessage.trim() || isSending}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSending ? <Loader className="animate-spin" size={20} /> : <Send size={20} />}
+              {isSending ? (
+                <Loader className="animate-spin" size={20} />
+              ) : (
+                <Send size={20} />
+              )}
             </button>
           </form>
         </div>

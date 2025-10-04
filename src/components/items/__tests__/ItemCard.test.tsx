@@ -11,9 +11,11 @@ import ItemCard from '../ItemCard';
 import { mockItems } from '@/__mocks__/itemMocks';
 
 // ルーターのラッパー
-const RouterWrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => (
-  <BrowserRouter>{children}</BrowserRouter>
-);
+const RouterWrapper = ({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.ReactElement => <BrowserRouter>{children}</BrowserRouter>;
 
 describe('ItemCard', () => {
   const mockItem = mockItems[0];
@@ -78,7 +80,9 @@ describe('ItemCard', () => {
     );
 
     // カード全体をクリック
-    const card = screen.getByText(mockItem.title).closest('div[class*="bg-white"]');
+    const card = screen
+      .getByText(mockItem.title)
+      .closest('div[class*="bg-white"]');
     if (card) {
       fireEvent.click(card);
       expect(handleClick).toHaveBeenCalledWith(mockItem);
@@ -104,12 +108,12 @@ describe('ItemCard', () => {
       </RouterWrapper>,
     );
 
-    const image = screen.getByAltText(mockItem.title) as HTMLImageElement;
+    const image = screen.getByAltText(mockItem.title);
 
     // エラーイベントを発火
     fireEvent.error(image);
 
     // デフォルト画像に切り替わることを確認
-    expect(image.src).toContain('No+Image');
+    expect(image.getAttribute('src')).toContain('No+Image');
   });
 });

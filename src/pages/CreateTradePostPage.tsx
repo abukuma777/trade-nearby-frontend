@@ -113,7 +113,7 @@ const CreateTradePostPage: React.FC = () => {
 
       await createPost(postData);
       navigate('/trade-posts/my');
-    } catch (err) {
+    } catch {
       setValidationErrors((prev) => ({
         ...prev,
         images: '投稿の作成に失敗しました。もう一度お試しください。',

@@ -25,19 +25,24 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 global.fetch = vi.fn();
 
 // LocalStorageのモック
-const localStorageMock = {
+const localStorageMock: Storage = {
   getItem: vi.fn(),
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
+  length: 0,
+  key: vi.fn(),
 };
-global.localStorage = localStorageMock as any;
+global.localStorage = localStorageMock;
 
 // console.errorのモック（テスト時の不要なエラー出力を抑制）
 const originalError = console.error;
 beforeAll(() => {
-  console.error = (...args: any[]) => {
-    if (typeof args[0] === 'string' && args[0].includes('Warning: ReactDOM.render')) {
+  console.error = (...args: unknown[]) => {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('Warning: ReactDOM.render')
+    ) {
       return;
     }
     originalError.call(console, ...args);

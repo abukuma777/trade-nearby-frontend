@@ -55,7 +55,9 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   // バリアントに応じたスタイルとアイコン
   const getVariantStyles = (): {
@@ -99,49 +101,51 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     }
   };
 
+  // 背景クリックでモーダルを閉じる
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
+    if (e.target === e.currentTarget && !loading) {
+      onClose();
+    }
+  };
+
   const modalContent = (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto"
+      onClick={handleBackdropClick}
+      role="presentation"
+    >
       {/* オーバーレイ */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={!loading ? onClose : undefined}
-      />
+      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" />
 
       {/* モーダル本体 */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div
-          className="relative bg-white rounded-lg max-w-md w-full shadow-xl transform transition-all"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="relative w-full max-w-md transform rounded-lg bg-white shadow-xl transition-all">
           {/* ヘッダー */}
           <div className="p-6">
             <div className="flex items-start">
               <div
-                className={`flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full ${variantStyles.iconBg}`}
+                className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${variantStyles.iconBg}`}
               >
                 {variantStyles.icon}
               </div>
               <div className="ml-4 flex-1">
                 <h3 className="text-lg font-medium text-gray-900">{title}</h3>
                 <div className="mt-2">
-                  <p className="text-sm text-gray-500 whitespace-pre-wrap">{message}</p>
+                  <p className="whitespace-pre-wrap text-sm text-gray-500">
+                    {message}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* フッター */}
-          <div className="bg-gray-50 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+          <div className="flex flex-col-reverse gap-3 bg-gray-50 px-6 py-4 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className={`
-                w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 
-                bg-white border border-gray-300 rounded-md shadow-sm
-                hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-                disabled:opacity-50 disabled:cursor-not-allowed
-              `}
+              className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               {cancelText}
             </button>
@@ -149,18 +153,12 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
               type="button"
               onClick={() => void handleConfirm()}
               disabled={loading}
-              className={`
-                w-full sm:w-auto px-4 py-2 text-sm font-medium rounded-md shadow-sm
-                ${variantStyles.confirmBtn} ${variantStyles.confirmBtnHover}
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-                disabled:opacity-50 disabled:cursor-not-allowed
-                flex items-center justify-center
-              `}
+              className={`w-full rounded-md px-4 py-2 text-sm font-medium shadow-sm sm:w-auto ${variantStyles.confirmBtn} ${variantStyles.confirmBtnHover} flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
             >
               {loading ? (
                 <>
                   <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    className="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"

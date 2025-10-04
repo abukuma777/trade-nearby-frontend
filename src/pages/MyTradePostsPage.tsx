@@ -140,7 +140,7 @@ const MyTradePostsPage: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {myPosts.map((post) => {
+            {myPosts.map((post): React.ReactElement => {
               const giveImage = getMainImage(post.give_item_images);
               const wantImage = getMainImage(post.want_item_images);
 
@@ -249,7 +249,7 @@ const MyTradePostsPage: React.FC = () => {
                           {post.status === 'active' && (
                             <>
                               <button
-                                onClick={() =>
+                                onClick={(): void =>
                                   void handleStatusChange(post.id, 'private')
                                 }
                                 className="rounded bg-gray-600 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-700"
@@ -257,7 +257,7 @@ const MyTradePostsPage: React.FC = () => {
                                 非公開にする
                               </button>
                               <button
-                                onClick={() => {
+                                onClick={(): void => {
                                   setSelectedPostId(post.id);
                                   setShowDeleteConfirm(true);
                                 }}
@@ -273,7 +273,7 @@ const MyTradePostsPage: React.FC = () => {
                           {/* 非公開: 再公開 */}
                           {post.status === 'private' && (
                             <button
-                              onClick={() =>
+                              onClick={(): void =>
                                 void handleStatusChange(post.id, 'active')
                               }
                               className="rounded bg-blue-600 px-2 py-1 text-xs text-white transition-colors hover:bg-blue-700"
@@ -307,13 +307,13 @@ const MyTradePostsPage: React.FC = () => {
               </p>
               <div className="flex gap-3">
                 <button
-                  onClick={() => void handleDelete(selectedPostId)}
+                  onClick={(): void => void handleDelete(selectedPostId)}
                   className="flex-1 rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
                 >
                   削除する
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={(): void => {
                     setShowDeleteConfirm(false);
                     setSelectedPostId(null);
                   }}
