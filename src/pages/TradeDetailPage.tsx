@@ -27,7 +27,6 @@ import TradeChat from '@/components/trade/TradeChat';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useAuthStore } from '@/stores/authStore';
 import { useTradeStore } from '@/stores/tradeStore';
-import { Item } from '@/types/item';
 
 const TradeDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -479,7 +478,8 @@ const TradeDetailPage: React.FC = () => {
 };
 
 // アイテムカードコンポーネント
-const ItemCard: React.FC<{ item?: Item }> = ({ item }) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ItemCard: React.FC<{ item?: any }> = ({ item }) => {
   if (!item) {
     return <div className="p-3 bg-gray-100 rounded-lg text-sm text-gray-500">アイテム情報なし</div>;
   }
