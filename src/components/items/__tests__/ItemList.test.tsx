@@ -10,7 +10,7 @@ import ItemList from '../ItemList';
 
 import { mockItems } from '@/__mocks__/itemMocks';
 
-const RouterWrapper = ({ children }: { children: React.ReactNode }) => (
+const RouterWrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => (
   <BrowserRouter>{children}</BrowserRouter>
 );
 

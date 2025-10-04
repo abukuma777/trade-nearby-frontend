@@ -28,18 +28,20 @@ const TradeRequestModal: React.FC<TradeRequestModalProps> = ({ isOpen, onClose, 
   const [message, setMessage] = useState('');
   const [meetingPlace, setMeetingPlace] = useState('');
   const [meetingDate, setMeetingDate] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // 自分のアイテムを取得
   useEffect(() => {
     if (isOpen && user) {
-      loadMyItems();
+      void loadMyItems();
     }
     return () => {
       clearMessages();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, user]);
 
-  const loadMyItems = async () => {
+  const loadMyItems = async (): Promise<void> => {
     try {
       setLoadingItems(true);
       const response = await itemService.getItems({
@@ -55,18 +57,19 @@ const TradeRequestModal: React.FC<TradeRequestModalProps> = ({ isOpen, onClose, 
   };
 
   // アイテム選択の切り替え
-  const toggleItemSelection = (itemId: string) => {
+  const toggleItemSelection = (itemId: string): void => {
     setSelectedItems((prev) =>
       prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
     );
   };
 
   // 送信処理
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
+    setValidationError(null);
 
     if (selectedItems.length === 0) {
-      alert('交換するアイテムを選択してください');
+      setValidationError('交換するアイテムを選択してください');
       return;
     }
 
@@ -116,20 +119,20 @@ const TradeRequestModal: React.FC<TradeRequestModalProps> = ({ isOpen, onClose, 
 
         {/* ボディ */}
         <div className="flex-1 overflow-y-auto p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
             {/* エラー表示 */}
-            {error && (
+            {(error || validationError) && (
               <div className="p-4 bg-red-50 text-red-700 rounded-lg flex items-start gap-2">
                 <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
-                <p>{error}</p>
+                <p>{error || validationError}</p>
               </div>
             )}
 
             {/* 自分のアイテム選択 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <div className="block text-sm font-medium text-gray-700 mb-3">
                 提供するアイテム（複数選択可）
-              </label>
+              </div>
 
               {loadingItems ? (
                 <div className="text-center py-8">
@@ -146,10 +149,11 @@ const TradeRequestModal: React.FC<TradeRequestModalProps> = ({ isOpen, onClose, 
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {myItems.map((item) => (
-                    <div
+                    <button
                       key={item.id}
+                      type="button"
                       onClick={() => toggleItemSelection(item.id)}
-                      className={`border rounded-lg p-3 cursor-pointer transition-all ${
+                      className={`border rounded-lg p-3 cursor-pointer transition-all text-left w-full ${
                         selectedItems.includes(item.id)
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-gray-300 hover:border-gray-400'
@@ -198,7 +202,7 @@ const TradeRequestModal: React.FC<TradeRequestModalProps> = ({ isOpen, onClose, 
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -268,7 +272,7 @@ const TradeRequestModal: React.FC<TradeRequestModalProps> = ({ isOpen, onClose, 
             キャンセル
           </button>
           <button
-            onClick={handleSubmit}
+            onClick={(e) => void handleSubmit(e as React.FormEvent)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
             disabled={isLoading || selectedItems.length === 0}
           >

@@ -19,7 +19,7 @@ describe('ItemService Integration Tests', () => {
     // バックエンドの疎通確認
     try {
       await fetch('http://localhost:3001/health');
-    } catch (error) {
+    } catch {
       console.warn('Backend server is not running. Skipping integration tests.');
       skipTests = true;
     }

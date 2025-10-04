@@ -34,7 +34,7 @@ export const TradeChat: React.FC<TradeChatProps> = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // メッセージを取得
-  const loadMessages = async () => {
+  const loadMessages = async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
@@ -50,7 +50,7 @@ export const TradeChat: React.FC<TradeChatProps> = ({
   };
 
   // メッセージを送信
-  const sendMessage = async () => {
+  const sendMessage = async (): Promise<void> => {
     if (!newMessage.trim() || isSending) {return;}
 
     const messageText = newMessage.trim();
@@ -72,28 +72,29 @@ export const TradeChat: React.FC<TradeChatProps> = ({
   };
 
   // 最下部へスクロール
-  const scrollToBottom = () => {
+  const scrollToBottom = (): void => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   };
 
   // Enter キーで送信
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      void sendMessage();
     }
   };
 
   // 初期読み込みと定期更新
   useEffect(() => {
-    loadMessages();
+    void loadMessages();
 
     // 定期的にメッセージを更新（10秒ごと）
-    const interval = setInterval(loadMessages, 10000);
+    const interval = setInterval(() => { void loadMessages(); }, 10000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tradeRequestId]);
 
   // ローディング状態
@@ -200,7 +201,7 @@ export const TradeChat: React.FC<TradeChatProps> = ({
         <div className="flex gap-2">
           <textarea
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={(e): void => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="メッセージを入力..."
             className="flex-1 px-3 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -208,7 +209,7 @@ export const TradeChat: React.FC<TradeChatProps> = ({
             disabled={isSending}
           />
           <button
-            onClick={sendMessage}
+            onClick={(): void => { void sendMessage(); }}
             disabled={!newMessage.trim() || isSending}
             className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
               !newMessage.trim() || isSending

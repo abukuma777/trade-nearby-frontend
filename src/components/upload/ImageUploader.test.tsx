@@ -4,7 +4,7 @@
 
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 
 import { ImageUploader } from './ImageUploader';
 
@@ -33,11 +33,11 @@ describe('ImageUploader', () => {
     mockOnImagesChange.mockClear();
 
     // デフォルトのモック実装
-    (uploadService.validateFiles as any).mockReturnValue(null);
-    (uploadService.validateFileType as any).mockReturnValue(true);
-    (uploadService.validateFileSize as any).mockReturnValue(true);
-    (uploadService.createPreviewUrl as any).mockReturnValue('blob:preview-url');
-    (uploadService.extractFilePathFromUrl as any).mockReturnValue('test/path.jpg');
+    (uploadService.validateFiles as Mock).mockReturnValue(null);
+    (uploadService.validateFileType as Mock).mockReturnValue(true);
+    (uploadService.validateFileSize as Mock).mockReturnValue(true);
+    (uploadService.createPreviewUrl as Mock).mockReturnValue('blob:preview-url');
+    (uploadService.extractFilePathFromUrl as Mock).mockReturnValue('test/path.jpg');
   });
 
   describe('レンダリング', () => {
@@ -84,7 +84,7 @@ describe('ImageUploader', () => {
         path: 'uploaded/test.jpg',
       };
 
-      (uploadService.uploadSingleImage as any).mockResolvedValue(mockUploadedImage);
+      (uploadService.uploadSingleImage as Mock).mockResolvedValue(mockUploadedImage);
 
       const { container } = render(<ImageUploader onImagesChange={mockOnImagesChange} />);
       const input = container.querySelector('input[type="file"]') as HTMLInputElement;
@@ -92,11 +92,12 @@ describe('ImageUploader', () => {
       await user.upload(input, mockFile);
 
       await waitFor(() => {
-        expect(uploadService.uploadSingleImage).toHaveBeenCalledWith(
+        const uploadCall = uploadService.uploadSingleImage as Mock;
+        expect(uploadCall).toHaveBeenCalledWith(
           mockFile,
           expect.objectContaining({
             type: 'item',
-          }),
+          }) as Record<string, unknown>,
         );
       });
     });
@@ -107,7 +108,7 @@ describe('ImageUploader', () => {
         new File(['test2'], 'test2.jpg', { type: 'image/jpeg' }),
       ];
 
-      (uploadService.uploadSingleImage as any).mockResolvedValue({
+      (uploadService.uploadSingleImage as Mock).mockResolvedValue({
         url: 'https://example.com/uploaded.jpg',
         path: 'uploaded/test.jpg',
       });
@@ -120,7 +121,8 @@ describe('ImageUploader', () => {
       await user.upload(input, mockFiles);
 
       await waitFor(() => {
-        expect(uploadService.uploadSingleImage).toHaveBeenCalledTimes(2);
+        const uploadSingleImageFunc = uploadService.uploadSingleImage as Mock;
+        expect(uploadSingleImageFunc).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -140,7 +142,8 @@ describe('ImageUploader', () => {
 
       await waitFor(() => {
         // 最大2枚なので、2回のみアップロード
-        expect(uploadService.uploadSingleImage).toHaveBeenCalledTimes(2);
+        const uploadSingleImageFunc = uploadService.uploadSingleImage as Mock;
+        expect(uploadSingleImageFunc).toHaveBeenCalledTimes(2);
       });
     });
   });
@@ -149,7 +152,7 @@ describe('ImageUploader', () => {
     it('無効なファイルタイプでエラーが表示される', async () => {
       const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
 
-      (uploadService.validateFiles as any).mockReturnValue(
+      (uploadService.validateFiles as Mock).mockReturnValue(
         'test.txt は対応していないファイル形式です',
       );
 
@@ -166,7 +169,7 @@ describe('ImageUploader', () => {
     it('ファイルサイズ超過でエラーが表示される', async () => {
       const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
 
-      (uploadService.validateFiles as any).mockReturnValue('test.jpg のサイズが大きすぎます');
+      (uploadService.validateFiles as Mock).mockReturnValue('test.jpg のサイズが大きすぎます');
 
       const { container } = render(<ImageUploader onImagesChange={mockOnImagesChange} />);
       const input = container.querySelector('input[type="file"]') as HTMLInputElement;
@@ -188,7 +191,7 @@ describe('ImageUploader', () => {
         },
       ];
 
-      (uploadService.deleteImage as any).mockResolvedValue(undefined);
+      (uploadService.deleteImage as Mock).mockResolvedValue(undefined);
 
       render(<ImageUploader initialImages={initialImages} onImagesChange={mockOnImagesChange} />);
 
@@ -197,7 +200,8 @@ describe('ImageUploader', () => {
       await user.click(deleteButton);
 
       await waitFor(() => {
-        expect(uploadService.deleteImage).toHaveBeenCalledWith('item-images', 'test/path.jpg');
+        const deleteImageFunc = uploadService.deleteImage as Mock;
+        expect(deleteImageFunc).toHaveBeenCalledWith('item-images', 'test/path.jpg');
       });
     });
   });
@@ -221,7 +225,7 @@ describe('ImageUploader', () => {
         path: 'uploaded/test.jpg',
       };
 
-      (uploadService.uploadSingleImage as any).mockResolvedValue(mockUploadedImage);
+      (uploadService.uploadSingleImage as Mock).mockResolvedValue(mockUploadedImage);
 
       const { container } = render(<ImageUploader onImagesChange={mockOnImagesChange} />);
       const input = container.querySelector('input[type="file"]') as HTMLInputElement;

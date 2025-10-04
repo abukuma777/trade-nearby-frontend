@@ -16,8 +16,8 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ stats, isLoading }) => {
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-lg shadow p-4 animate-pulse">
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={`skeleton-${i}`} className="bg-white rounded-lg shadow p-4 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-20 mb-2" />
             <div className="h-8 bg-gray-200 rounded w-12" />
           </div>
@@ -63,11 +63,11 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ stats, isLoading }) => {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-      {statItems.map((item, index) => {
+      {statItems.map((item) => {
         const Icon = item.icon;
         return (
           <div
-            key={index}
+            key={`stat-${item.label}`}
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex items-center justify-between">

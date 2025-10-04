@@ -27,12 +27,14 @@ const TradeRatingModal: React.FC<TradeRatingModalProps> = ({
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
+    setError(null);
 
     if (rating === 0) {
-      alert('評価を選択してください');
+      setError('評価を選択してください');
       return;
     }
 
@@ -48,10 +50,11 @@ const TradeRatingModal: React.FC<TradeRatingModalProps> = ({
         setRating(5);
         setComment('');
         setIsCompleted(false);
+        setError(null);
       }, 2000);
     } catch (error) {
       console.error('評価送信エラー:', error);
-      alert('評価の送信に失敗しました');
+      setError('評価の送信に失敗しました');
     } finally {
       setIsSubmitting(false);
     }
@@ -93,13 +96,20 @@ const TradeRatingModal: React.FC<TradeRatingModalProps> = ({
         </div>
 
         {/* ボディ */}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={(e) => void handleSubmit(e)}>
           <div className="p-6 space-y-6">
+            {/* エラーメッセージ */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
             {/* 評価入力 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <div className="block text-sm font-medium text-gray-700 mb-3">
                 評価 <span className="text-red-500">*</span>
-              </label>
+              </div>
               <div className="flex justify-center">
                 <RatingInput value={rating} onChange={setRating} size="lg" required />
               </div>

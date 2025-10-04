@@ -41,11 +41,11 @@ const RatingDisplay: React.FC<RatingDisplayProps> = ({
     <div className="flex items-center gap-1">
       {/* 星の表示 */}
       <div className="flex items-center">
-        {[...Array(maxRating)].map((_, index) => {
+        {Array.from({ length: maxRating }, (_, index) => {
           const fillPercentage = Math.max(0, Math.min(1, clampedRating - index));
 
           return (
-            <div key={index} className="relative">
+            <div key={`star-${index}`} className="relative">
               {/* 背景の星（グレー） */}
               <Star className={`${sizeClasses[size]} text-gray-300 fill-gray-300`} />
               {/* 前景の星（黄色） */}

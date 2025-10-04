@@ -9,6 +9,21 @@ import { useNavigate } from 'react-router-dom';
 import { ThumbnailLazyImage } from '@/components/common/LazyLoadImage';
 import { useUserRecentTradePosts } from '@/hooks/useUserTradePosts';
 
+// 型定義
+interface TradePostImage {
+  url: string;
+  is_main?: boolean;
+}
+
+interface TradePost {
+  id: string;
+  give_item: string;
+  want_item: string;
+  give_item_images?: TradePostImage[];
+  want_item_images?: TradePostImage[];
+  status?: string;
+}
+
 interface ProfileTradePostsProps {
   userId?: string;
   username?: string;
@@ -19,16 +34,16 @@ const ProfileTradePosts: React.FC<ProfileTradePostsProps> = ({ userId, username 
   const { data: tradePosts, isLoading, error } = useUserRecentTradePosts(8, userId);
 
   // メインの画像URLを取得
-  const getMainImageUrl = (post: any) => {
+  const getMainImageUrl = (post: TradePost): string | null => {
     // give_item_imagesから最初の画像を取得（優先）
     if (post.give_item_images && post.give_item_images.length > 0) {
-      const mainImage = post.give_item_images.find((img: any) => img.is_main);
+      const mainImage = post.give_item_images.find((img: TradePostImage): boolean => img.is_main ?? false);
       return mainImage ? mainImage.url : post.give_item_images[0].url;
     }
 
     // want_item_imagesから取得（フォールバック）
     if (post.want_item_images && post.want_item_images.length > 0) {
-      const mainImage = post.want_item_images.find((img: any) => img.is_main);
+      const mainImage = post.want_item_images.find((img: TradePostImage): boolean => img.is_main ?? false);
       return mainImage ? mainImage.url : post.want_item_images[0].url;
     }
 
@@ -103,7 +118,7 @@ const ProfileTradePosts: React.FC<ProfileTradePostsProps> = ({ userId, username 
 
       {/* サムネイルグリッド */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {tradePosts.map((post) => {
+        {tradePosts.map((post): React.ReactElement => {
           const imageUrl = getMainImageUrl(post);
           return (
             <div key={post.id}>

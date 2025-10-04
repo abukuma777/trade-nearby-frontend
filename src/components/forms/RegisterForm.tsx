@@ -24,6 +24,7 @@ export const RegisterForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [termsError, setTermsError] = useState<string | null>(null);
 
   // パスワード強度の計算
   const calculatePasswordStrength = (password: string): number => {
@@ -69,7 +70,7 @@ export const RegisterForm: React.FC = () => {
           : 'bg-green-500';
 
   // 入力変更ハンドラー
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -83,14 +84,15 @@ export const RegisterForm: React.FC = () => {
   };
 
   // フォーム送信ハンドラー
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
     if (!agreeToTerms) {
-      alert('利用規約に同意してください');
+      setTermsError('利用規約に同意してください');
       return;
     }
 
+    setTermsError(null);
     await register(formData);
   };
 
@@ -119,7 +121,7 @@ export const RegisterForm: React.FC = () => {
         </div>
 
         {/* フォーム */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={(e) => void handleSubmit(e)}>
           <div className="bg-white p-8 rounded-lg shadow">
             {/* エラーメッセージ */}
             {error && (
@@ -254,7 +256,12 @@ export const RegisterForm: React.FC = () => {
                   name="agree-terms"
                   type="checkbox"
                   checked={agreeToTerms}
-                  onChange={(e) => setAgreeToTerms(e.target.checked)}
+                  onChange={(e) => {
+                    setAgreeToTerms(e.target.checked);
+                    if (e.target.checked) {
+                      setTermsError(null);
+                    }
+                  }}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
               </div>
@@ -271,6 +278,9 @@ export const RegisterForm: React.FC = () => {
                 </label>
               </div>
             </div>
+            {termsError && (
+              <p className="mt-1 text-sm text-red-600">{termsError}</p>
+            )}
 
             {/* 送信ボタン */}
             <div className="mt-6">

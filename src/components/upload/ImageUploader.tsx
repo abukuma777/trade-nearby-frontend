@@ -88,19 +88,23 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   // メモリリークの防止
   useEffect(() => {
+    const currentAbortControllers = abortControllers.current;
+    const currentPreviewImages = previewImages;
+
     return () => {
       // コンポーネントアンマウント時にプレビューURLを解放
-      previewImages.forEach((image) => {
+      currentPreviewImages.forEach((image) => {
         if (image.file && !image.uploaded) {
           uploadService.revokePreviewUrl(image.url);
         }
       });
 
       // アップロード中のリクエストをキャンセル
-      abortControllers.current.forEach((controller) => {
+      currentAbortControllers.forEach((controller) => {
         controller.abort();
       });
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
@@ -146,16 +150,17 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       // 各ファイルをアップロード
       newPreviews.forEach((preview) => {
-        uploadImage(preview);
+        void uploadImage(preview);
       });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [previewImages, maxImages],
   );
 
   /**
    * 画像アップロード処理
    */
-  const uploadImage = async (preview: PreviewImage) => {
+  const uploadImage = async (preview: PreviewImage): Promise<void> => {
     if (!preview.file) {return;}
 
     const controller = new AbortController();
@@ -194,15 +199,16 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       // 親コンポーネントに通知
       notifyImagesChange();
-    } catch (error: any) {
+    } catch (error) {
       // アップロードエラー
+      const errorMessage = error instanceof Error ? error.message : 'アップロードに失敗しました';
       setPreviewImages((prev) =>
         prev.map((img) =>
           img.id === preview.id
             ? {
                 ...img,
                 uploading: false,
-                error: error.message || 'アップロードに失敗しました',
+                error: errorMessage,
               }
             : img,
         ),
@@ -249,6 +255,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       // 親コンポーネントに通知
       notifyImagesChange();
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [previewImages, uploadType],
   );
 
@@ -346,7 +353,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       {/* ドラッグ&ドロップゾーン */}
       {(!hasImages || canAddMore) && (
-        <div
+        <button
+          type="button"
           className={`
             border-2 border-dashed rounded-lg p-8 text-center transition-colors
             ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
@@ -357,6 +365,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           onClick={handleButtonClick}
+          aria-label="画像をアップロード"
         >
           <input
             ref={fileInputRef}
@@ -376,7 +385,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             {maxImages > 1 ? `最大${maxImages}枚まで` : '1枚のみ'}
             ・JPEG, PNG, GIF, WebP対応・最大10MB
           </p>
-        </div>
+        </button>
       )}
 
       {/* プレビューグリッド */}
@@ -418,7 +427,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               {/* 削除ボタン */}
               {!image.uploading && !disabled && (
                 <button
-                  onClick={() => handleRemoveImage(image.id)}
+                onClick={() => void handleRemoveImage(image.id)}
                   className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
                   type="button"
                   aria-label="画像を削除"

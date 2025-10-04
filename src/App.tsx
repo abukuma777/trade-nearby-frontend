@@ -1,5 +1,6 @@
 import MainLayout from '@components/Layout/MainLayout';
 import { useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // 譲求システム（シンプル版）
@@ -39,6 +40,32 @@ function App(): JSX.Element {
 
   return (
     <Router>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          // デフォルトオプション
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+            fontSize: '14px',
+          },
+          // 成功時のスタイル
+          success: {
+            duration: 3000,
+            style: {
+              background: '#10b981',
+            },
+          },
+          // エラー時のスタイル
+          error: {
+            duration: 4000,
+            style: {
+              background: '#ef4444',
+            },
+          },
+        }}
+      />
       <Routes>
         {/* ホームページ（認証不要） */}
         <Route

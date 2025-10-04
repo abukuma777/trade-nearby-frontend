@@ -22,7 +22,7 @@ export const LoginForm: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
 
   // 入力変更ハンドラー
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -36,7 +36,7 @@ export const LoginForm: React.FC = () => {
   };
 
   // フォーム送信ハンドラー
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     await login(formData);
   };
@@ -66,7 +66,7 @@ export const LoginForm: React.FC = () => {
         </div>
 
         {/* フォーム */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={(e) => void handleSubmit(e)}>
           <div className="bg-white p-8 rounded-lg shadow">
             {/* エラーメッセージ */}
             {error && (

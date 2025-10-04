@@ -30,7 +30,19 @@ const LazyLoadImage: React.FC<LazyLoadImageProps> = ({
   });
 
   return (
-    <div ref={imgRef} className="relative w-full h-full" onClick={onClick}>
+    <div 
+      ref={imgRef} 
+      className="relative w-full h-full" 
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && onClick) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+    >
       {/* ローディング中のプレースホルダー */}
       {isLoading && !imageSrc && (
         <div
@@ -87,7 +99,7 @@ export const ThumbnailLazyImage: React.FC<{
   onClick?: () => void;
 }> = ({ src, alt, status, onClick }) => {
   // ステータスに応じたバッジの取得
-  const getStatusBadge = () => {
+  const getStatusBadge = (): JSX.Element | null => {
     switch (status) {
       case 'active':
         return (
@@ -121,7 +133,18 @@ export const ThumbnailLazyImage: React.FC<{
   };
 
   return (
-    <div className="relative group cursor-pointer" onClick={onClick}>
+    <div 
+      className="relative group cursor-pointer" 
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && onClick) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+    >
       <div className="aspect-square relative overflow-hidden rounded-lg bg-gray-100 border border-gray-200 hover:border-blue-400 transition-all duration-200 hover:shadow-lg">
         <LazyLoadImage
           src={src}

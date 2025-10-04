@@ -1,4 +1,5 @@
 import { Calendar, Users, QrCode, ArrowRight } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '@/stores/authStore';
@@ -7,7 +8,7 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
 
-  const handleStartTrading = () => {
+  const handleStartTrading = (): void => {
     navigate('/trade-posts');
   };
 
@@ -44,6 +45,52 @@ const HomePage: React.FC = () => {
                 </Link>
               )}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* トースト動作確認セクション（開発用・後で削除） */}
+      <section className="py-8 bg-yellow-50 border-2 border-yellow-300">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <h3 className="text-lg font-bold text-yellow-800 mb-4">
+              🔧 開発用: Toast動作確認
+            </h3>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <button
+                onClick={() => toast.success('成功しました！')}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                成功トースト
+              </button>
+              <button
+                onClick={() => toast.error('エラーが発生しました')}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                エラートースト
+              </button>
+              <button
+                onClick={() => toast('通常のお知らせです', { icon: 'ℹ️' })}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                情報トースト
+              </button>
+              <button
+                onClick={() => {
+                  const loadingToast = toast.loading('処理中...');
+                  setTimeout(() => {
+                    toast.dismiss(loadingToast);
+                    toast.success('処理が完了しました！');
+                  }, 2000);
+                }}
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+              >
+                ローディング→成功
+              </button>
+            </div>
+            <p className="text-sm text-yellow-700 mt-4">
+              ※ このセクションは動作確認後に削除します
+            </p>
           </div>
         </div>
       </section>

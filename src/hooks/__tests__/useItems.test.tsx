@@ -18,7 +18,7 @@ describe('useItems hooks', () => {
   let queryClient: QueryClient;
 
   // テスト用のラッパーコンポーネント
-  const createWrapper = () => {
+  const createWrapper = (): React.ComponentType<{ children: ReactNode }> => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: {
@@ -28,9 +28,12 @@ describe('useItems hooks', () => {
       },
     });
 
-    return ({ children }: { children: ReactNode }) => (
+    const Wrapper = ({ children }: { children: ReactNode }): JSX.Element => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     );
+    Wrapper.displayName = 'TestWrapper';
+    
+    return Wrapper;
   };
 
   beforeEach(() => {
@@ -40,7 +43,8 @@ describe('useItems hooks', () => {
   describe('useItems', () => {
     it('should fetch items successfully', async () => {
       // モックの設定
-      vi.mocked(itemService.default.getItems).mockResolvedValue(mockItemsResponse);
+      const getItemsMock = vi.mocked(itemService.default.getItems);
+      getItemsMock.mockResolvedValue(mockItemsResponse);
 
       const { result } = renderHook(() => useItems(), {
         wrapper: createWrapper(),
@@ -67,7 +71,8 @@ describe('useItems hooks', () => {
         limit: 10,
       };
 
-      vi.mocked(itemService.default.getItems).mockResolvedValue({
+      const getItemsMock = vi.mocked(itemService.default.getItems);
+      getItemsMock.mockResolvedValue({
         ...mockItemsResponse,
         items: mockItems.filter((item) => item.category === 'anime'),
       });
@@ -81,12 +86,14 @@ describe('useItems hooks', () => {
       });
 
       // サービスが正しいパラメータで呼ばれたことを確認
-      expect(itemService.default.getItems).toHaveBeenCalledWith(params);
+      const getItemsFunc = itemService.default.getItems;
+      expect(getItemsFunc).toHaveBeenCalledWith(params);
     });
 
     it('should handle errors', async () => {
       const errorMessage = 'Network error';
-      vi.mocked(itemService.default.getItems).mockRejectedValue(new Error(errorMessage));
+      const getItemsMock = vi.mocked(itemService.default.getItems);
+      getItemsMock.mockRejectedValue(new Error(errorMessage));
 
       const { result } = renderHook(() => useItems(), {
         wrapper: createWrapper(),
@@ -105,7 +112,8 @@ describe('useItems hooks', () => {
       const itemId = '1';
       const mockItem = mockItems[0];
 
-      vi.mocked(itemService.default.getItem).mockResolvedValue(mockItem);
+      const getItemMock = vi.mocked(itemService.default.getItem);
+      getItemMock.mockResolvedValue(mockItem);
 
       const { result } = renderHook(() => useItem(itemId), {
         wrapper: createWrapper(),
@@ -116,7 +124,8 @@ describe('useItems hooks', () => {
       });
 
       expect(result.current.data).toEqual(mockItem);
-      expect(itemService.default.getItem).toHaveBeenCalledWith(itemId);
+      const getItemFunc = itemService.default.getItem;
+      expect(getItemFunc).toHaveBeenCalledWith(itemId);
     });
 
     it('should not fetch when disabled', () => {
@@ -129,7 +138,8 @@ describe('useItems hooks', () => {
       // enabledがfalseの場合、フェッチしない
       expect(result.current.isLoading).toBe(false);
       expect(result.current.data).toBeUndefined();
-      expect(itemService.default.getItem).not.toHaveBeenCalled();
+      const getItemFunc = itemService.default.getItem;
+      expect(getItemFunc).not.toHaveBeenCalled();
     });
   });
 
@@ -148,7 +158,8 @@ describe('useItems hooks', () => {
         id: 'new-id',
       };
 
-      vi.mocked(itemService.default.createItem).mockResolvedValue(createdItem);
+      const createItemMock = vi.mocked(itemService.default.createItem);
+      createItemMock.mockResolvedValue(createdItem);
 
       const { result } = renderHook(() => useCreateItem(), {
         wrapper: createWrapper(),
@@ -162,7 +173,8 @@ describe('useItems hooks', () => {
       });
 
       expect(result.current.data).toEqual(createdItem);
-      expect(itemService.default.createItem).toHaveBeenCalledWith(newItemInput);
+      const createItemFunc = itemService.default.createItem;
+      expect(createItemFunc).toHaveBeenCalledWith(newItemInput);
     });
 
     it('should invalidate queries after creation', async () => {
@@ -179,7 +191,8 @@ describe('useItems hooks', () => {
         id: 'new-id',
       };
 
-      vi.mocked(itemService.default.createItem).mockResolvedValue(createdItem);
+      const createItemMock = vi.mocked(itemService.default.createItem);
+      createItemMock.mockResolvedValue(createdItem);
 
       const { result } = renderHook(() => useCreateItem(), {
         wrapper: createWrapper(),
@@ -194,7 +207,8 @@ describe('useItems hooks', () => {
       });
 
       // キャッシュが無効化されることを確認
-      expect(invalidateSpy).toHaveBeenCalled();
+      const invalidateFunc = invalidateSpy;
+      expect(invalidateFunc).toHaveBeenCalled();
     });
   });
 });

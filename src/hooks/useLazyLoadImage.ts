@@ -17,7 +17,12 @@ interface UseLazyLoadImageOptions {
 export const useLazyLoadImage = (
   src: string | null | undefined,
   options: UseLazyLoadImageOptions = {},
-) => {
+): {
+  imgRef: React.RefObject<HTMLDivElement>;
+  imageSrc: string | null;
+  isLoading: boolean;
+  isError: boolean;
+} => {
   const { threshold = 0.1, rootMargin = '50px' } = options;
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -27,6 +32,9 @@ export const useLazyLoadImage = (
 
   useEffect(() => {
     if (!src || !imgRef.current) {return;}
+
+    // refの値をローカル変数にキャプチャ
+    const element = imgRef.current;
 
     // Intersection Observerがサポートされていない場合は即座に画像を読み込む
     if (!('IntersectionObserver' in window)) {
@@ -54,8 +62,8 @@ export const useLazyLoadImage = (
             };
 
             // 一度読み込んだら監視を停止
-            if (imgRef.current) {
-              observer.unobserve(imgRef.current);
+            if (element) {
+              observer.unobserve(element);
             }
           }
         });
@@ -67,12 +75,12 @@ export const useLazyLoadImage = (
     );
 
     // 監視開始
-    observer.observe(imgRef.current);
+    observer.observe(element);
 
     // クリーンアップ
     return () => {
-      if (imgRef.current) {
-        observer.unobserve(imgRef.current);
+      if (element) {
+        observer.unobserve(element);
       }
     };
   }, [src, threshold, rootMargin]);
@@ -88,12 +96,15 @@ export const useLazyLoadImage = (
 /**
  * 複数画像の遅延読み込みを管理するカスタムフック
  */
-export const useLazyLoadImages = () => {
+export const useLazyLoadImages = (): {
+  isImageLoaded: (src: string) => boolean;
+  markImageAsLoaded: (src: string) => void;
+} => {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
-  const isImageLoaded = (src: string) => loadedImages.has(src);
+  const isImageLoaded = (src: string): boolean => loadedImages.has(src);
 
-  const markImageAsLoaded = (src: string) => {
+  const markImageAsLoaded = (src: string): void => {
     setLoadedImages((prev) => new Set(prev).add(src));
   };
 

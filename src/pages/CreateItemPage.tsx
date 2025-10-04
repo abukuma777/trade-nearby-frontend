@@ -2,6 +2,7 @@
  * アイテム新規作成ページ
  */
 
+import { AxiosError } from 'axios';
 import { AlertCircle, MapPin, Tag, Package, FileText } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';

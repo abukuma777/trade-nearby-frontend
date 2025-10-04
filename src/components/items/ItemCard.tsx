@@ -22,13 +22,13 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, onClick }) => {
   const imageUrl = processedImages[0] || defaultImage;
 
   // 日付フォーマット
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ja-JP');
   };
 
   // カード全体のクリックハンドラー
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent): void => {
     // Linkタグ内でのクリックは除外
     if ((e.target as HTMLElement).closest('a')) {
       return;
@@ -42,8 +42,26 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, onClick }) => {
     <div
       className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1 ${
         item.status !== 'active' ? 'opacity-75' : ''
-      }`}
-      onClick={handleClick}
+      } ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick ? handleClick : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const mockEvent = {
+                  target: e.target,
+                  currentTarget: e.currentTarget,
+                  preventDefault: () => e.preventDefault(),
+                  stopPropagation: () => e.stopPropagation(),
+                } as unknown as React.MouseEvent;
+                handleClick(mockEvent);
+              }
+            }
+          : undefined
+      }
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
     >
       {/* 画像部分 */}
       <div className="relative aspect-square overflow-hidden bg-gray-100">
@@ -94,8 +112,8 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, onClick }) => {
         {/* タグ */}
         {item.tags && item.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">
-            {item.tags.slice(0, 3).map((tag, index) => (
-              <span key={index} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+            {item.tags.slice(0, 3).map((tag) => (
+              <span key={`tag-${tag}`} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
                 #{tag}
               </span>
             ))}

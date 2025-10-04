@@ -59,10 +59,11 @@ const ItemFilter: React.FC<ItemFilterProps> = ({
     }, 500); // デバウンス処理
 
     return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchText]);
 
   // カテゴリー変更
-  const handleCategoryChange = (category: ItemCategory | 'all') => {
+  const handleCategoryChange = (category: ItemCategory | 'all'): void => {
     const newFilters = {
       ...filters,
       category: category === 'all' ? undefined : category,
@@ -73,7 +74,7 @@ const ItemFilter: React.FC<ItemFilterProps> = ({
   };
 
   // ステータス変更
-  const handleStatusChange = (status: ItemStatus | 'all') => {
+  const handleStatusChange = (status: ItemStatus | 'all'): void => {
     const newFilters = {
       ...filters,
       status: status === 'all' ? undefined : status,
@@ -84,7 +85,7 @@ const ItemFilter: React.FC<ItemFilterProps> = ({
   };
 
   // ソート変更
-  const handleSortChange = (sort: string) => {
+  const handleSortChange = (sort: string): void => {
     const newFilters = {
       ...filters,
       sort: sort as ItemsQueryParams['sort'],
@@ -95,7 +96,7 @@ const ItemFilter: React.FC<ItemFilterProps> = ({
   };
 
   // フィルターリセット
-  const handleReset = () => {
+  const handleReset = (): void => {
     setSearchText('');
     setFilters({});
     onFilterChange({});
@@ -161,7 +162,7 @@ const ItemFilter: React.FC<ItemFilterProps> = ({
         <div className="space-y-4 pt-4 border-t border-gray-200">
           {/* カテゴリー */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">カテゴリー</label>
+            <div className="block text-sm font-medium text-gray-700 mb-2">カテゴリー</div>
             <div className="flex flex-wrap gap-2">
               {categories.map((category) => (
                 <button
@@ -182,7 +183,7 @@ const ItemFilter: React.FC<ItemFilterProps> = ({
 
           {/* ステータス */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">ステータス</label>
+            <div className="block text-sm font-medium text-gray-700 mb-2">ステータス</div>
             <div className="flex flex-wrap gap-2">
               {statuses.map((status) => (
                 <button
@@ -203,8 +204,9 @@ const ItemFilter: React.FC<ItemFilterProps> = ({
 
           {/* ソート */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">並び順</label>
+            <label htmlFor="sort-select" className="block text-sm font-medium text-gray-700 mb-2">並び順</label>
             <select
+              id="sort-select"
               value={filters.sort || '-created_at'}
               onChange={(e) => handleSortChange(e.target.value)}
               disabled={loading}

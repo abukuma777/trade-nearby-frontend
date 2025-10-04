@@ -32,7 +32,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
 
         {/* 各項目 */}
         {items.map((item, index) => (
-          <React.Fragment key={index}>
+          <React.Fragment key={`${item.label}-${item.href || index}`}>
             <li className="text-gray-400">
               <ChevronRight size={16} />
             </li>

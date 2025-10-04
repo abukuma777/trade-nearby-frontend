@@ -65,22 +65,22 @@ export const RelatedItems: React.FC<RelatedItemsProps> = ({ currentItem, classNa
   const displayedItems = currentItems.slice(startIndex, startIndex + itemsPerPage);
 
   // ページ変更ハンドラー
-  const handlePrevPage = () => {
+  const handlePrevPage = (): void => {
     setCurrentPage((prev) => Math.max(0, prev - 1));
   };
 
-  const handleNextPage = () => {
+  const handleNextPage = (): void => {
     setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1));
   };
 
   // タブ切り替え時にページをリセット
-  const handleTabChange = (tab: TabType) => {
+  const handleTabChange = (tab: TabType): void => {
     setActiveTab(tab);
     setCurrentPage(0);
   };
 
   // アイテムクリックハンドラー
-  const handleItemClick = (_item: Item) => {
+  const handleItemClick = (_item: Item): void => {
     // 新しいタブで開く、または現在のページを更新
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -201,9 +201,9 @@ export const RelatedItems: React.FC<RelatedItemsProps> = ({ currentItem, classNa
                 </button>
 
                 <div className="flex items-center gap-2">
-                  {[...Array(totalPages)].map((_, index) => (
+                  {Array.from({ length: totalPages }, (_, index) => (
                     <button
-                      key={index}
+                      key={`page-${index}`}
                       onClick={() => setCurrentPage(index)}
                       className={`
                         w-2 h-2 rounded-full transition-all

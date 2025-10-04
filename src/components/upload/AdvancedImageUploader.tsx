@@ -70,7 +70,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
    * ファイル選択ハンドラー
    */
   const handleFileSelect = useCallback(
-    async (files: FileList | null) => {
+    async (files: FileList | null): Promise<void> => {
       if (!files || files.length === 0 || disabled) {
         return;
       }
@@ -214,7 +214,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
    * 画像削除
    */
   const handleRemoveImage = useCallback(
-    async (imageId: string) => {
+    async (imageId: string): Promise<void> => {
       const imageToRemove = previewImages.find((img) => img.id === imageId);
       if (!imageToRemove) {
         return;
@@ -271,7 +271,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
    * メイン画像設定
    */
   const handleSetMainImage = useCallback(
-    (imageId: string) => {
+    (imageId: string): void => {
       const newImages = previewImages.map((img) => ({
         ...img,
         is_main: img.id === imageId,
@@ -299,7 +299,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
    * 画像の順序変更
    */
   const handleReorder = useCallback(
-    (fromIndex: number, toIndex: number) => {
+    (fromIndex: number, toIndex: number): void => {
       const newImages = [...previewImages];
       const [movedImage] = newImages.splice(fromIndex, 1);
       newImages.splice(toIndex, 0, movedImage);
@@ -329,7 +329,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
   );
 
   // ドラッグ&ドロップハンドラー
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
+  const handleDragEnter = useCallback((e: React.DragEvent): void => {
     e.preventDefault();
     e.stopPropagation();
     dragCounter.current++;
@@ -338,7 +338,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
     }
   }, []);
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e: React.DragEvent): void => {
     e.preventDefault();
     e.stopPropagation();
     dragCounter.current--;
@@ -347,13 +347,13 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
     }
   }, []);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent): void => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
 
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+    (e: React.DragEvent): void => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(false);

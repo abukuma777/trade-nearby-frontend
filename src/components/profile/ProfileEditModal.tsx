@@ -95,7 +95,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   };
 
   // フォームの値を変更
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     // エラーをクリア
@@ -105,7 +105,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   };
 
   // フォーム送信
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -168,7 +168,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         </div>
 
         {/* フォーム */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={(e) => void handleSubmit(e)} className="p-6 space-y-5">
           {/* エラーメッセージ */}
           {errors.submit && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">

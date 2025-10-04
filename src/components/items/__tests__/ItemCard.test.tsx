@@ -11,7 +11,7 @@ import ItemCard from '../ItemCard';
 import { mockItems } from '@/__mocks__/itemMocks';
 
 // ルーターのラッパー
-const RouterWrapper = ({ children }: { children: React.ReactNode }) => (
+const RouterWrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => (
   <BrowserRouter>{children}</BrowserRouter>
 );
 

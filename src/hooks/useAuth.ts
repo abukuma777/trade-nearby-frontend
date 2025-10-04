@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import authService from '@/services/authService';
 import type { LoginRequest, RegisterRequest } from '@/services/authService';
 import { useAuthStore } from '@/stores/authStore';
+import type { User } from '@/stores/authStore';
 
 // フォームバリデーションエラー
 interface ValidationErrors {
@@ -22,7 +23,19 @@ interface ValidationErrors {
 /**
  * 認証フック
  */
-export const useAuth = () => {
+export const useAuth = (): {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  validationErrors: ValidationErrors;
+  login: (credentials: LoginRequest) => Promise<{ success: boolean; error?: string }>;
+  register: (userData: RegisterRequest & { confirmPassword?: string }) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  fetchCurrentUser: () => Promise<{ success: boolean; user?: User; error?: string }>;
+  requestPasswordReset: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  clearValidationErrors: () => void;
+} => {
   const navigate = useNavigate();
   const {
     user,
@@ -165,7 +178,7 @@ export const useAuth = () => {
 
       try {
         // confirmPasswordは送信しない
-        const { confirmPassword, ...registerData } = userData;
+        const { confirmPassword: _confirmPassword, ...registerData } = userData;
 
         // APIコール
         const response = await authService.register(registerData);
@@ -282,8 +295,11 @@ export const useAuth = () => {
 /**
  * 認証状態チェックフック
  */
-export const useAuthCheck = () => {
-  const { isAuthenticated, checkAuth } = useAuthStore();
+export const useAuthCheck = (): {
+  isAuthenticated: boolean;
+  isGuest: boolean;
+} => {
+  const { checkAuth } = useAuthStore();
 
   // コンポーネントマウント時に認証状態をチェック
   const isValidAuth = checkAuth();

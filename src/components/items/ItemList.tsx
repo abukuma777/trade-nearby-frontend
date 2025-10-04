@@ -27,7 +27,7 @@ const ItemList: React.FC<ItemListProps> = ({
   columns = 3,
 }) => {
   // グリッドの列数に応じたクラス名を取得
-  const getGridClassName = () => {
+  const getGridClassName = (): string => {
     switch (columns) {
       case 2:
         return 'grid-cols-1 sm:grid-cols-2';
@@ -42,11 +42,14 @@ const ItemList: React.FC<ItemListProps> = ({
 
   // ローディング表示
   if (loading) {
+    // スケルトンローダー用の固定ID配列
+    const skeletonIds = ['skeleton-1', 'skeleton-2', 'skeleton-3', 'skeleton-4', 'skeleton-5', 'skeleton-6'];
+    
     return (
       <div className={`grid ${getGridClassName()} gap-4 sm:gap-6`}>
         {/* スケルトンローダー */}
-        {[...Array(6)].map((_, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
+        {skeletonIds.map((id) => (
+          <div key={id} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
             <div className="aspect-square bg-gray-300" />
             <div className="p-4">
               <div className="h-6 bg-gray-300 rounded mb-2" />

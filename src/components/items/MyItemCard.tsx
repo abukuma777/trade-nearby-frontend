@@ -32,13 +32,13 @@ const MyItemCard: React.FC<MyItemCardProps> = ({
   const imageUrl = processedImages[0] || defaultImage;
 
   // 日付フォーマット
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ja-JP');
   };
 
   // カード全体のクリックハンドラー
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent): void => {
     // Link、編集、削除ボタンのクリックは除外
     if ((e.target as HTMLElement).closest('a') || (e.target as HTMLElement).closest('button')) {
       return;
@@ -49,7 +49,7 @@ const MyItemCard: React.FC<MyItemCardProps> = ({
   };
 
   // ステータスに応じた背景色とラベル
-  const getStatusStyle = () => {
+  const getStatusStyle = (): { badge: string; label: string; cardOpacity: string } => {
     // まずvisibilityをチェック
     if (item.visibility === 'private') {
       return {
@@ -91,8 +91,28 @@ const MyItemCard: React.FC<MyItemCardProps> = ({
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1 ${statusStyle.cardOpacity}`}
-      onClick={handleClick}
+      className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1 ${statusStyle.cardOpacity} ${
+        onClick ? 'cursor-pointer' : ''
+      }`}
+      onClick={onClick ? handleClick : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const mockEvent = {
+                  target: e.target,
+                  currentTarget: e.currentTarget,
+                  preventDefault: () => e.preventDefault(),
+                  stopPropagation: () => e.stopPropagation(),
+                } as unknown as React.MouseEvent;
+                handleClick(mockEvent);
+              }
+            }
+          : undefined
+      }
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
     >
       {/* 画像部分 */}
       <div className="relative aspect-square overflow-hidden bg-gray-100">
@@ -143,9 +163,9 @@ const MyItemCard: React.FC<MyItemCardProps> = ({
         {/* タグ */}
         {item.tags && item.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">
-            {item.tags.slice(0, 3).map((tag, index) => (
+            {item.tags.slice(0, 3).map((tag) => (
               <span
-                key={index}
+                key={`tag-${tag}`}
                 className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded-full"
               >
                 #{tag}

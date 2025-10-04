@@ -35,9 +35,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
         {/* ヘルパーテキスト（入力フィールドの前に表示） */}
         {helperTextLines.length > 0 && !error && (
           <div id={`${props.id}-helper`} className="mb-2 text-xs text-gray-500">
-            {helperTextLines.map((line, index) => (
+            {helperTextLines.map((line) => (
               <div
-                key={index}
+                key={`helper-${line}`}
                 className={line.startsWith('※') ? 'text-orange-600 font-medium mt-1' : ''}
               >
                 {line}

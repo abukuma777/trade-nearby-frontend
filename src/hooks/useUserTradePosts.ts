@@ -2,7 +2,7 @@
  * ユーザーの投稿取得用カスタムフック
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
 
 import apiClient from '@/services/api';
 import { useAuthStore } from '@/stores/authStore';
@@ -30,6 +30,13 @@ export interface UserTradePost {
   }>;
 }
 
+// APIレスポンスの型定義
+interface TradePostsResponse {
+  success: boolean;
+  message?: string;
+  data?: UserTradePost[];
+}
+
 // クエリキーの定義
 export const userTradePostsQueryKeys = {
   all: ['userTradePosts'] as const,
@@ -43,7 +50,7 @@ export const userTradePostsQueryKeys = {
  * @param limit 取得する投稿数（デフォルト: 8）
  * @param userId 対象ユーザーID（省略時は自分）
  */
-export const useUserRecentTradePosts = (limit: number = 8, userId?: string) => {
+export const useUserRecentTradePosts = (limit: number = 8, userId?: string): UseQueryResult<UserTradePost[], Error> => {
   const { user } = useAuthStore();
   const targetUserId = userId || user?.id || '';
 
@@ -54,19 +61,21 @@ export const useUserRecentTradePosts = (limit: number = 8, userId?: string) => {
         throw new Error('ユーザーIDが見つかりません');
       }
 
-      const response = await apiClient.get('/trade-posts', {
+      const response = await apiClient.get<TradePostsResponse>('/trade-posts', {
         params: {
           user_id: targetUserId,
           limit: limit,
         },
       });
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || '投稿の取得に失敗しました');
+      const responseData = response.data;
+      if (!responseData.success) {
+        throw new Error(responseData.message || '投稿の取得に失敗しました');
       }
 
       // 最新のlimit件だけを返す
-      return (response.data.data || []).slice(0, limit);
+      const posts = responseData.data || [];
+      return posts.slice(0, limit);
     },
     enabled: !!targetUserId,
     staleTime: 1000 * 60 * 5, // 5分間はキャッシュを使用
@@ -78,7 +87,7 @@ export const useUserRecentTradePosts = (limit: number = 8, userId?: string) => {
  * ユーザーの全投稿を取得するフック
  * @param userId 対象ユーザーID（省略時は自分）
  */
-export const useUserTradePosts = (userId?: string) => {
+export const useUserTradePosts = (userId?: string): UseQueryResult<UserTradePost[], Error> => {
   const { user } = useAuthStore();
   const targetUserId = userId || user?.id || '';
 
@@ -89,17 +98,18 @@ export const useUserTradePosts = (userId?: string) => {
         throw new Error('ユーザーIDが見つかりません');
       }
 
-      const response = await apiClient.get('/trade-posts', {
+      const response = await apiClient.get<TradePostsResponse>('/trade-posts', {
         params: {
           user_id: targetUserId,
         },
       });
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || '投稿の取得に失敗しました');
+      const responseData = response.data;
+      if (!responseData.success) {
+        throw new Error(responseData.message || '投稿の取得に失敗しました');
       }
 
-      return response.data.data || [];
+      return responseData.data || [];
     },
     enabled: !!targetUserId,
     staleTime: 1000 * 60 * 5, // 5分間はキャッシュを使用

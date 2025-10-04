@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
-import { commentService } from '../../services/commentService';
+import { commentService, Comment } from '../../services/commentService';
 
 interface CommentFormProps {
   postId: string;
   postUserId: string;  // 投稿者のIDを追加
-  onCommentAdded: (comment: any) => void;
+  onCommentAdded: (comment: Comment) => void;
   currentUserId?: string;
 }
 
@@ -31,11 +31,12 @@ const CommentForm: React.FC<CommentFormProps> = ({ postId, postUserId, onComment
   // ユーザーのアクティブな投稿を取得
   useEffect(() => {
     if (isOffer && currentUserId) {
-      fetchUserPosts();
+      void fetchUserPosts();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOffer, currentUserId]);
 
-  const fetchUserPosts = async () => {
+  const fetchUserPosts = async (): Promise<void> => {
     if (!currentUserId) {return;}
 
     try {
@@ -50,7 +51,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ postId, postUserId, onComment
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     
     if (!content.trim()) {
@@ -82,15 +83,16 @@ const CommentForm: React.FC<CommentFormProps> = ({ postId, postUserId, onComment
       
       // 親コンポーネントに通知
       onCommentAdded(newComment);
-    } catch (err: any) {
-      setError(err.message || 'コメントの投稿に失敗しました');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'コメントの投稿に失敗しました';
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
       {/* 自分の投稿の場合のメッセージ */}
       {isOwnPost && (
         <div className="text-sm text-gray-600 bg-gray-100 p-3 rounded">
@@ -102,7 +104,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ postId, postUserId, onComment
       <div>
         <textarea
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e): void => setContent(e.target.value)}
           placeholder={isOwnPost ? "返信を入力..." : "コメントを入力..."}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
           rows={3}
@@ -117,7 +119,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ postId, postUserId, onComment
             type="checkbox"
             id="is-offer"
             checked={isOffer}
-            onChange={(e) => {
+            onChange={(e): void => {
               setIsOffer(e.target.checked);
               if (!e.target.checked) {
                 setSelectedPostId('');
@@ -167,7 +169,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ postId, postUserId, onComment
                     name="related_post"
                     value={post.id}
                     checked={selectedPostId === post.id}
-                    onChange={(e) => setSelectedPostId(e.target.value)}
+                    onChange={(e): void => setSelectedPostId(e.target.value)}
                     disabled={submitting}
                     className="text-blue-600 focus:ring-blue-500"
                   />

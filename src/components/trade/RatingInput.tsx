@@ -32,7 +32,7 @@ const RatingInput: React.FC<RatingInputProps> = ({
     lg: 'w-10 h-10',
   };
 
-  const handleClick = (rating: number) => {
+  const handleClick = (rating: number): void => {
     if (!disabled) {
       // 同じ評価をクリックした場合は0にリセット（required=falseの場合のみ）
       if (value === rating && !required) {
@@ -43,13 +43,13 @@ const RatingInput: React.FC<RatingInputProps> = ({
     }
   };
 
-  const handleMouseEnter = (rating: number) => {
+  const handleMouseEnter = (rating: number): void => {
     if (!disabled) {
       setHoverRating(rating);
     }
   };
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = (): void => {
     setHoverRating(null);
   };
 
@@ -57,14 +57,14 @@ const RatingInput: React.FC<RatingInputProps> = ({
 
   return (
     <div className="flex items-center gap-1">
-      {[...Array(maxRating)].map((_, index) => {
+      {Array.from({ length: maxRating }, (_, index) => {
         const rating = index + 1;
         const isFilled = rating <= displayRating;
         const isHovered = hoverRating !== null && rating <= hoverRating;
 
         return (
           <button
-            key={index}
+            key={`rating-${rating}`}
             type="button"
             className={`transition-all ${disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-110'}`}
             onClick={() => handleClick(rating)}

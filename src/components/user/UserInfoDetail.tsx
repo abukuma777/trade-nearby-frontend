@@ -93,7 +93,7 @@ export const UserInfoDetail: React.FC<UserInfoDetailProps> = ({ userId, user, cl
   };
 
   // 日付フォーマット
-  const formatJoinDate = (dateString: string) => {
+  const formatJoinDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('ja-JP', {
       year: 'numeric',
       month: 'long',

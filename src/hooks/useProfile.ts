@@ -2,9 +2,9 @@
  * ユーザープロフィール関連のカスタムフック（React Query使用）
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 
-import apiClient from '@/services/api';
+import apiClient, { ApiResponse } from '@/services/api';
 import authService from '@/services/authService';
 import { User , useAuthStore } from '@/stores/authStore';
 
@@ -31,7 +31,7 @@ export const profileQueryKeys = {
 /**
  * 現在のユーザープロフィールを取得するフック
  */
-export const useCurrentUser = () => {
+export const useCurrentUser = (): UseQueryResult<User, Error> => {
   return useQuery<User, Error>({
     queryKey: profileQueryKeys.current(),
     queryFn: () => authService.getCurrentUser(),
@@ -43,15 +43,15 @@ export const useCurrentUser = () => {
 /**
  * 特定のユーザープロフィールを取得するフック
  */
-export const useUserById = (userId: string) => {
+export const useUserById = (userId: string): UseQueryResult<User, Error> => {
   return useQuery<User, Error>({
     queryKey: profileQueryKeys.byId(userId),
-    queryFn: async () => {
+    queryFn: async (): Promise<User> => {
       if (!userId) {
         throw new Error('User ID is required');
       }
 
-      const response = await apiClient.get(`/users/${userId}`, {});
+      const response = await apiClient.get<ApiResponse<User>>(`/users/${userId}`, {});
 
       if (!response.data.success || !response.data.data) {
         throw new Error(response.data.message || 'ユーザー情報の取得に失敗しました');
@@ -68,14 +68,14 @@ export const useUserById = (userId: string) => {
 /**
  * ユーザー統計情報を取得するフック
  */
-export const useUserStats = (userId?: string) => {
+export const useUserStats = (userId?: string): UseQueryResult<UserStats, Error> => {
   return useQuery<UserStats, Error>({
     queryKey: profileQueryKeys.stats(userId),
-    queryFn: async () => {
+    queryFn: async (): Promise<UserStats> => {
       const token = useAuthStore.getState().getAccessToken();
       const endpoint = userId ? `/users/${userId}/stats` : '/users/me/stats';
 
-      const response = await apiClient.get(endpoint, {
+      const response = await apiClient.get<ApiResponse<UserStats>>(endpoint, {
         headers: userId
           ? {}
           : {
@@ -97,11 +97,11 @@ export const useUserStats = (userId?: string) => {
 /**
  * プロフィールを更新するフック
  */
-export const useUpdateProfile = () => {
+export const useUpdateProfile = (): UseMutationResult<User, Error, Partial<User>> => {
   const queryClient = useQueryClient();
 
   return useMutation<User, Error, Partial<User>>({
-    mutationFn: async (updates) => {
+    mutationFn: async (updates): Promise<User> => {
       const result = await authService.updateProfile(updates);
       return result;
     },

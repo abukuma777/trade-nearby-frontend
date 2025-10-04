@@ -89,7 +89,7 @@ class CommentService {
   /**
    * ユーザーのアクティブな投稿一覧を取得（交換提案用）
    */
-  async getUserActivePosts(userId: string) {
+  async getUserActivePosts(userId: string): Promise<any[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/users/${userId}/active-posts`);
 

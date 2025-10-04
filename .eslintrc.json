@@ -84,6 +84,14 @@
     "no-debugger": "error",
     "no-alert": "error"
   },
+  "overrides": [
+    {
+      "files": ["*.test.ts", "*.test.tsx"],
+      "rules": {
+        "@typescript-eslint/unbound-method": "off"
+      }
+    }
+  ],
   "ignorePatterns": [
     "dist",
     "node_modules",

@@ -42,17 +42,17 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
   }, [displayImages.length]);
 
   // サムネイルクリック時
-  const handleThumbnailClick = (index: number) => {
+  const handleThumbnailClick = (index: number): void => {
     setCurrentIndex(index);
   };
 
   // モーダルの開閉
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openModal = (): void => setIsModalOpen(true);
+  const closeModal = (): void => setIsModalOpen(false);
 
   // キーボードナビゲーション
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       if (!isModalOpen) {return;}
 
       if (e.key === 'ArrowLeft') {prevImage();}
@@ -65,15 +65,15 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
   }, [isModalOpen, nextImage, prevImage]);
 
   // タッチ操作のハンドリング
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleTouchStart = (e: React.TouchEvent): void => {
     setTouchStart(e.targetTouches[0].clientX);
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handleTouchMove = (e: React.TouchEvent): void => {
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (): void => {
     if (!touchStart || !touchEnd) {return;}
 
     const distance = touchStart - touchEnd;
@@ -149,7 +149,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
           <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
             {displayImages.map((image, index) => (
               <button
-                key={index}
+                key={`thumb-${image}`}
                 onClick={() => handleThumbnailClick(index)}
                 className={`
                   flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all
@@ -182,6 +182,12 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={closeModal}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              closeModal();
+            }
+          }}
+          role="presentation"
         >
           {/* クローズボタン */}
           <button
@@ -226,24 +232,29 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
           )}
 
           {/* モーダル内画像 */}
-          <img
-            src={displayImages[currentIndex]}
-            alt={`${title} - ${currentIndex + 1}`}
-            className="max-w-full max-h-full object-contain"
+          <button
+            className="max-w-full max-h-full bg-transparent border-0 p-0 cursor-default"
             onClick={(e) => e.stopPropagation()}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src =
-                'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=800&fit=crop';
-            }}
-          />
+            aria-label="画像表示エリア"
+          >
+            <img
+              src={displayImages[currentIndex]}
+              alt={`${title} - ${currentIndex + 1}`}
+              className="max-w-full max-h-full object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src =
+                  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=800&fit=crop';
+              }}
+            />
+          </button>
 
           {/* サムネイル（モーダル） */}
           {displayImages.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/60 p-2 rounded-lg">
               {displayImages.map((image, index) => (
                 <button
-                  key={index}
+                  key={`modal-thumb-${image}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleThumbnailClick(index);

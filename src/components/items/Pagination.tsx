@@ -22,7 +22,7 @@ const Pagination: React.FC<PaginationProps> = ({
   loading = false,
 }) => {
   // ページ番号の配列を生成
-  const getPageNumbers = () => {
+  const getPageNumbers = (): (number | string)[] => {
     const pages: (number | string)[] = [];
     const maxPagesToShow = 7;
     const halfRange = Math.floor(maxPagesToShow / 2);
@@ -106,8 +106,10 @@ const Pagination: React.FC<PaginationProps> = ({
         <div className="hidden sm:flex items-center space-x-1">
           {getPageNumbers().map((page, index) => {
             if (page === '...') {
+              // 省略記号の位置を判定（前半か後半か）
+              const ellipsisPosition = index < getPageNumbers().length / 2 ? 'start' : 'end';
               return (
-                <span key={`ellipsis-${index}`} className="px-3 py-2 text-sm text-gray-400">
+                <span key={`ellipsis-${ellipsisPosition}`} className="px-3 py-2 text-sm text-gray-400">
                   ...
                 </span>
               );
@@ -165,7 +167,7 @@ const Pagination: React.FC<PaginationProps> = ({
           className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
         >
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <option key={page} value={page}>
+            <option key={`page-option-${page}`} value={page}>
               {page}
             </option>
           ))}
