@@ -21,8 +21,10 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 
+import ConfirmModal from '@/components/common/ConfirmModal';
 import { TradeRatingModal } from '@/components/trade';
 import TradeChat from '@/components/trade/TradeChat';
+import { useConfirm } from '@/hooks/useConfirm';
 import { useAuthStore } from '@/stores/authStore';
 import { useTradeStore } from '@/stores/tradeStore';
 import { Item } from '@/types/item';
@@ -31,6 +33,7 @@ const TradeDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const confirmModal = useConfirm();
   const {
     currentRequest,
     isLoading,
@@ -45,6 +48,7 @@ const TradeDetailPage: React.FC = () => {
 
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'detail' | 'chat'>('detail');
+  const [processingAction, setProcessingAction] = useState<'accept' | 'reject' | 'cancel' | null>(null);
 
   // データ読み込み
   useEffect(() => {
@@ -152,38 +156,68 @@ const TradeDetailPage: React.FC = () => {
 
   // アクションハンドラー
   const handleAccept = async (): Promise<void> => {
-    const confirmed = window.confirm('このリクエストを承認しますか？');
-    if (confirmed) {
-      try {
-        await acceptRequest(currentRequest.id);
-        toast.success('リクエストを承認しました');
-      } catch {
-        toast.error('承認に失敗しました');
-      }
+    const confirmed = await confirmModal.confirm({
+      title: 'リクエストを承認しますか？',
+      message: '承認すると、取引が開始されます。',
+      confirmText: '承認する',
+      cancelText: 'キャンセル',
+      variant: 'info',
+    });
+
+    if (!confirmed) return;
+
+    setProcessingAction('accept');
+    try {
+      await acceptRequest(currentRequest.id);
+      toast.success('リクエストを承認しました');
+    } catch {
+      toast.error('承認に失敗しました');
+    } finally {
+      setProcessingAction(null);
     }
   };
 
   const handleReject = async (): Promise<void> => {
-    const confirmed = window.confirm('このリクエストを拒否しますか？');
-    if (confirmed) {
-      try {
-        await rejectRequest(currentRequest.id);
-        toast.success('リクエストを拒否しました');
-      } catch {
-        toast.error('拒否に失敗しました');
-      }
+    const confirmed = await confirmModal.confirm({
+      title: 'リクエストを拒否しますか？',
+      message: '拒否すると、このリクエストは終了します。',
+      confirmText: '拒否する',
+      cancelText: 'キャンセル',
+      variant: 'warning',
+    });
+
+    if (!confirmed) return;
+
+    setProcessingAction('reject');
+    try {
+      await rejectRequest(currentRequest.id);
+      toast.success('リクエストを拒否しました');
+    } catch {
+      toast.error('拒否に失敗しました');
+    } finally {
+      setProcessingAction(null);
     }
   };
 
   const handleCancel = async (): Promise<void> => {
-    const confirmed = window.confirm('このリクエストをキャンセルしますか？');
-    if (confirmed) {
-      try {
-        await cancelRequest(currentRequest.id);
-        toast.success('リクエストをキャンセルしました');
-      } catch {
-        toast.error('キャンセルに失敗しました');
-      }
+    const confirmed = await confirmModal.confirm({
+      title: 'リクエストをキャンセルしますか？',
+      message: 'キャンセルすると、このリクエストは終了します。',
+      confirmText: 'キャンセルする',
+      cancelText: '戻る',
+      variant: 'warning',
+    });
+
+    if (!confirmed) return;
+
+    setProcessingAction('cancel');
+    try {
+      await cancelRequest(currentRequest.id);
+      toast.success('リクエストをキャンセルしました');
+    } catch {
+      toast.error('キャンセルに失敗しました');
+    } finally {
+      setProcessingAction(null);
     }
   };
 
@@ -378,23 +412,26 @@ const TradeDetailPage: React.FC = () => {
                   <>
                     <button
                       onClick={(): void => void handleReject()}
-                      className="px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50"
+                      disabled={processingAction !== null}
+                      className="px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      拒否する
+                      {processingAction === 'reject' ? '拒否中...' : '拒否する'}
                     </button>
                     <button
                       onClick={(): void => void handleAccept()}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                      disabled={processingAction !== null}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      承認する
+                      {processingAction === 'accept' ? '承認中...' : '承認する'}
                     </button>
                   </>
                 ) : (
                   <button
                     onClick={(): void => void handleCancel()}
-                    className="px-4 py-2 text-gray-600 border border-gray-600 rounded-lg hover:bg-gray-50"
+                    disabled={processingAction !== null}
+                    className="px-4 py-2 text-gray-600 border border-gray-600 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    キャンセル
+                    {processingAction === 'cancel' ? 'キャンセル中...' : 'キャンセル'}
                   </button>
                 )}
               </div>
@@ -430,6 +467,12 @@ const TradeDetailPage: React.FC = () => {
         onSubmit={handleRatingSubmit}
         otherUserName={otherUser?.display_name || '相手ユーザー'}
         tradeId={currentRequest.id}
+      />
+
+      {/* 確認モーダル */}
+      <ConfirmModal
+        {...confirmModal.props}
+        loading={processingAction !== null}
       />
     </div>
   );

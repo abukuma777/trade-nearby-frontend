@@ -9,10 +9,12 @@ import toast from 'react-hot-toast';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 
 import Breadcrumbs from '@/components/common/Breadcrumbs';
+import ConfirmModal from '@/components/common/ConfirmModal';
 import { ImageGallery } from '@/components/gallery';
 import RelatedItems from '@/components/items/RelatedItems';
 import { TradeRequestModal } from '@/components/trade';
 import { UserInfoDetail } from '@/components/user';
+import { useConfirm } from '@/hooks/useConfirm';
 import { useItem } from '@/hooks/useItems';
 import { itemService } from '@/services/itemService';
 import { useAuthStore } from '@/stores/authStore';
@@ -22,9 +24,11 @@ const ItemDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
+  const confirmModal = useConfirm();
 
   // 交換リクエストモーダルの状態管理
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // アイテム詳細を取得
   const { data: item, isLoading, error } = useItem(id || '', !!id);
@@ -45,12 +49,19 @@ const ItemDetailPage: React.FC = () => {
 
   // 削除ハンドラー
   const handleDelete = async (): Promise<void> => {
-    // 削除確認（window.confirmを使用）
-    const confirmed = window.confirm('本当にこのアイテムを削除しますか？\nこの操作は取り消せません。');
+    const confirmed = await confirmModal.confirm({
+      title: 'アイテムを削除しますか？',
+      message: 'この操作は取り消せません。\n削除されたアイテムは復元できません。',
+      confirmText: '削除する',
+      cancelText: 'キャンセル',
+      variant: 'danger',
+    });
+
     if (!confirmed) {
       return;
     }
 
+    setIsDeleting(true);
     try {
       await itemService.deleteItem(id!);
       toast.success('アイテムを削除しました');
@@ -58,6 +69,7 @@ const ItemDetailPage: React.FC = () => {
       navigate('/items');
     } catch {
       toast.error('削除に失敗しました');
+      setIsDeleting(false);
     }
   };
 
@@ -136,10 +148,11 @@ const ItemDetailPage: React.FC = () => {
             </Link>
             <button
               onClick={() => void handleDelete()}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              disabled={isDeleting}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 size={18} />
-              <span>削除</span>
+              <span>{isDeleting ? '削除中...' : '削除'}</span>
             </button>
           </div>
         )}
@@ -288,6 +301,9 @@ const ItemDetailPage: React.FC = () => {
         onClose={() => setIsTradeModalOpen(false)}
         targetItem={item}
       />
+
+      {/* 確認モーダル */}
+      <ConfirmModal {...confirmModal.props} loading={isDeleting} />
     </div>
   );
 };
