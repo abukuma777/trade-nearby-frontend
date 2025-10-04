@@ -5,6 +5,7 @@
 import { AxiosError } from 'axios';
 import { AlertCircle, MapPin, Tag, Package, FileText } from 'lucide-react';
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 import { ImageUploader } from '@/components/upload';
@@ -18,6 +19,17 @@ import {
   categoryLabels,
   conditionLabels,
 } from '@/types/item';
+
+// APIエラーレスポンスの型定義
+interface ApiErrorResponse {
+  message?: string;
+  errors?: Record<string, string[]>;
+}
+
+// 送信用データの型定義
+interface SubmitData extends Omit<CreateItemInput, 'location'> {
+  location?: { lat: number; lng: number } | { latitude: number; longitude: number };
+}
 
 const CreateItemPage: React.FC = () => {
   const navigate = useNavigate();
@@ -34,7 +46,7 @@ const CreateItemPage: React.FC = () => {
   });
 
   const [tagInput, setTagInput] = useState('');
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [_uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -76,7 +88,7 @@ const CreateItemPage: React.FC = () => {
   };
 
   // 画像変更ハンドラー
-  const handleImagesChange = (images: UploadedImage[]) => {
+  const handleImagesChange = (images: UploadedImage[]): void => {
     setUploadedImages(images);
     setFormData((prev) => ({
       ...prev,
@@ -86,7 +98,7 @@ const CreateItemPage: React.FC = () => {
     // 画像エラーをクリア
     if (images.length > 0 && validationErrors.images) {
       setValidationErrors((prev) => {
-        const { images, ...rest } = prev;
+        const { images: _images, ...rest } = prev;
         return rest;
       });
     }
@@ -95,7 +107,7 @@ const CreateItemPage: React.FC = () => {
   // フォーム入力ハンドラー
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
+  ): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -109,7 +121,7 @@ const CreateItemPage: React.FC = () => {
   };
 
   // タグ追加
-  const handleAddTag = () => {
+  const handleAddTag = (): void => {
     const trimmedTag = tagInput.trim();
     if (trimmedTag && !formData.tags?.includes(trimmedTag)) {
       setFormData((prev) => ({
@@ -121,7 +133,7 @@ const CreateItemPage: React.FC = () => {
   };
 
   // タグ削除
-  const handleRemoveTag = (tagToRemove: string) => {
+  const handleRemoveTag = (tagToRemove: string): void => {
     setFormData((prev) => ({
       ...prev,
       tags: prev.tags?.filter((tag) => tag !== tagToRemove) || [],
@@ -129,7 +141,7 @@ const CreateItemPage: React.FC = () => {
   };
 
   // 位置情報取得
-  const handleGetLocation = () => {
+  const handleGetLocation = (): void => {
     if (!navigator.geolocation) {
       setError('お使いのブラウザは位置情報をサポートしていません');
       return;
@@ -144,13 +156,13 @@ const CreateItemPage: React.FC = () => {
       },
       (error) => {
         console.error('位置情報の取得に失敗しました:', error);
-        setError('位置情報の取得に失敗しました');
+        toast.error('位置情報の取得に失敗しました');
       },
     );
   };
 
   // フォーム送信
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -173,21 +185,43 @@ const CreateItemPage: React.FC = () => {
       // バックエンド用にlocationフィールドをlat/lngに変換
       if (submitData.location) {
         const { latitude, longitude } = submitData.location;
-        (submitData as any).location = { lat: latitude, lng: longitude };
+        const finalSubmitData: SubmitData = {
+          ...submitData,
+          location: { lat: latitude, lng: longitude }
+        };
+        
+        // アイテム作成API呼び出し
+        const createdItem = await itemService.createItem(finalSubmitData as CreateItemInput);
+        
+        // 成功通知
+        toast.success('アイテムを出品しました');
+        
+        // アイテム詳細ページへ遷移
+        navigate(`/items/${createdItem.id}`);
+      } else {
+        // locationがない場合はそのまま送信
+        const createdItem = await itemService.createItem(submitData);
+        
+        // 成功通知
+        toast.success('アイテムを出品しました');
+        
+        // アイテム詳細ページへ遷移
+        navigate(`/items/${createdItem.id}`);
       }
-
-      // アイテム作成API呼び出し
-      const createdItem = await itemService.createItem(submitData);
-
-      // 成功したらアイテム詳細ページへ遷移
-      navigate(`/items/${createdItem.id}`, {
-        state: { message: 'アイテムを作成しました' },
-      });
-    } catch (error: any) {
+    } catch (error) {
       console.error('アイテム作成エラー:', error);
-      setError(
-        error.response?.data?.message || 'アイテムの作成に失敗しました。もう一度お試しください。',
-      );
+      
+      // AxiosErrorの場合の処理
+      if (error instanceof Error) {
+        const axiosError = error as AxiosError<ApiErrorResponse>;
+        const errorMessage = axiosError.response?.data?.message || 'アイテムの作成に失敗しました。もう一度お試しください。';
+        toast.error(errorMessage);
+        setError(errorMessage);
+      } else {
+        toast.error('アイテムの作成に失敗しました。もう一度お試しください。');
+        setError('アイテムの作成に失敗しました。もう一度お試しください。');
+      }
+      
       setIsSubmitting(false);
     }
   };
@@ -197,7 +231,10 @@ const CreateItemPage: React.FC = () => {
       <div className="max-w-3xl mx-auto px-4">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">アイテムを出品する</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          void handleSubmit(e);
+        }} className="space-y-6">
           {/* エラーメッセージ */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start">

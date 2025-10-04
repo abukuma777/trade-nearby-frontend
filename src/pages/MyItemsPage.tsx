@@ -5,6 +5,7 @@
 
 import { Plus, Package, AlertCircle } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 
 import MyItemCard from '@/components/items/MyItemCard';
@@ -54,7 +55,7 @@ const MyItemsPage: React.FC = () => {
       status &&
       (status === 'all' || status === 'active' || status === 'reserved' || status === 'traded')
     ) {
-      setSelectedStatus(status as any);
+      setSelectedStatus(status);
     }
 
     const visibility = searchParams.get('visibility');
@@ -73,7 +74,7 @@ const MyItemsPage: React.FC = () => {
   });
 
   // ステータスフィルターの変更
-  const handleStatusChange = (status: typeof selectedStatus) => {
+  const handleStatusChange = (status: typeof selectedStatus): void => {
     setSelectedStatus(status);
     const newParams = new URLSearchParams(searchParams);
     newParams.set('status', status);
@@ -83,7 +84,7 @@ const MyItemsPage: React.FC = () => {
   };
 
   // 可視性フィルターの変更
-  const handleVisibilityChange = (visibility: 'public' | 'private') => {
+  const handleVisibilityChange = (visibility: 'public' | 'private'): void => {
     setSelectedVisibility(visibility);
     const newParams = new URLSearchParams(searchParams);
     newParams.set('visibility', visibility);
@@ -93,7 +94,7 @@ const MyItemsPage: React.FC = () => {
   };
 
   // ページ変更時の処理
-  const handlePageChange = (page: number) => {
+  const handlePageChange = (page: number): void => {
     const newParams = new URLSearchParams(searchParams);
     if (page > 1) {
       newParams.set('page', page.toString());
@@ -105,29 +106,33 @@ const MyItemsPage: React.FC = () => {
   };
 
   // アイテムクリック時の処理（詳細ページへ遷移）
-  const handleItemClick = (item: any) => {
+  interface ClickableItem {
+    id: string;
+  }
+  const handleItemClick = (item: ClickableItem): void => {
     navigate(`/items/${item.id}`);
   };
 
   // アイテム編集
-  const handleEditItem = (itemId: string) => {
+  const handleEditItem = (itemId: string): void => {
     navigate(`/items/${itemId}/edit`);
   };
 
   // アイテム削除
-  const handleDeleteItem = async (itemId: string) => {
+  const handleDeleteItem = async (itemId: string): Promise<void> => {
     try {
       await deleteItemMutation.mutateAsync(itemId);
       setShowDeleteConfirm(null);
-      refetch(); // リストを再取得
+      toast.success('アイテムを削除しました');
+      void refetch(); // リストを再取得
     } catch (error) {
       console.error('Failed to delete item:', error);
-      alert('アイテムの削除に失敗しました。');
+      toast.error('アイテムの削除に失敗しました');
     }
   };
 
   // アイテムの公開/非公開切り替え
-  const handleToggleVisibility = async (itemId: string) => {
+  const handleToggleVisibility = async (itemId: string): Promise<void> => {
     try {
       // 現在のアイテムを取得
       const currentItem = data?.items.find((item) => item.id === itemId);
@@ -142,11 +147,14 @@ const MyItemsPage: React.FC = () => {
         visibility: newVisibility,
       });
 
+      // 成功メッセージ
+      toast.success(`アイテムを${newVisibility === 'public' ? '公開' : '非公開'}にしました`);
+
       // リストを再取得
-      refetch();
+      void refetch();
     } catch (error) {
       console.error('Failed to toggle visibility:', error);
-      alert('公開/非公開の切り替えに失敗しました。');
+      toast.error('公開/非公開の切り替えに失敗しました');
     }
   };
 
@@ -156,7 +164,7 @@ const MyItemsPage: React.FC = () => {
   }
 
   // タイトルの生成
-  const getTitle = () => {
+  const getTitle = (): string => {
     const statusText =
       selectedStatus === 'active'
         ? '出品中'
@@ -312,9 +320,9 @@ const MyItemsPage: React.FC = () => {
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* スケルトンローダー */}
-                {[...Array(6)].map((_, index) => (
+                {Array.from({ length: 6 }).map((_, index) => (
                   <div
-                    key={index}
+                    key={`skeleton-${index}`}
                     className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse"
                   >
                     <div className="aspect-square bg-gray-300" />
@@ -338,7 +346,7 @@ const MyItemsPage: React.FC = () => {
                     item={item}
                     onEdit={handleEditItem}
                     onDelete={(itemId) => setShowDeleteConfirm(itemId)}
-                    onToggleVisibility={handleToggleVisibility}
+                    onToggleVisibility={() => void handleToggleVisibility(item.id)}
                     onClick={handleItemClick}
                   />
                 ))}
@@ -376,7 +384,7 @@ const MyItemsPage: React.FC = () => {
                 キャンセル
               </button>
               <button
-                onClick={() => handleDeleteItem(showDeleteConfirm)}
+                onClick={() => void handleDeleteItem(showDeleteConfirm)}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                 disabled={deleteItemMutation.isPending}
               >

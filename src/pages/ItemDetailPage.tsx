@@ -5,6 +5,7 @@
 
 import { ArrowLeft, MapPin, Calendar, Tag, Edit, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 
 import Breadcrumbs from '@/components/common/Breadcrumbs';
@@ -32,7 +33,7 @@ const ItemDetailPage: React.FC = () => {
   const isOwner = isAuthenticated && item && user?.id === item.user_id;
 
   // 交換リクエストボタンのハンドラー
-  const handleTradeRequest = () => {
+  const handleTradeRequest = (): void => {
     if (!isAuthenticated) {
       // 未ログインの場合はログインページへ
       navigate('/login', { state: { from: `/items/${id}` } });
@@ -43,17 +44,20 @@ const ItemDetailPage: React.FC = () => {
   };
 
   // 削除ハンドラー
-  const handleDelete = async () => {
-    if (!window.confirm('本当にこのアイテムを削除しますか？')) {
+  const handleDelete = async (): Promise<void> => {
+    // 削除確認（window.confirmを使用）
+    const confirmed = window.confirm('本当にこのアイテムを削除しますか？\nこの操作は取り消せません。');
+    if (!confirmed) {
       return;
     }
 
     try {
       await itemService.deleteItem(id!);
-      // 削除後は一覧ページへリダイレクト（強制リロード）
-      window.location.href = '/items';
-    } catch (error) {
-      alert('削除に失敗しました');
+      toast.success('アイテムを削除しました');
+      // 削除後は一覧ページへリダイレクト
+      navigate('/items');
+    } catch {
+      toast.error('削除に失敗しました');
     }
   };
 
@@ -95,7 +99,7 @@ const ItemDetailPage: React.FC = () => {
   }
 
   // 日付フォーマット
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('ja-JP', {
       year: 'numeric',
       month: 'long',
@@ -131,7 +135,7 @@ const ItemDetailPage: React.FC = () => {
               <span>編集</span>
             </Link>
             <button
-              onClick={handleDelete}
+              onClick={() => void handleDelete()}
               className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
             >
               <Trash2 size={18} />
@@ -262,7 +266,7 @@ const ItemDetailPage: React.FC = () => {
                 className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
                 onClick={() => {
                   // TODO: お気に入り機能を実装
-                  alert('お気に入り機能は実装予定です');
+                  toast('お気に入り機能は準備中です', { icon: '💙' });
                 }}
               >
                 ♡ お気に入り

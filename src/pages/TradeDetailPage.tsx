@@ -18,13 +18,14 @@ import {
   Loader,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 
-import { RatingInput, TradeRatingModal } from '@/components/trade';
+import { TradeRatingModal } from '@/components/trade';
 import TradeChat from '@/components/trade/TradeChat';
-import { TradeRequest } from '@/services/tradeService';
 import { useAuthStore } from '@/stores/authStore';
 import { useTradeStore } from '@/stores/tradeStore';
+import { Item } from '@/types/item';
 
 const TradeDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -48,15 +49,15 @@ const TradeDetailPage: React.FC = () => {
   // データ読み込み
   useEffect(() => {
     if (id) {
-      loadRequestDetail(id);
+      void loadRequestDetail(id);
     }
     return () => {
       clearMessages();
     };
-  }, [id]);
+  }, [id, loadRequestDetail, clearMessages]);
 
   // 評価送信ハンドラー
-  const handleRatingSubmit = async (rating: number, comment: string) => {
+  const handleRatingSubmit = async (rating: number, comment: string): Promise<void> => {
     await completeRequest(currentRequest!.id, { rating, comment });
     setShowRatingModal(false);
     navigate('/trade');
@@ -106,7 +107,7 @@ const TradeDetailPage: React.FC = () => {
   const otherUser = isSender ? currentRequest.to_user : currentRequest.from_user;
 
   // ステータスアイコンと色の取得
-  const getStatusDisplay = (status: string) => {
+  const getStatusDisplay = (status: string): { icon: JSX.Element; color: string; label: string } => {
     switch (status) {
       case 'pending':
         return {
@@ -150,25 +151,39 @@ const TradeDetailPage: React.FC = () => {
   const statusDisplay = getStatusDisplay(currentRequest.status);
 
   // アクションハンドラー
-  const handleAccept = async () => {
-    if (
-      window.confirm(
-        'この交換リクエストを承認しますか？承認すると取引が開始され、チャット機能が有効になります。',
-      )
-    ) {
-      await acceptRequest(currentRequest.id);
+  const handleAccept = async (): Promise<void> => {
+    const confirmed = window.confirm('このリクエストを承認しますか？');
+    if (confirmed) {
+      try {
+        await acceptRequest(currentRequest.id);
+        toast.success('リクエストを承認しました');
+      } catch {
+        toast.error('承認に失敗しました');
+      }
     }
   };
 
-  const handleReject = async () => {
-    if (window.confirm('この交換リクエストを拒否しますか？')) {
-      await rejectRequest(currentRequest.id);
+  const handleReject = async (): Promise<void> => {
+    const confirmed = window.confirm('このリクエストを拒否しますか？');
+    if (confirmed) {
+      try {
+        await rejectRequest(currentRequest.id);
+        toast.success('リクエストを拒否しました');
+      } catch {
+        toast.error('拒否に失敗しました');
+      }
     }
   };
 
-  const handleCancel = async () => {
-    if (window.confirm('この交換リクエストをキャンセルしますか？')) {
-      await cancelRequest(currentRequest.id);
+  const handleCancel = async (): Promise<void> => {
+    const confirmed = window.confirm('このリクエストをキャンセルしますか？');
+    if (confirmed) {
+      try {
+        await cancelRequest(currentRequest.id);
+        toast.success('リクエストをキャンセルしました');
+      } catch {
+        toast.error('キャンセルに失敗しました');
+      }
     }
   };
 
@@ -203,7 +218,7 @@ const TradeDetailPage: React.FC = () => {
       {currentRequest.status === 'trading' && (
         <div className="flex gap-4 mb-6 border-b">
           <button
-            onClick={() => setActiveTab('detail')}
+            onClick={(): void => setActiveTab('detail')}
             className={`pb-2 px-1 border-b-2 transition-colors ${
               activeTab === 'detail'
                 ? 'border-blue-600 text-blue-600'
@@ -213,7 +228,7 @@ const TradeDetailPage: React.FC = () => {
             詳細情報
           </button>
           <button
-            onClick={() => setActiveTab('chat')}
+            onClick={(): void => setActiveTab('chat')}
             className={`pb-2 px-1 border-b-2 transition-colors flex items-center gap-2 ${
               activeTab === 'chat'
                 ? 'border-blue-600 text-blue-600'
@@ -362,13 +377,13 @@ const TradeDetailPage: React.FC = () => {
                 {isReceiver ? (
                   <>
                     <button
-                      onClick={handleReject}
+                      onClick={(): void => void handleReject()}
                       className="px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50"
                     >
                       拒否する
                     </button>
                     <button
-                      onClick={handleAccept}
+                      onClick={(): void => void handleAccept()}
                       className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                     >
                       承認する
@@ -376,7 +391,7 @@ const TradeDetailPage: React.FC = () => {
                   </>
                 ) : (
                   <button
-                    onClick={handleCancel}
+                    onClick={(): void => void handleCancel()}
                     className="px-4 py-2 text-gray-600 border border-gray-600 rounded-lg hover:bg-gray-50"
                   >
                     キャンセル
@@ -397,7 +412,7 @@ const TradeDetailPage: React.FC = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => setShowRatingModal(true)}
+                  onClick={(): void => setShowRatingModal(true)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap"
                 >
                   交換を完了
@@ -411,7 +426,7 @@ const TradeDetailPage: React.FC = () => {
       {/* 評価モーダル */}
       <TradeRatingModal
         isOpen={showRatingModal}
-        onClose={() => setShowRatingModal(false)}
+        onClose={(): void => setShowRatingModal(false)}
         onSubmit={handleRatingSubmit}
         otherUserName={otherUser?.display_name || '相手ユーザー'}
         tradeId={currentRequest.id}
@@ -421,7 +436,7 @@ const TradeDetailPage: React.FC = () => {
 };
 
 // アイテムカードコンポーネント
-const ItemCard: React.FC<{ item?: any }> = ({ item }) => {
+const ItemCard: React.FC<{ item?: Item }> = ({ item }) => {
   if (!item) {
     return <div className="p-3 bg-gray-100 rounded-lg text-sm text-gray-500">アイテム情報なし</div>;
   }
