@@ -91,6 +91,7 @@ const TradeChatPage: React.FC = () => {
 
         // メッセージを取得
         const messagesData = await tradeChatService.getMessages(chatRoomId);
+        console.log('取得したメッセージ:', messagesData);
         setMessages(messagesData);
       } catch (err) {
         console.error('チャットルーム読み込みエラー:', err);
@@ -117,6 +118,7 @@ const TradeChatPage: React.FC = () => {
     if (!chatRoomId) return;
     try {
       const messagesData = await tradeChatService.getMessages(chatRoomId);
+      console.log('メッセージ更新:', messagesData);
       setMessages(messagesData);
     } catch (err) {
       console.error('メッセージ更新エラー:', err);
@@ -272,6 +274,7 @@ const TradeChatPage: React.FC = () => {
       </div>
 
       {/* メッセージエリア */}
+      {console.log('現在のメッセージ数:', messages.length, messages)}
       <div
         className="flex-1 overflow-y-auto bg-gray-50 p-4"
         style={{ height: 'calc(100vh - 300px)' }}

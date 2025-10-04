@@ -69,16 +69,6 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
           '/trade-chat/rooms/my',
         );
 
-        // デバッグログ追加
-        console.log('=== APIレスポンス確認 ===');
-        console.log('response.data:', response.data);
-        console.log('rooms数:', response.data.data?.length);
-        if (response.data.data && response.data.data.length > 0) {
-          console.log('最初のroom:', response.data.data[0]);
-          console.log('post1存在?:', !!response.data.data[0].post1);
-          console.log('user1存在?:', !!response.data.data[0].user1);
-        }
-
         if (response.data.success && response.data.data) {
           const rooms = response.data.data;
           // statusに応じてフィルタリング
@@ -100,7 +90,9 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
 
   // 相手のユーザー情報を取得
   const getOtherUser = (room: ChatRoom): User | undefined => {
-    if (!currentUserId) {return undefined;}
+    if (!currentUserId) {
+      return undefined;
+    }
 
     if (room.user1_id === currentUserId) {
       return room.user2;
@@ -111,7 +103,9 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
 
   // 自分の投稿と相手の投稿を取得
   const getMyPost = (room: ChatRoom): TradePost | undefined => {
-    if (!currentUserId) {return undefined;}
+    if (!currentUserId) {
+      return undefined;
+    }
 
     if (room.user1_id === currentUserId) {
       return room.post1;
@@ -121,7 +115,9 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
   };
 
   const getOtherPost = (room: ChatRoom): TradePost | undefined => {
-    if (!currentUserId) {return undefined;}
+    if (!currentUserId) {
+      return undefined;
+    }
 
     if (room.user1_id === currentUserId) {
       return room.post2;
@@ -220,10 +216,18 @@ const TradeChatList: React.FC<TradeChatListProps> = ({ status = 'active' }) => {
 
         // ユーザー名の取得を改善
         const getUserName = (): string => {
-          if (otherUser?.display_name) {return otherUser.display_name;}
-          if (otherUser?.username) {return otherUser.username;}
-          if (otherUser?.name) {return otherUser.name;}
-          if (otherUser?.id) {return `ユーザー${otherUser.id.slice(-4)}`;}
+          if (otherUser?.display_name) {
+            return otherUser.display_name;
+          }
+          if (otherUser?.username) {
+            return otherUser.username;
+          }
+          if (otherUser?.name) {
+            return otherUser.name;
+          }
+          if (otherUser?.id) {
+            return `ユーザー${otherUser.id.slice(-4)}`;
+          }
           return '不明なユーザー';
         };
 
