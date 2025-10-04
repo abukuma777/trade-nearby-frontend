@@ -528,8 +528,8 @@ interface ItemCardData {
   id: string;
   images?: string[];
   title: string;
-  category: string;
-  condition: string;
+  category?: string;
+  condition?: string;
 }
 
 // アイテムカードコンポーネント
@@ -557,7 +557,7 @@ const ItemCard: React.FC<{ item?: ItemCardData }> = ({ item }) => {
       <div className="flex-1">
         <p className="font-medium">{item.title}</p>
         <p className="text-sm text-gray-500">
-          {item.category} / {item.condition}
+          {item.category || 'カテゴリーなし'} / {item.condition || '状態不明'}
         </p>
       </div>
     </Link>
