@@ -93,6 +93,8 @@ const TradeChatPage: React.FC = () => {
         const messagesData = await tradeChatService.getMessages(chatRoomId);
         // eslint-disable-next-line no-console
         console.log('取得したメッセージ:', messagesData);
+        // eslint-disable-next-line no-console
+        console.log('最初のメッセージの詳細:', messagesData[0]);
         setMessages(messagesData);
       } catch (err) {
         console.error('チャットルーム読み込みエラー:', err);
