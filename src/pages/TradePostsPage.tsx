@@ -291,12 +291,6 @@ const TradePostsPage: React.FC = () => {
                       （子カテゴリを含む）
                     </span>
                   )}
-                  {currentCategoryCount && (
-                    <span className="ml-2 text-xs font-bold text-blue-700">
-                      (直接: {currentCategoryCount.directCount}件 / 子含む:{' '}
-                      {currentCategoryCount.totalCount}件)
-                    </span>
-                  )}
                 </>
               )}
             </div>
