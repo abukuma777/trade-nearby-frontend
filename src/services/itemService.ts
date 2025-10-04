@@ -53,7 +53,14 @@ export const itemService = {
         };
       } else if ('items' in response.data && Array.isArray((response.data as {items?: unknown}).items)) {
         // 既存の形式
-        return response.data as ItemsResponse;
+        const oldFormatData = response.data as {items: Item[]; total?: number; page?: number; limit?: number; totalPages?: number};
+        return {
+          items: oldFormatData.items,
+          total: oldFormatData.total || oldFormatData.items.length,
+          page: oldFormatData.page || 1,
+          limit: oldFormatData.limit || 10,
+          totalPages: oldFormatData.totalPages || 1,
+        };
       } else {
         // データが配列の場合
         const items = Array.isArray(response.data) ? response.data as Item[] : [];

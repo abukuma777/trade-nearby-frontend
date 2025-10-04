@@ -104,7 +104,7 @@ describe('ItemCard', () => {
       </RouterWrapper>,
     );
 
-    const image = screen.getByAltText(mockItem.title);
+    const image = screen.getByAltText(mockItem.title) as HTMLImageElement;
 
     // エラーイベントを発火
     fireEvent.error(image);
