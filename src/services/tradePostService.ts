@@ -77,6 +77,7 @@ class TradePostService {
     status?: string,
     contentId?: string,
     includeChildren?: boolean,
+    excludeOwn?: boolean,
   ): Promise<SimpleTradePost[]> {
     try {
       const params: Record<string, string> = {};
@@ -88,6 +89,9 @@ class TradePostService {
         if (includeChildren !== undefined) {
           params.include_children = includeChildren.toString();
         }
+      }
+      if (excludeOwn !== undefined) {
+        params.exclude_own = excludeOwn.toString();
       }
       const response = await apiClient.get<{ data: SimpleTradePost[] }>(
         '/trade-posts',

@@ -26,6 +26,7 @@ interface TradePostStore {
     status?: string,
     contentId?: string,
     includeChildren?: boolean,
+    excludeOwn?: boolean,
   ) => Promise<void>;
   fetchMyPosts: () => Promise<void>;
   fetchPost: (id: string) => Promise<void>;
@@ -62,6 +63,7 @@ export const useTradePostStore = create<TradePostStore>()(
         status?: string,
         contentId?: string,
         includeChildren?: boolean,
+        excludeOwn?: boolean,
       ) => {
         set({ loading: true, error: null });
         try {
@@ -69,6 +71,7 @@ export const useTradePostStore = create<TradePostStore>()(
             status,
             contentId,
             includeChildren,
+            excludeOwn,
           );
           set({ posts, loading: false });
         } catch (error) {

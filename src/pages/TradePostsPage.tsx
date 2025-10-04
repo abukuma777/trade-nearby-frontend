@@ -50,18 +50,18 @@ const TradePostsPage: React.FC = () => {
           setCurrentCategoryCount(count || null);
 
           // content_idで検索を実行
-          void fetchPosts('active', urlContentId, urlIncludeChildren);
+          void fetchPosts('active', urlContentId, urlIncludeChildren, true);
         } catch (error) {
           console.error('カテゴリ情報取得エラー:', error);
           // エラーが発生しても投稿は取得を試みる
-          void fetchPosts('active', urlContentId, urlIncludeChildren);
+          void fetchPosts('active', urlContentId, urlIncludeChildren, true);
         } finally {
           setLoadingCategory(false);
           setIsInitialized(true);
         }
       } else if (!urlContentId && !isInitialized) {
-        // content_idが指定されていない場合は全件取得
-        void fetchPosts('active');
+        // content_idが指定されていない場合は全件取得（自分の投稿を除外）
+        void fetchPosts('active', undefined, undefined, true);
         setIsInitialized(true);
       }
     };
@@ -93,7 +93,7 @@ const TradePostsPage: React.FC = () => {
         console.error('投稿数取得エラー:', error);
       }
 
-      void fetchPosts('active', contentId, includeChildren);
+      void fetchPosts('active', contentId, includeChildren, true);
     }
     setShowFilter(false); // フィルターを閉じる
   };
@@ -103,7 +103,7 @@ const TradePostsPage: React.FC = () => {
     setCategorySelection({});
     setCurrentCategoryCount(null);
     setSearchParams({}); // URLパラメータをクリア
-    void fetchPosts('active');
+    void fetchPosts('active', undefined, undefined, true);
     setShowFilter(false);
   };
 
