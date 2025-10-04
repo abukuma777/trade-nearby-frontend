@@ -286,11 +286,6 @@ const TradePostsPage: React.FC = () => {
                   ]
                     .filter(Boolean)
                     .join(' > ')}
-                  {includeChildren && (
-                    <span className="ml-2 text-xs text-blue-700">
-                      （子カテゴリを含む）
-                    </span>
-                  )}
                 </>
               )}
             </div>
