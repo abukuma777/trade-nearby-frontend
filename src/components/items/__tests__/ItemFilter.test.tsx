@@ -2,9 +2,11 @@
  * ItemFilterコンポーネントのテスト
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import ItemFilter from '../ItemFilter';
+
 import { ItemsQueryParams } from '@/types/item';
 
 describe('ItemFilter', () => {
@@ -29,7 +31,7 @@ describe('ItemFilter', () => {
     vi.useFakeTimers();
     render(<ItemFilter onFilterChange={mockOnFilterChange} />);
 
-    const searchInput = screen.getByPlaceholderText('グッズを検索...') as HTMLInputElement;
+    const searchInput = screen.getByPlaceholderText('グッズを検索...');
 
     // 検索テキストを入力
     fireEvent.change(searchInput, { target: { value: '鬼滅' } });
@@ -101,7 +103,7 @@ describe('ItemFilter', () => {
     fireEvent.click(screen.getByText('フィルター'));
 
     // ソートドロップダウンを変更
-    const sortSelect = screen.getByLabelText('並び順') as HTMLSelectElement;
+    const sortSelect = screen.getByLabelText('並び順');
     fireEvent.change(sortSelect, { target: { value: 'created_at' } });
 
     expect(mockOnFilterChange).toHaveBeenCalledWith(
@@ -141,9 +143,9 @@ describe('ItemFilter', () => {
   });
 
   it('should disable inputs when loading', () => {
-    render(<ItemFilter onFilterChange={mockOnFilterChange} loading={true} />);
+    render(<ItemFilter onFilterChange={mockOnFilterChange} loading />);
 
-    const searchInput = screen.getByPlaceholderText('グッズを検索...') as HTMLInputElement;
+    const searchInput = screen.getByPlaceholderText('グッズを検索...');
     expect(searchInput).toBeDisabled();
   });
 });

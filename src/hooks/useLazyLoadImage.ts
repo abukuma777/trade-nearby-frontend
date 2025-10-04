@@ -26,7 +26,7 @@ export const useLazyLoadImage = (
   const imgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!src || !imgRef.current) return;
+    if (!src || !imgRef.current) {return;}
 
     // Intersection Observerがサポートされていない場合は即座に画像を読み込む
     if (!('IntersectionObserver' in window)) {

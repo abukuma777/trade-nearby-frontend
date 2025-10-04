@@ -77,18 +77,18 @@ export const badgeLabels: Record<string, string> = {
 
 // 評価レベルのラベル
 export const getRatingLabel = (rating: number): string => {
-  if (rating >= 4.5) return '非常に良い';
-  if (rating >= 4.0) return '良い';
-  if (rating >= 3.5) return '普通';
-  if (rating >= 3.0) return 'まあまあ';
+  if (rating >= 4.5) {return '非常に良い';}
+  if (rating >= 4.0) {return '良い';}
+  if (rating >= 3.5) {return '普通';}
+  if (rating >= 3.0) {return 'まあまあ';}
   return '改善が必要';
 };
 
 // 評価の星の色を取得
 export const getRatingColor = (rating: number): string => {
-  if (rating >= 4.5) return 'text-green-500';
-  if (rating >= 4.0) return 'text-blue-500';
-  if (rating >= 3.5) return 'text-yellow-500';
-  if (rating >= 3.0) return 'text-orange-500';
+  if (rating >= 4.5) {return 'text-green-500';}
+  if (rating >= 4.0) {return 'text-blue-500';}
+  if (rating >= 3.5) {return 'text-yellow-500';}
+  if (rating >= 3.0) {return 'text-orange-500';}
   return 'text-red-500';
 };

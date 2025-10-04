@@ -5,18 +5,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
 // import { useItems } from '@/hooks/useItems';
-import { ItemsQueryParams } from '@/types/item';
-import ItemList from '@/components/items/ItemList';
-import ItemFilter from '@/components/items/ItemFilter';
-import Pagination from '@/components/items/Pagination';
-// モックデータを使用
 import {
   mockItemsResponse,
   searchMockItems,
   getMockItemsByCategory,
   getMockItemsByStatus,
 } from '@/__mocks__/itemMocks';
+import ItemFilter from '@/components/items/ItemFilter';
+import ItemList from '@/components/items/ItemList';
+import Pagination from '@/components/items/Pagination';
+import { ItemsQueryParams } from '@/types/item';
+// モックデータを使用
 
 const ItemsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,25 +32,25 @@ const ItemsPage: React.FC = () => {
     const params: ItemsQueryParams = {};
 
     const page = searchParams.get('page');
-    if (page) params.page = parseInt(page, 10);
+    if (page) {params.page = parseInt(page, 10);}
 
     const limit = searchParams.get('limit');
-    if (limit) params.limit = parseInt(limit, 10);
+    if (limit) {params.limit = parseInt(limit, 10);}
 
     const category = searchParams.get('category');
-    if (category) params.category = category as ItemsQueryParams['category'];
+    if (category) {params.category = category as ItemsQueryParams['category'];}
 
     const status = searchParams.get('status');
-    if (status) params.status = status as ItemsQueryParams['status'];
+    if (status) {params.status = status as ItemsQueryParams['status'];}
 
     const search = searchParams.get('search');
-    if (search) params.search = search;
+    if (search) {params.search = search;}
 
     const sort = searchParams.get('sort');
-    if (sort) params.sort = sort as ItemsQueryParams['sort'];
+    if (sort) {params.sort = sort as ItemsQueryParams['sort'];}
 
     const tags = searchParams.get('tags');
-    if (tags) params.tags = tags.split(',');
+    if (tags) {params.tags = tags.split(',');}
 
     setQueryParams(params);
   }, []);

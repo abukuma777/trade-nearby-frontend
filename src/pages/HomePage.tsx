@@ -1,5 +1,6 @@
-import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Users, QrCode, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+
 import { useAuthStore } from '@/stores/authStore';
 
 const HomePage: React.FC = () => {

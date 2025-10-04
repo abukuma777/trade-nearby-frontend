@@ -3,8 +3,9 @@
  * 交換完了時に相手を評価するためのモーダル
  */
 
-import React, { useState } from 'react';
 import { X, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+
 import RatingInput from './RatingInput';
 
 interface TradeRatingModalProps {
@@ -20,7 +21,7 @@ const TradeRatingModal: React.FC<TradeRatingModalProps> = ({
   onClose,
   onSubmit,
   otherUserName,
-  tradeId,
+  tradeId: _tradeId,
 }) => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
@@ -56,7 +57,7 @@ const TradeRatingModal: React.FC<TradeRatingModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   // 完了画面
   if (isCompleted) {

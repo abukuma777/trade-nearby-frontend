@@ -3,18 +3,19 @@
  * 個別アイテムの詳細情報を表示
  */
 
+import { ArrowLeft, MapPin, Calendar, Tag, Package, Edit, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useItem } from '@/hooks/useItems';
-import { useAuthStore } from '@/stores/authStore';
-import { categoryLabels, conditionLabels, statusLabels } from '@/types/item';
-import { ArrowLeft, MapPin, Calendar, Tag, Package, Edit, Trash2 } from 'lucide-react';
+
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import { ImageGallery } from '@/components/gallery';
 import RelatedItems from '@/components/items/RelatedItems';
-import { UserInfoDetail } from '@/components/user';
 import { TradeRequestModal } from '@/components/trade';
+import { UserInfoDetail } from '@/components/user';
+import { useItem } from '@/hooks/useItems';
 import { itemService } from '@/services/itemService';
+import { useAuthStore } from '@/stores/authStore';
+import { categoryLabels, conditionLabels, statusLabels } from '@/types/item';
 
 const ItemDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -61,13 +62,13 @@ const ItemDetailPage: React.FC = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse">
-          <div className="h-8 w-32 bg-gray-200 rounded mb-4"></div>
+          <div className="h-8 w-32 bg-gray-200 rounded mb-4" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="aspect-square bg-gray-200 rounded-lg"></div>
+            <div className="aspect-square bg-gray-200 rounded-lg" />
             <div className="space-y-4">
-              <div className="h-10 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-32 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded" />
+              <div className="h-4 bg-gray-200 rounded w-3/4" />
+              <div className="h-32 bg-gray-200 rounded" />
             </div>
           </div>
         </div>

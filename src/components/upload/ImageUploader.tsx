@@ -3,8 +3,9 @@
  * 画像のアップロード、プレビュー、削除機能を提供
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { X, Upload, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+
 import { uploadService, UploadedImage } from '@/services/uploadService';
 
 // ========== 型定義 ==========
@@ -107,7 +108,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
    */
   const handleFileSelect = useCallback(
     (files: FileList | null) => {
-      if (!files || files.length === 0) return;
+      if (!files || files.length === 0) {return;}
 
       const fileArray = Array.from(files);
       const currentCount = previewImages.filter((img) => img.uploaded || img.uploading).length;
@@ -155,7 +156,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
    * 画像アップロード処理
    */
   const uploadImage = async (preview: PreviewImage) => {
-    if (!preview.file) return;
+    if (!preview.file) {return;}
 
     const controller = new AbortController();
     abortControllers.current.set(preview.id, controller);
@@ -217,7 +218,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   const handleRemoveImage = useCallback(
     async (imageId: string) => {
       const imageToRemove = previewImages.find((img) => img.id === imageId);
-      if (!imageToRemove) return;
+      if (!imageToRemove) {return;}
 
       // アップロード中の場合はキャンセル
       if (imageToRemove.uploading) {
@@ -299,7 +300,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       setIsDragging(false);
       dragCounter.current = 0;
 
-      if (disabled) return;
+      if (disabled) {return;}
 
       const files = e.dataTransfer.files;
       handleFileSelect(files);

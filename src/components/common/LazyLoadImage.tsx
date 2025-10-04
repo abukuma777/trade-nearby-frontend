@@ -2,9 +2,10 @@
  * 遅延読み込み対応の画像コンポーネント
  */
 
-import React from 'react';
-import { useLazyLoadImage } from '@/hooks/useLazyLoadImage';
 import { Image as ImageIcon, Loader } from 'lucide-react';
+import React from 'react';
+
+import { useLazyLoadImage } from '@/hooks/useLazyLoadImage';
 
 interface LazyLoadImageProps {
   src: string | null | undefined;
@@ -91,14 +92,14 @@ export const ThumbnailLazyImage: React.FC<{
       case 'active':
         return (
           <span className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 shadow-md z-10">
-            <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+            <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
             出品中
           </span>
         );
       case 'trading':
         return (
           <span className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 shadow-md z-10">
-            <span className="w-2 h-2 bg-white rounded-full"></span>
+            <span className="w-2 h-2 bg-white rounded-full" />
             取引中
           </span>
         );
@@ -133,7 +134,7 @@ export const ThumbnailLazyImage: React.FC<{
         {status && getStatusBadge()}
 
         {/* ホバー時のオーバーレイ */}
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 pointer-events-none" />
       </div>
     </div>
   );

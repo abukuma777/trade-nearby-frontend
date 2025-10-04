@@ -2,12 +2,14 @@
  * アイテム編集ページ
  */
 
+import { AlertCircle, MapPin, Tag, Package, FileText, Loader } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuthStore } from '@/stores/authStore';
+
 import { ImageUploader } from '@/components/upload';
-import { UploadedImage } from '@/services/uploadService';
 import { itemService } from '@/services/itemService';
+import { UploadedImage } from '@/services/uploadService';
+import { useAuthStore } from '@/stores/authStore';
 import {
   Item,
   UpdateItemInput,
@@ -16,7 +18,6 @@ import {
   categoryLabels,
   conditionLabels,
 } from '@/types/item';
-import { AlertCircle, MapPin, Tag, Package, FileText, Loader } from 'lucide-react';
 
 const EditItemPage: React.FC = () => {
   const navigate = useNavigate();

@@ -3,8 +3,6 @@
  * 評価、出品数、取引実績などを表示
  */
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   Star,
   Package,
@@ -21,8 +19,11 @@ import {
   Heart,
   Users,
 } from 'lucide-react';
-import { UserProfile, UserStats, getRatingColor, getRatingLabel, badgeLabels } from '@/types/user';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+
 import { RatingDisplay } from '@/components/trade';
+import { UserProfile, UserStats, getRatingColor, getRatingLabel } from '@/types/user';
 
 interface UserInfoDetailProps {
   userId: string;
@@ -90,31 +91,6 @@ export const UserInfoDetail: React.FC<UserInfoDetailProps> = ({ userId, user, cl
             },
           ]
         : [],
-  };
-
-  // 評価の星を描画
-  const renderStars = (rating: number) => {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(<Star key={i} className={`w-4 h-4 fill-current ${getRatingColor(rating)}`} />);
-      } else if (i === fullStars && hasHalfStar) {
-        stars.push(
-          <div key={i} className="relative w-4 h-4">
-            <Star className="absolute w-4 h-4 text-gray-300" />
-            <div className="absolute overflow-hidden w-2">
-              <Star className={`w-4 h-4 fill-current ${getRatingColor(rating)}`} />
-            </div>
-          </div>,
-        );
-      } else {
-        stars.push(<Star key={i} className="w-4 h-4 text-gray-300" />);
-      }
-    }
-    return stars;
   };
 
   // 日付フォーマット
@@ -193,7 +169,7 @@ export const UserInfoDetail: React.FC<UserInfoDetailProps> = ({ userId, user, cl
           <div className="flex items-center gap-3">
             <RatingDisplay
               rating={stats.rating}
-              showNumber={true}
+              showNumber
               count={stats.ratingCount}
               size="md"
             />

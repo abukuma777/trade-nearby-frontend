@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+
 import { Item, categoryLabels, conditionLabels } from '@/types/item';
 import { replacePlaceholderImages } from '@/utils/sampleImages';
 

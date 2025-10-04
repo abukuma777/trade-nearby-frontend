@@ -2,14 +2,15 @@
  * 特定ユーザーの出品商品一覧ページ
  */
 
-import React, { useState } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
-import { useUserTradePosts } from '../hooks/useUserTradePosts';
-import { useUserById } from '../hooks/useProfile';
-import { useAuthStore } from '../stores/authStore';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Package, User, Loader, AlertCircle, ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+
+import { useUserById } from '../hooks/useProfile';
+import { useUserTradePosts } from '../hooks/useUserTradePosts';
+import { useAuthStore } from '../stores/authStore';
 
 type FilterStatus = 'all' | 'active' | 'trading' | 'completed' | 'cancelled';
 
@@ -36,7 +37,7 @@ const UserTradePostsPage: React.FC = () => {
   // フィルタリングされた投稿
   const filteredPosts =
     tradePosts?.filter((post) => {
-      if (filterStatus === 'all') return true;
+      if (filterStatus === 'all') {return true;}
       return post.status === filterStatus;
     }) || [];
 

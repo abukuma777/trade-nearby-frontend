@@ -5,12 +5,14 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+
 import {
   tradeService,
   TradeRequest,
   TradeNotification,
   CreateTradeRequestDto,
 } from '@/services/tradeService';
+import { getErrorMessage } from '@/types/api-error';
 
 // ========================================
 // 型定義
@@ -56,7 +58,7 @@ interface TradeState {
 export const useTradeStore = create<TradeState>()(
   devtools(
     persist(
-      (set, get) => ({
+      (set) => ({
         // 初期状態
         myRequests: [],
         receivedRequests: [],
@@ -83,9 +85,9 @@ export const useTradeStore = create<TradeState>()(
               successMessage: '交換リクエストを送信しました',
               isLoading: false,
             }));
-          } catch (error: any) {
+          } catch (error) {
             set({
-              error: error.response?.data?.message || '交換リクエストの作成に失敗しました',
+              error: getErrorMessage(error),
               isLoading: false,
             });
             throw error;
@@ -103,9 +105,9 @@ export const useTradeStore = create<TradeState>()(
               myRequests: requests,
               isLoading: false,
             });
-          } catch (error: any) {
+          } catch (error) {
             set({
-              error: error.response?.data?.message || 'リクエスト一覧の取得に失敗しました',
+              error: getErrorMessage(error),
               isLoading: false,
             });
           }
@@ -122,9 +124,9 @@ export const useTradeStore = create<TradeState>()(
               receivedRequests: requests,
               isLoading: false,
             });
-          } catch (error: any) {
+          } catch (error) {
             set({
-              error: error.response?.data?.message || '受信リクエストの取得に失敗しました',
+              error: getErrorMessage(error),
               isLoading: false,
             });
           }
@@ -141,9 +143,9 @@ export const useTradeStore = create<TradeState>()(
               currentRequest: request,
               isLoading: false,
             });
-          } catch (error: any) {
+          } catch (error) {
             set({
-              error: error.response?.data?.message || 'リクエスト詳細の取得に失敗しました',
+              error: getErrorMessage(error),
               isLoading: false,
             });
             throw error;
@@ -166,9 +168,9 @@ export const useTradeStore = create<TradeState>()(
               successMessage: '交換リクエストを承認しました',
               isLoading: false,
             }));
-          } catch (error: any) {
+          } catch (error) {
             set({
-              error: error.response?.data?.message || 'リクエストの承認に失敗しました',
+              error: getErrorMessage(error),
               isLoading: false,
             });
             throw error;
@@ -191,9 +193,9 @@ export const useTradeStore = create<TradeState>()(
               successMessage: '交換リクエストを拒否しました',
               isLoading: false,
             }));
-          } catch (error: any) {
+          } catch (error) {
             set({
-              error: error.response?.data?.message || 'リクエストの拒否に失敗しました',
+              error: getErrorMessage(error),
               isLoading: false,
             });
             throw error;
@@ -214,9 +216,9 @@ export const useTradeStore = create<TradeState>()(
               successMessage: '交換リクエストをキャンセルしました',
               isLoading: false,
             }));
-          } catch (error: any) {
+          } catch (error) {
             set({
-              error: error.response?.data?.message || 'キャンセルに失敗しました',
+              error: getErrorMessage(error),
               isLoading: false,
             });
             throw error;
@@ -240,9 +242,9 @@ export const useTradeStore = create<TradeState>()(
               successMessage: '交換が完了しました',
               isLoading: false,
             }));
-          } catch (error: any) {
+          } catch (error) {
             set({
-              error: error.response?.data?.message || '交換の完了に失敗しました',
+              error: getErrorMessage(error),
               isLoading: false,
             });
             throw error;
@@ -263,9 +265,9 @@ export const useTradeStore = create<TradeState>()(
               unreadCount: unread_count,
               isLoading: false,
             });
-          } catch (error: any) {
+          } catch (error) {
             set({
-              error: error.response?.data?.message || '通知の取得に失敗しました',
+              error: getErrorMessage(error),
               isLoading: false,
             });
           }
@@ -283,7 +285,7 @@ export const useTradeStore = create<TradeState>()(
               ),
               unreadCount: Math.max(0, state.unreadCount - 1),
             }));
-          } catch (error: any) {
+          } catch (error) {
             console.error('既読処理エラー:', error);
           }
         },
@@ -302,7 +304,7 @@ export const useTradeStore = create<TradeState>()(
               })),
               unreadCount: 0,
             }));
-          } catch (error: any) {
+          } catch (error) {
             console.error('一括既読処理エラー:', error);
           }
         },
@@ -314,7 +316,7 @@ export const useTradeStore = create<TradeState>()(
           try {
             const count = await tradeService.getUnreadCount();
             set({ unreadCount: count });
-          } catch (error: any) {
+          } catch (error) {
             console.error('未読数取得エラー:', error);
           }
         },
@@ -362,11 +364,11 @@ export const useTradeStore = create<TradeState>()(
 // セレクター（パフォーマンス最適化）
 // ========================================
 
-export const useMyRequests = () => useTradeStore((state) => state.myRequests);
-export const useReceivedRequests = () => useTradeStore((state) => state.receivedRequests);
-export const useCurrentRequest = () => useTradeStore((state) => state.currentRequest);
-export const useNotifications = () => useTradeStore((state) => state.notifications);
-export const useUnreadCount = () => useTradeStore((state) => state.unreadCount);
-export const useTradeLoading = () => useTradeStore((state) => state.isLoading);
-export const useTradeError = () => useTradeStore((state) => state.error);
-export const useTradeSuccess = () => useTradeStore((state) => state.successMessage);
+export const useMyRequests = (): TradeRequest[] => useTradeStore((state) => state.myRequests);
+export const useReceivedRequests = (): TradeRequest[] => useTradeStore((state) => state.receivedRequests);
+export const useCurrentRequest = (): TradeRequest | null => useTradeStore((state) => state.currentRequest);
+export const useNotifications = (): TradeNotification[] => useTradeStore((state) => state.notifications);
+export const useUnreadCount = (): number => useTradeStore((state) => state.unreadCount);
+export const useTradeLoading = (): boolean => useTradeStore((state) => state.isLoading);
+export const useTradeError = (): string | null => useTradeStore((state) => state.error);
+export const useTradeSuccess = (): string | null => useTradeStore((state) => state.successMessage);

@@ -4,13 +4,6 @@
  * tradingステータス時にチャット機能を表示
  */
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAuthStore } from '@/stores/authStore';
-import { useTradeStore } from '@/stores/tradeStore';
-import { TradeRequest } from '@/services/tradeService';
-import { RatingInput, TradeRatingModal } from '@/components/trade';
-import TradeChat from '@/components/trade/TradeChat';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import {
@@ -24,6 +17,14 @@ import {
   Clock,
   Loader,
 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+
+import { RatingInput, TradeRatingModal } from '@/components/trade';
+import TradeChat from '@/components/trade/TradeChat';
+import { TradeRequest } from '@/services/tradeService';
+import { useAuthStore } from '@/stores/authStore';
+import { useTradeStore } from '@/stores/tradeStore';
 
 const TradeDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -66,13 +67,13 @@ const TradeDetailPage: React.FC = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse">
-          <div className="h-8 w-64 bg-gray-200 rounded mb-6"></div>
+          <div className="h-8 w-64 bg-gray-200 rounded mb-6" />
           <div className="bg-white rounded-lg p-6 space-y-4">
-            <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-6 bg-gray-200 rounded w-3/4" />
+            <div className="h-4 bg-gray-200 rounded w-1/2" />
             <div className="grid grid-cols-2 gap-4 mt-6">
-              <div className="h-32 bg-gray-200 rounded"></div>
-              <div className="h-32 bg-gray-200 rounded"></div>
+              <div className="h-32 bg-gray-200 rounded" />
+              <div className="h-32 bg-gray-200 rounded" />
             </div>
           </div>
         </div>

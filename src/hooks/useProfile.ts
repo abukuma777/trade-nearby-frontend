@@ -3,10 +3,10 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User } from '@/stores/authStore';
-import authService from '@/services/authService';
-import { useAuthStore } from '@/stores/authStore';
+
 import apiClient from '@/services/api';
+import authService from '@/services/authService';
+import { User , useAuthStore } from '@/stores/authStore';
 
 // ユーザー統計情報の型定義
 export interface UserStats {

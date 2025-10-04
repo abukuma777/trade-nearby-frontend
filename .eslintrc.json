@@ -90,6 +90,7 @@
     "coverage",
     "*.config.js",
     "vite.config.ts",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "e2e"
   ]
 }

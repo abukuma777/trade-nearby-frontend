@@ -32,7 +32,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       setError(null);
       const data = await commentService.getCommentsByPostId(postId);
       setComments(data);
-    } catch (err) {
+    } catch {
       setError('コメントの読み込みに失敗しました');
     } finally {
       setLoading(false);
@@ -86,7 +86,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         // eslint-disable-next-line no-alert
         alert('交換を承認しました！');
       }
-    } catch (err) {
+    } catch {
       setError('交換提案の承認に失敗しました');
     }
   };
@@ -101,7 +101,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       await fetchComments();
       // eslint-disable-next-line no-alert
       alert('交換提案を拒否しました');
-    } catch (err) {
+    } catch {
       setError('交換提案の拒否に失敗しました');
     }
   };

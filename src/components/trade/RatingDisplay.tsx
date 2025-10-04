@@ -3,8 +3,8 @@
  * ユーザーの評価を星で表示
  */
 
-import React from 'react';
 import { Star } from 'lucide-react';
+import React from 'react';
 
 interface RatingDisplayProps {
   rating: number;

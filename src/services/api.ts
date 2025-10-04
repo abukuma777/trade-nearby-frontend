@@ -4,7 +4,9 @@
  */
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+
 import { useAuthStore } from '@/stores/authStore';
+import { getErrorMessage } from '@/types/api-error';
 
 // APIベースURLの設定（環境変数から取得）
 const API_BASE_URL = import.meta.env.VITE_API_URL
@@ -33,9 +35,9 @@ apiClient.interceptors.request.use(
     }
 
     // デバッグ用ログ（開発環境のみ）
-    if (import.meta.env.DEV) {
-      console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
-    }
+    // if (import.meta.env.DEV) {
+    //   console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    // }
 
     return config;
   },
@@ -49,9 +51,9 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => {
     // デバッグ用ログ（開発環境のみ）
-    if (import.meta.env.DEV) {
-      console.log(`✅ API Response: ${response.config.url}`, response.data);
-    }
+    // if (import.meta.env.DEV) {
+    //   console.log(`✅ API Response: ${response.config.url}`, response.data);
+    // }
     return response;
   },
   async (error: AxiosError) => {
@@ -68,7 +70,7 @@ apiClient.interceptors.response.use(
     // 401 Unauthorized: トークン無効・期限切れ
     if (response?.status === 401) {
       // 認証エラーメッセージ
-      const message = (response.data as any)?.message || '認証エラーが発生しました';
+      const message = getErrorMessage(error);
 
       // ログアウト処理
       authStore.logout();
@@ -108,14 +110,14 @@ apiClient.interceptors.response.use(
 export default apiClient;
 
 // 型定義
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
   data?: T;
   user?: T; // /api/auth/meエンドポイント用
   error?: {
     code: string;
-    details?: any;
+    details?: unknown;
   };
 }
 

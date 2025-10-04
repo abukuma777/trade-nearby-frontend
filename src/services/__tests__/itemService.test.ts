@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
+
 import itemService from '@/services/itemService';
 import { ItemsQueryParams } from '@/types/item';
 
@@ -53,7 +54,7 @@ describe('ItemService Integration Tests', () => {
     it(
       'should fetch items with query parameters',
       async () => {
-        if (skipTests) return;
+        if (skipTests) {return;}
 
         const params: ItemsQueryParams = {
           page: 1,
@@ -86,7 +87,7 @@ describe('ItemService Integration Tests', () => {
     it(
       'should handle search parameter',
       async () => {
-        if (skipTests) return;
+        if (skipTests) {return;}
 
         const params: ItemsQueryParams = {
           search: '鬼滅',
@@ -109,7 +110,7 @@ describe('ItemService Integration Tests', () => {
     it(
       'should handle item not found error',
       async () => {
-        if (skipTests) return;
+        if (skipTests) {return;}
 
         const nonExistentId = 'non-existent-id-12345';
 
@@ -130,7 +131,7 @@ describe('ItemService Integration Tests', () => {
     it(
       'should fetch nearby items with location',
       async () => {
-        if (skipTests) return;
+        if (skipTests) {return;}
 
         const params = {
           lat: 35.6762,

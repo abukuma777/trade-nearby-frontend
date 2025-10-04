@@ -2,10 +2,12 @@
  * ItemCardコンポーネントのテスト
  */
 
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { describe, it, expect, vi } from 'vitest';
+
 import ItemCard from '../ItemCard';
+
 import { mockItems } from '@/__mocks__/itemMocks';
 
 // ルーターのラッパー
@@ -102,7 +104,7 @@ describe('ItemCard', () => {
       </RouterWrapper>,
     );
 
-    const image = screen.getByAltText(mockItem.title) as HTMLImageElement;
+    const image = screen.getByAltText(mockItem.title);
 
     // エラーイベントを発火
     fireEvent.error(image);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import { commentService } from '../../services/commentService';
 
 interface CommentFormProps {
@@ -35,7 +36,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ postId, postUserId, onComment
   }, [isOffer, currentUserId]);
 
   const fetchUserPosts = async () => {
-    if (!currentUserId) return;
+    if (!currentUserId) {return;}
 
     try {
       setLoadingPosts(true);

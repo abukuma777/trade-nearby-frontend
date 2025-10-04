@@ -3,9 +3,6 @@
  * trade_chat_roomsテーブルを使用した取引専用チャット
  */
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/stores/authStore';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import {
@@ -17,7 +14,11 @@ import {
   Loader,
   Package,
 } from 'lucide-react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+
 import { tradeChatService } from '@/services/tradeChatService';
+import { useAuthStore } from '@/stores/authStore';
 
 // 型定義
 interface ChatRoom {
@@ -80,7 +81,7 @@ const TradeChatPage: React.FC = () => {
 
   // メッセージをリロード
   const loadMessages = useCallback(async (): Promise<void> => {
-    if (!chatRoomId) return;
+    if (!chatRoomId) {return;}
     try {
       const messagesData = await tradeChatService.getMessages(chatRoomId);
       setMessages(messagesData);
@@ -91,7 +92,7 @@ const TradeChatPage: React.FC = () => {
 
   // チャットルーム情報とメッセージを取得
   useEffect(() => {
-    if (!chatRoomId) return;
+    if (!chatRoomId) {return;}
 
     const loadChatRoom = async () => {
       try {
@@ -129,7 +130,7 @@ const TradeChatPage: React.FC = () => {
   const handleSendMessage = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
-    if (!newMessage.trim() || !chatRoomId || isSending) return;
+    if (!newMessage.trim() || !chatRoomId || isSending) {return;}
 
     try {
       setIsSending(true);
@@ -251,7 +252,7 @@ const TradeChatPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">本当に完了？</span>
                 <button
-                  onClick={handleCompleteTransaction}
+                  onClick={() => void handleCompleteTransaction()}
                   disabled={isCompletingTransaction}
                   className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-1"
                 >

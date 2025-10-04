@@ -2,10 +2,12 @@
  * ImageUploaderコンポーネントのユニットテスト
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import { ImageUploader } from './ImageUploader';
+
 import { uploadService } from '@/services/uploadService';
 
 // uploadServiceのモック
@@ -203,7 +205,7 @@ describe('ImageUploader', () => {
   describe('無効化状態', () => {
     it('無効化時にファイル選択ができない', () => {
       const { container } = render(
-        <ImageUploader disabled={true} onImagesChange={mockOnImagesChange} />,
+        <ImageUploader disabled onImagesChange={mockOnImagesChange} />,
       );
 
       const input = container.querySelector('input[type="file"]') as HTMLInputElement;

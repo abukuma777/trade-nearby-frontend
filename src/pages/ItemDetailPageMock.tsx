@@ -3,11 +3,12 @@
  * 開発・テスト用にモックデータを使用
  */
 
+import { ArrowLeft, MapPin, Calendar, Tag, Package } from 'lucide-react';
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { categoryLabels, conditionLabels, statusLabels, Item } from '@/types/item';
-import { ArrowLeft, MapPin, Calendar, Tag, Package } from 'lucide-react';
+
 import { mockItems } from '@/__mocks__/itemMocks';
+import { categoryLabels, conditionLabels, statusLabels, Item } from '@/types/item';
 
 const ItemDetailPageMock: React.FC = () => {
   const { id } = useParams<{ id: string }>();

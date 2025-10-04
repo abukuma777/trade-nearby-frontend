@@ -169,19 +169,19 @@ export const mockItemsResponse: ItemsResponse = {
 
 // カテゴリー別のモックデータを取得
 export const getMockItemsByCategory = (category?: string): Item[] => {
-  if (!category) return mockItems;
+  if (!category) {return mockItems;}
   return mockItems.filter((item) => item.category === category);
 };
 
 // ステータス別のモックデータを取得
 export const getMockItemsByStatus = (status?: string): Item[] => {
-  if (!status) return mockItems;
+  if (!status) {return mockItems;}
   return mockItems.filter((item) => item.status === status);
 };
 
 // 検索用のモックデータを取得
 export const searchMockItems = (query?: string): Item[] => {
-  if (!query) return mockItems;
+  if (!query) {return mockItems;}
   const lowerQuery = query.toLowerCase();
   return mockItems.filter(
     (item) =>

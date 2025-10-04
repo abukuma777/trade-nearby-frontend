@@ -65,7 +65,7 @@ class PresignedUploadService {
           this.supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
         }
       }
-    } catch (error) {
+    } catch {
       // 初期化エラーは無視
     }
 

@@ -3,12 +3,13 @@
  * 取引中（trading）ステータス時のチャット機能
  */
 
-import React, { useState, useEffect, useRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Send, MessageSquare } from 'lucide-react';
-import { useAuthStore } from '@/stores/authStore';
+import React, { useState, useEffect, useRef } from 'react';
+
 import { tradeService, ChatMessage } from '@/services/tradeService';
+import { useAuthStore } from '@/stores/authStore';
 
 interface TradeChatProps {
   tradeRequestId: string;
@@ -19,7 +20,7 @@ interface TradeChatProps {
 
 export const TradeChat: React.FC<TradeChatProps> = ({
   tradeRequestId,
-  otherUserId,
+  otherUserId: _otherUserId,
   otherUserName,
   otherUserAvatar,
 }) => {
@@ -50,7 +51,7 @@ export const TradeChat: React.FC<TradeChatProps> = ({
 
   // メッセージを送信
   const sendMessage = async () => {
-    if (!newMessage.trim() || isSending) return;
+    if (!newMessage.trim() || isSending) {return;}
 
     const messageText = newMessage.trim();
     setNewMessage('');

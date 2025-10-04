@@ -171,7 +171,7 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
         '/content/categories',
       );
       setCategories(response.data || []);
-    } catch (error) {
+    } catch {
       // console.error('カテゴリ取得エラー:', error);
       setCategories([]);
     } finally {
@@ -186,7 +186,7 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
         `/content/children/${categoryId}`,
       );
       setGenres(response.data || []);
-    } catch (error) {
+    } catch {
       // console.error('ジャンル取得エラー:', error);
       setGenres([]);
     } finally {
@@ -201,7 +201,7 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
         `/content/children/${genreId}`,
       );
       setSeries(response.data || []);
-    } catch (error) {
+    } catch {
       // console.error('シリーズ取得エラー:', error);
       setSeries([]);
     } finally {
@@ -216,7 +216,7 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
         `/content/children/${seriesId}`,
       );
       setEvents(response.data || []);
-    } catch (error) {
+    } catch {
       // console.error('イベント取得エラー:', error);
       setEvents([]);
     } finally {

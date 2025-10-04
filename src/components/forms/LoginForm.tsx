@@ -4,8 +4,10 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+
 import { InputField } from './InputField';
+
+import { useAuth } from '@/hooks/useAuth';
 
 export const LoginForm: React.FC = () => {
   const { login, isLoading, error, validationErrors, clearValidationErrors } = useAuth();

@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
+
 import { categoryLabels, conditionLabels, statusLabels } from '@/types/item';
 
 describe('Item Type Definitions', () => {

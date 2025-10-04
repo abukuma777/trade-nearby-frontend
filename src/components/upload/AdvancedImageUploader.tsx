@@ -230,7 +230,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
       if (!imageToRemove.uploading && imageToRemove.path) {
         try {
           await presignedUploadService.deleteImage(imageToRemove.path);
-        } catch (error) {
+        } catch {
           // エラーは無視（画像削除の失敗はUIに影響しない）
         }
       }

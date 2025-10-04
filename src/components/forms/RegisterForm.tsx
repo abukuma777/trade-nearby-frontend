@@ -4,8 +4,10 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+
 import { InputField } from './InputField';
+
+import { useAuth } from '@/hooks/useAuth';
 
 export const RegisterForm: React.FC = () => {
   const { register, isLoading, error, validationErrors, clearValidationErrors } = useAuth();
@@ -32,13 +34,13 @@ export const RegisterForm: React.FC = () => {
     const hasNumbers = /[0-9]/.test(password);
     const hasSymbols = /[^A-Za-z0-9]/.test(password);
 
-    if (password.length >= 8) strength += 10;
-    if (password.length >= 12) strength += 20;
-    if (password.length >= 16) strength += 10;
-    if (hasLowerCase) strength += 15;
-    if (hasUpperCase) strength += 15;
-    if (hasNumbers) strength += 15;
-    if (hasSymbols) strength += 15;
+    if (password.length >= 8) {strength += 10;}
+    if (password.length >= 12) {strength += 20;}
+    if (password.length >= 16) {strength += 10;}
+    if (hasLowerCase) {strength += 15;}
+    if (hasUpperCase) {strength += 15;}
+    if (hasNumbers) {strength += 15;}
+    if (hasSymbols) {strength += 15;}
 
     // 必須条件を満たしていない場合は最大で30%
     if (!hasLength || !hasLowerCase || !hasUpperCase || !hasNumbers || !hasSymbols) {
@@ -214,7 +216,7 @@ export const RegisterForm: React.FC = () => {
                   <div
                     className={`${passwordStrengthColor} h-2 rounded-full transition-all duration-300`}
                     style={{ width: `${passwordStrength}%` }}
-                  ></div>
+                   />
                 </div>
               </div>
             )}

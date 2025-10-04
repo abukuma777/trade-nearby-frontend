@@ -3,11 +3,12 @@
  * アイテムの交換リクエストを作成するためのモーダル
  */
 
+import { X, AlertCircle } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { X, Search, AlertCircle } from 'lucide-react';
+
+import { itemService } from '@/services/itemService';
 import { useAuthStore } from '@/stores/authStore';
 import { useTradeStore } from '@/stores/tradeStore';
-import { itemService } from '@/services/itemService';
 import { Item } from '@/types/item';
 
 interface TradeRequestModalProps {
@@ -91,7 +92,7 @@ const TradeRequestModal: React.FC<TradeRequestModalProps> = ({ isOpen, onClose, 
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -132,7 +133,7 @@ const TradeRequestModal: React.FC<TradeRequestModalProps> = ({ isOpen, onClose, 
 
               {loadingItems ? (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
                   <p className="mt-2 text-gray-500">読み込み中...</p>
                 </div>
               ) : myItems.length === 0 ? (

@@ -2,10 +2,12 @@
  * ItemListコンポーネントのテスト
  */
 
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { describe, it, expect, vi } from 'vitest';
+
 import ItemList from '../ItemList';
+
 import { mockItems } from '@/__mocks__/itemMocks';
 
 const RouterWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -29,7 +31,7 @@ describe('ItemList', () => {
   it('should show loading skeleton when loading', () => {
     render(
       <RouterWrapper>
-        <ItemList items={[]} loading={true} />
+        <ItemList items={[]} loading />
       </RouterWrapper>,
     );
 

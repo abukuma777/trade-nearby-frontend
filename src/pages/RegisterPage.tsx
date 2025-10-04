@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+
 import { RegisterForm } from '@/components/forms';
 
 const RegisterPage: React.FC = () => {

@@ -2,13 +2,20 @@
  * プロフィール編集モーダルコンポーネント（シンプル版）
  */
 
-import React, { useState, useEffect } from 'react';
 import { X, FileText, Twitter, Instagram, AlertCircle } from 'lucide-react';
-import { User as UserType } from '@/stores/authStore';
+import React, { useState, useEffect } from 'react';
+
 import { useUpdateProfile } from '@/hooks/useProfile';
+import { User as UserType } from '@/stores/authStore';
+
+interface ExtendedUserType extends UserType {
+  bio?: string;
+  twitter?: string;
+  instagram?: string;
+}
 
 interface ProfileEditModalProps {
-  user: UserType | undefined;
+  user: ExtendedUserType | undefined;
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
@@ -39,9 +46,9 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     if (user) {
       setFormData({
         display_name: user.display_name || '',
-        bio: (user as any).bio || '',
-        twitter: (user as any).twitter || '',
-        instagram: (user as any).instagram || '',
+        bio: user.bio || '',
+        twitter: user.twitter || '',
+        instagram: user.instagram || '',
       });
     }
   }, [user]);
@@ -54,7 +61,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   // フォームのバリデーション
   const validateForm = (): boolean => {
@@ -108,10 +115,10 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     setIsSubmitting(true);
 
     // 変更されたフィールドのみを送信
-    const updates: Record<string, any> = {};
-    Object.keys(formData).forEach((key) => {
-      const value = (formData as any)[key];
-      const originalValue = (user as any)?.[key] || '';
+    const updates: Record<string, string | null> = {};
+    (Object.keys(formData) as Array<keyof typeof formData>).forEach((key) => {
+      const value = formData[key];
+      const originalValue = user?.[key] || '';
       if (value !== originalValue) {
         if (value === '') {
           updates[key] = null;
@@ -121,15 +128,15 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       }
     });
 
-    console.log('送信する更新データ:', updates);
+    // console.log('送信する更新データ:', updates);
 
     try {
-      const result = await updateProfileMutation.mutateAsync(updates);
-      console.log('更新成功:', result);
+      await updateProfileMutation.mutateAsync(updates);
+      // console.log('更新成功:', result);
 
       // モーダルを閉じる前にonSuccessを実行
       if (onSuccess) {
-        console.log('onSuccessコールバックを実行');
+        // console.log('onSuccessコールバックを実行');
         onSuccess();
       }
 

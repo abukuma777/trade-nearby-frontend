@@ -3,13 +3,14 @@
  * - statusとvisibilityを分離
  */
 
+import { Plus, Package, AlertCircle } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { useItems, useDeleteItem, useToggleItemVisibility } from '@/hooks/useItems';
-import { useAuthStore } from '@/stores/authStore';
+
 import MyItemCard from '@/components/items/MyItemCard';
 import Pagination from '@/components/items/Pagination';
-import { Plus, Package, AlertCircle } from 'lucide-react';
+import { useItems, useDeleteItem, useToggleItemVisibility } from '@/hooks/useItems';
+import { useAuthStore } from '@/stores/authStore';
 
 const MyItemsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ const MyItemsPage: React.FC = () => {
 
     const visibility = searchParams.get('visibility');
     if (visibility && (visibility === 'public' || visibility === 'private')) {
-      setSelectedVisibility(visibility as 'public' | 'private');
+      setSelectedVisibility(visibility);
     }
   }, [searchParams]);
 
@@ -130,7 +131,7 @@ const MyItemsPage: React.FC = () => {
     try {
       // 現在のアイテムを取得
       const currentItem = data?.items.find((item) => item.id === itemId);
-      if (!currentItem) return;
+      if (!currentItem) {return;}
 
       // 新しいvisibilityを決定
       const newVisibility = currentItem.visibility === 'public' ? 'private' : 'public';
@@ -316,14 +317,14 @@ const MyItemsPage: React.FC = () => {
                     key={index}
                     className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse"
                   >
-                    <div className="aspect-square bg-gray-300"></div>
+                    <div className="aspect-square bg-gray-300" />
                     <div className="p-4">
-                      <div className="h-6 bg-gray-300 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
+                      <div className="h-6 bg-gray-300 rounded mb-2" />
+                      <div className="h-4 bg-gray-200 rounded mb-2" />
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-3" />
                       <div className="flex space-x-2">
-                        <div className="h-8 bg-gray-200 rounded flex-1"></div>
-                        <div className="h-8 bg-gray-200 rounded flex-1"></div>
+                        <div className="h-8 bg-gray-200 rounded flex-1" />
+                        <div className="h-8 bg-gray-200 rounded flex-1" />
                       </div>
                     </div>
                   </div>

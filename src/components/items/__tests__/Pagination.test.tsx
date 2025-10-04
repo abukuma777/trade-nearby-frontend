@@ -2,8 +2,9 @@
  * Paginationコンポーネントのテスト
  */
 
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+
 import Pagination from '../Pagination';
 
 describe('Pagination', () => {
@@ -112,10 +113,8 @@ describe('Pagination', () => {
   });
 
   it('should disable buttons when loading', () => {
-    render(<Pagination {...defaultProps} loading={true} />);
+    render(<Pagination {...defaultProps} loading />);
 
-    const prevButton = screen.getByLabelText('前のページ');
-    const nextButton = screen.getByLabelText('次のページ');
     const page2Button = screen.getByLabelText('ページ 2');
 
     // ローディング中は無効になる

@@ -3,11 +3,12 @@
  * - visibility フィールドを使用するように修正
  */
 
+import { Edit2, Trash2, EyeOff, Eye } from 'lucide-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
+
 import { Item, categoryLabels, conditionLabels } from '@/types/item';
 import { replacePlaceholderImages } from '@/utils/sampleImages';
-import { Edit2, Trash2, EyeOff, Eye } from 'lucide-react';
 
 interface MyItemCardProps {
   item: Item;
@@ -165,7 +166,7 @@ const MyItemCard: React.FC<MyItemCardProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (onToggleVisibility) onToggleVisibility(item.id);
+                if (onToggleVisibility) {onToggleVisibility(item.id);}
               }}
               className="w-full flex items-center justify-center space-x-1.5 px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded hover:bg-purple-700 transition-colors"
             >
@@ -177,7 +178,7 @@ const MyItemCard: React.FC<MyItemCardProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (onToggleVisibility) onToggleVisibility(item.id);
+                if (onToggleVisibility) {onToggleVisibility(item.id);}
               }}
               className="w-full flex items-center justify-center space-x-1.5 px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 transition-colors"
             >
@@ -192,7 +193,7 @@ const MyItemCard: React.FC<MyItemCardProps> = ({
                   e.stopPropagation();
                   onEdit(item.id);
                 }}
-                className={`flex-1 flex items-center justify-center space-x-1.5 px-3 py-1.5 text-sm font-medium rounded transition-colors bg-blue-600 text-white hover:bg-blue-700`}
+                className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-1.5 text-sm font-medium rounded transition-colors bg-blue-600 text-white hover:bg-blue-700"
                 disabled={false}
               >
                 <Edit2 size={14} />

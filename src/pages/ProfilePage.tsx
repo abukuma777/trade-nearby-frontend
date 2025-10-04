@@ -2,13 +2,6 @@
  * プロフィールページコンポーネント
  */
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAuthStore } from '@/stores/authStore';
-import { useCurrentUser, useUserStats, useUserById } from '@/hooks/useProfile';
-import ProfileStats from '@/components/profile/ProfileStats';
-import ProfileEditModal from '@/components/profile/ProfileEditModal';
-import ProfileTradePosts from '@/components/profile/ProfileTradePosts';
 import {
   User,
   Calendar,
@@ -19,6 +12,14 @@ import {
   Package,
   Instagram,
 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+
+import ProfileEditModal from '@/components/profile/ProfileEditModal';
+import ProfileStats from '@/components/profile/ProfileStats';
+import ProfileTradePosts from '@/components/profile/ProfileTradePosts';
+import { useCurrentUser, useUserStats, useUserById } from '@/hooks/useProfile';
+import { useAuthStore } from '@/stores/authStore';
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ const ProfilePage: React.FC = () => {
 
   // 日付のフォーマット
   const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return '不明';
+    if (!dateString) {return '不明';}
     const date = new Date(dateString);
     return date.toLocaleDateString('ja-JP', {
       year: 'numeric',
@@ -77,7 +78,7 @@ const ProfilePage: React.FC = () => {
 
   // メンバーになってからの日数を計算
   const getDaysSinceJoined = (joinDate: string | undefined) => {
-    if (!joinDate) return 0;
+    if (!joinDate) {return 0;}
     const join = new Date(joinDate);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - join.getTime());
@@ -284,7 +285,7 @@ const ProfilePage: React.FC = () => {
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" defaultChecked />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
                 </label>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-gray-100">
@@ -294,7 +295,7 @@ const ProfilePage: React.FC = () => {
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" defaultChecked />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
                 </label>
               </div>
             </div>

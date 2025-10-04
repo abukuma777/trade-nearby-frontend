@@ -3,8 +3,9 @@
  * 複数画像のスライド表示、サムネイル切り替え、拡大表示機能を提供
  */
 
+import { ChevronLeft, ChevronRight, X, Expand } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, X, Expand, ZoomIn } from 'lucide-react';
+
 import { replacePlaceholderImages } from '@/utils/sampleImages';
 
 interface ImageGalleryProps {
@@ -52,11 +53,11 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
   // キーボードナビゲーション
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isModalOpen) return;
+      if (!isModalOpen) {return;}
 
-      if (e.key === 'ArrowLeft') prevImage();
-      if (e.key === 'ArrowRight') nextImage();
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'ArrowLeft') {prevImage();}
+      if (e.key === 'ArrowRight') {nextImage();}
+      if (e.key === 'Escape') {closeModal();}
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -73,7 +74,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
   };
 
   const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+    if (!touchStart || !touchEnd) {return;}
 
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;

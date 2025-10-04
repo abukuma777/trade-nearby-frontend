@@ -3,6 +3,8 @@
  */
 
 import apiClient from './api'; // 共通のAPIクライアントを使用
+
+import { ApiSuccessResponse } from '@/types/api-error';
 import {
   Item,
   ItemsResponse,
@@ -24,38 +26,40 @@ export const itemService = {
       // クエリパラメータを構築
       const queryParams = new URLSearchParams();
 
-      if (params?.page) queryParams.append('page', params.page.toString());
-      if (params?.limit) queryParams.append('limit', params.limit.toString());
-      if (params?.category) queryParams.append('category', params.category);
-      if (params?.status) queryParams.append('status', params.status);
-      if (params?.visibility) queryParams.append('visibility', params.visibility);
+      if (params?.page) {queryParams.append('page', params.page.toString());}
+      if (params?.limit) {queryParams.append('limit', params.limit.toString());}
+      if (params?.category) {queryParams.append('category', params.category);}
+      if (params?.status) {queryParams.append('status', params.status);}
+      if (params?.visibility) {queryParams.append('visibility', params.visibility);}
       if (params?.tags && params.tags.length > 0) {
         queryParams.append('tags', params.tags.join(','));
       }
-      if (params?.search) queryParams.append('search', params.search);
-      if (params?.sort) queryParams.append('sort', params.sort);
-      if (params?.user_id) queryParams.append('user_id', params.user_id);
+      if (params?.search) {queryParams.append('search', params.search);}
+      if (params?.sort) {queryParams.append('sort', params.sort);}
+      if (params?.user_id) {queryParams.append('user_id', params.user_id);}
 
-      const response = await apiClient.get(`/api/items?${queryParams.toString()}`);
+      const response = await apiClient.get<ApiSuccessResponse<Item[]>>(`/api/items?${queryParams.toString()}`);
 
       // バックエンドのレスポンス形式に対応
-      if (response.data.success && response.data.data) {
+      const responseData = response.data;
+      if (responseData.success && responseData.data) {
         // 新しい形式: {success: true, data: [...], pagination: {...}}
         return {
-          items: response.data.data,
-          total: response.data.pagination?.total || response.data.data.length,
-          page: response.data.pagination?.page || 1,
-          limit: response.data.pagination?.limit || 10,
-          totalPages: response.data.pagination?.totalPages || 1,
+          items: responseData.data,
+          total: responseData.pagination?.total || responseData.data.length,
+          page: responseData.pagination?.page || 1,
+          limit: responseData.pagination?.per_page || 10,
+          totalPages: responseData.pagination?.total_pages || 1,
         };
-      } else if (response.data.items) {
+      } else if ('items' in response.data && Array.isArray((response.data as {items?: unknown}).items)) {
         // 既存の形式
-        return response.data;
+        return response.data as ItemsResponse;
       } else {
         // データが配列の場合
+        const items = Array.isArray(response.data) ? response.data as Item[] : [];
         return {
-          items: Array.isArray(response.data) ? response.data : [],
-          total: Array.isArray(response.data) ? response.data.length : 0,
+          items,
+          total: items.length,
           page: 1,
           limit: 10,
           totalPages: 1,
@@ -77,11 +81,11 @@ export const itemService = {
         lng: params.lng.toString(),
       });
 
-      if (params.radius) queryParams.append('radius', params.radius.toString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.category) queryParams.append('category', params.category);
+      if (params.radius) {queryParams.append('radius', params.radius.toString());}
+      if (params.limit) {queryParams.append('limit', params.limit.toString());}
+      if (params.category) {queryParams.append('category', params.category);}
 
-      const response = await apiClient.get(`/api/items/nearby?${queryParams.toString()}`);
+      const response = await apiClient.get<ItemsResponse>(`/api/items/nearby?${queryParams.toString()}`);
 
       return response.data;
     } catch (error) {
@@ -95,12 +99,13 @@ export const itemService = {
    */
   async getItem(itemId: string): Promise<Item> {
     try {
-      const response = await apiClient.get(`/api/items/${itemId}`);
+      const response = await apiClient.get<ApiSuccessResponse<Item> | Item>(`/api/items/${itemId}`);
       // バックエンドのレスポンス形式に対応
-      if (response.data.success && response.data.data) {
-        return response.data.data;
+      const responseData = response.data;
+      if (typeof responseData === 'object' && 'success' in responseData && responseData.success && responseData.data) {
+        return responseData.data;
       }
-      return response.data;
+      return responseData as Item;
     } catch (error) {
       console.error(`Error fetching item ${itemId}:`, error);
       throw error;
@@ -112,12 +117,13 @@ export const itemService = {
    */
   async createItem(data: CreateItemInput): Promise<Item> {
     try {
-      const response = await apiClient.post('/api/items', data);
+      const response = await apiClient.post<ApiSuccessResponse<Item> | Item>('/api/items', data);
       // バックエンドのレスポンス形式に対応
-      if (response.data.success && response.data.data) {
-        return response.data.data;
+      const responseData = response.data;
+      if (typeof responseData === 'object' && 'success' in responseData && responseData.success && responseData.data) {
+        return responseData.data;
       }
-      return response.data;
+      return responseData as Item;
     } catch (error) {
       console.error('Error creating item:', error);
       throw error;
@@ -129,12 +135,13 @@ export const itemService = {
    */
   async updateItem(itemId: string, data: UpdateItemInput): Promise<Item> {
     try {
-      const response = await apiClient.put(`/api/items/${itemId}`, data);
+      const response = await apiClient.put<ApiSuccessResponse<Item> | Item>(`/api/items/${itemId}`, data);
       // バックエンドのレスポンス形式に対応
-      if (response.data.success && response.data.data) {
-        return response.data.data;
+      const responseData = response.data;
+      if (typeof responseData === 'object' && 'success' in responseData && responseData.success && responseData.data) {
+        return responseData.data;
       }
-      return response.data;
+      return responseData as Item;
     } catch (error) {
       console.error(`Error updating item ${itemId}:`, error);
       throw error;
@@ -161,7 +168,7 @@ export const itemService = {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await apiClient.post(`/api/items/${itemId}/upload`, formData, {
+      const response = await apiClient.post<{ url: string }>(`/api/items/${itemId}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -179,14 +186,15 @@ export const itemService = {
    */
   async toggleItemVisibility(itemId: string, visibility: 'public' | 'private'): Promise<Item> {
     try {
-      const response = await apiClient.patch(`/api/items/${itemId}/visibility`, {
+      const response = await apiClient.patch<ApiSuccessResponse<Item> | Item>(`/api/items/${itemId}/visibility`, {
         visibility,
       });
       // バックエンドのレスポンス形式に対応
-      if (response.data.success && response.data.data) {
-        return response.data.data;
+      const responseData = response.data;
+      if (typeof responseData === 'object' && 'success' in responseData && responseData.success && responseData.data) {
+        return responseData.data;
       }
-      return response.data;
+      return responseData as Item;
     } catch (error) {
       console.error(`Error toggling visibility for item ${itemId}:`, error);
       throw error;

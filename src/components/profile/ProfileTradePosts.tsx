@@ -2,11 +2,12 @@
  * プロフィール用商品サムネイル表示コンポーネント
  */
 
+import { Package, Loader, AlertCircle, Plus } from 'lucide-react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUserRecentTradePosts } from '@/hooks/useUserTradePosts';
+
 import { ThumbnailLazyImage } from '@/components/common/LazyLoadImage';
-import { Package, Loader, AlertCircle, Plus } from 'lucide-react';
+import { useUserRecentTradePosts } from '@/hooks/useUserTradePosts';
 
 interface ProfileTradePostsProps {
   userId?: string;

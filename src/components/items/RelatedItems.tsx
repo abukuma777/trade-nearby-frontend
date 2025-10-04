@@ -3,12 +3,13 @@
  * 同カテゴリのアイテムや同じ出品者の他アイテムを表示
  */
 
+import { ChevronLeft, ChevronRight, Package, User, Loader2, AlertCircle } from 'lucide-react';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+
+import ItemCard from '@/components/items/ItemCard';
 import { useItems } from '@/hooks/useItems';
 import { Item, categoryLabels } from '@/types/item';
-import ItemCard from '@/components/items/ItemCard';
-import { ChevronLeft, ChevronRight, Package, User, Loader2, AlertCircle } from 'lucide-react';
 
 interface RelatedItemsProps {
   currentItem: Item;
@@ -79,7 +80,7 @@ export const RelatedItems: React.FC<RelatedItemsProps> = ({ currentItem, classNa
   };
 
   // アイテムクリックハンドラー
-  const handleItemClick = (item: Item) => {
+  const handleItemClick = (_item: Item) => {
     // 新しいタブで開く、または現在のページを更新
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
