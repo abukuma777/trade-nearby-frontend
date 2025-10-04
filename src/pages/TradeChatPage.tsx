@@ -91,6 +91,7 @@ const TradeChatPage: React.FC = () => {
 
         // メッセージを取得
         const messagesData = await tradeChatService.getMessages(chatRoomId);
+        // eslint-disable-next-line no-console
         console.log('取得したメッセージ:', messagesData);
         setMessages(messagesData);
       } catch (err) {
@@ -118,6 +119,7 @@ const TradeChatPage: React.FC = () => {
     if (!chatRoomId) return;
     try {
       const messagesData = await tradeChatService.getMessages(chatRoomId);
+      // eslint-disable-next-line no-console
       console.log('メッセージ更新:', messagesData);
       setMessages(messagesData);
     } catch (err) {
@@ -167,6 +169,8 @@ const TradeChatPage: React.FC = () => {
 
   // スクロールを最下部へ
   useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('現在のメッセージ数:', messages.length, messages);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -274,7 +278,6 @@ const TradeChatPage: React.FC = () => {
       </div>
 
       {/* メッセージエリア */}
-      {console.log('現在のメッセージ数:', messages.length, messages)}
       <div
         className="flex-1 overflow-y-auto bg-gray-50 p-4"
         style={{ height: 'calc(100vh - 300px)' }}
