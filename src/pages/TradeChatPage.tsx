@@ -17,50 +17,12 @@ import {
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-import { tradeChatService } from '@/services/tradeChatService';
+import {
+  tradeChatService,
+  ChatRoom,
+  ChatMessage,
+} from '@/services/tradeChatService';
 import { useAuthStore } from '@/stores/authStore';
-
-// 型定義
-interface ChatRoom {
-  id: string;
-  post1_id: string;
-  post2_id: string;
-  user1_id: string;
-  user2_id: string;
-  status: 'active' | 'completed' | 'cancelled';
-  created_at: string;
-  updated_at?: string;
-  post1?: TradePost;
-  post2?: TradePost;
-  user1?: UserInfo;
-  user2?: UserInfo;
-  messages?: ChatMessage[];
-}
-
-interface TradePost {
-  id: string;
-  give_item: string;
-  want_item: string;
-  give_item_images?: Array<{ url: string }>;
-  want_item_images?: Array<{ url: string }>;
-  status: 'active' | 'trading' | 'completed';
-}
-
-interface UserInfo {
-  id: string;
-  username: string;
-  display_name?: string;
-  avatar_url?: string;
-}
-
-interface ChatMessage {
-  id: string;
-  room_id: string;
-  sender_id: string;
-  message: string;
-  created_at: string;
-  sender?: UserInfo;
-}
 
 const TradeChatPage: React.FC = () => {
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
