@@ -125,17 +125,6 @@ const TradeChatPage: React.FC = () => {
     return () => clearInterval(interval);
   }, [chatRoomId, loadMessages]);
 
-  // メッセージをリロード
-  const loadMessages = useCallback(async (): Promise<void> => {
-    if (!chatRoomId) return;
-    try {
-      const messagesData = await tradeChatService.getMessages(chatRoomId);
-      setMessages(messagesData);
-    } catch (err) {
-      console.error('メッセージ更新エラー:', err);
-    }
-  }, [chatRoomId]);
-
   // メッセージ送信
   const handleSendMessage = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
