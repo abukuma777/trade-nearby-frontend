@@ -12,6 +12,7 @@ export interface ChatRoom {
   post2_id: string;
   user1_id: string;
   user2_id: string;
+  waiting_user_id: string; // 元の投稿者（待つ側）
   status: 'active' | 'completed' | 'cancelled';
   created_at: string;
   updated_at?: string;
@@ -122,6 +123,34 @@ class TradeChatService {
       return response.data.data || [];
     } catch (error) {
       console.error('チャットルーム一覧取得エラー:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * QRコードを検証
+   */
+  async verifyQRCode(
+    roomId: string,
+    scannedUserId: string,
+  ): Promise<{
+    verified: boolean;
+    message: string;
+  }> {
+    try {
+      const response = await apiClient.post<{
+        success: boolean;
+        verified: boolean;
+        message: string;
+      }>(`${this.basePath}/rooms/${roomId}/verify-qr`, {
+        scanned_user_id: scannedUserId,
+      });
+      return {
+        verified: response.data.verified,
+        message: response.data.message,
+      };
+    } catch (error) {
+      console.error('QRコード検証エラー:', error);
       throw error;
     }
   }

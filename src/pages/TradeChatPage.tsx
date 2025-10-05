@@ -13,10 +13,15 @@ import {
   AlertCircle,
   Loader,
   Package,
+  QrCode,
+  Camera,
+  X,
 } from 'lucide-react';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 
+import QRCodeDisplay from '@/components/trade/QRCodeDisplay';
+import QRCodeScanner from '@/components/trade/QRCodeScanner';
 import {
   tradeChatService,
   ChatRoom,
@@ -36,7 +41,10 @@ const TradeChatPage: React.FC = () => {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCompletingTransaction, setIsCompletingTransaction] = useState(false);
-  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
+  const [showQRDisplay, setShowQRDisplay] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [qrVerified, setQrVerified] = useState(false);
+  const [qrMessage, setQrMessage] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
@@ -136,6 +144,31 @@ const TradeChatPage: React.FC = () => {
     }
   };
 
+  // QRコード検証処理
+  const handleQRScan = async (data: {
+    roomId: string;
+    userId: string;
+  }): Promise<void> => {
+    if (!chatRoomId) {return;}
+
+    try {
+      const response = await tradeChatService.verifyQRCode(
+        chatRoomId,
+        data.userId,
+      );
+      if (response.verified) {
+        setQrVerified(true);
+        setShowQRScanner(false);
+        setQrMessage('✅ この方が取引相手です');
+      } else {
+        setQrMessage('❌ この取引の相手ではありません');
+      }
+    } catch (err) {
+      console.error('検証エラー:', err);
+      setQrMessage('検証に失敗しました');
+    }
+  };
+
   // スクロールを最下部へ
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -178,6 +211,10 @@ const TradeChatPage: React.FC = () => {
   const otherUser = isUser1 ? chatRoom.user2 : chatRoom.user1;
   const myPost = isUser1 ? chatRoom.post1 : chatRoom.post2;
   const otherPost = isUser1 ? chatRoom.post2 : chatRoom.post1;
+
+  // 役割判定（QRコード機能用）
+  const isWaitingSide = user?.id === chatRoom.waiting_user_id;
+  const isComingSide = !isWaitingSide;
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-4">
@@ -224,37 +261,40 @@ const TradeChatPage: React.FC = () => {
 
           {/* ステータス表示 */}
           {chatRoom.status === 'active' ? (
-            showCompleteConfirm ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">本当に完了？</span>
+            <div className="flex items-center gap-2">
+              {isComingSide && (
                 <button
-                  onClick={() => void handleCompleteTransaction()}
+                  onClick={(): void => setShowQRDisplay(true)}
+                  className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
+                >
+                  <QrCode size={16} />
+                  QR表示
+                </button>
+              )}
+              {isWaitingSide && !qrVerified && (
+                <button
+                  onClick={(): void => setShowQRScanner(true)}
+                  className="flex items-center gap-1 rounded-lg bg-purple-600 px-3 py-1.5 text-sm text-white hover:bg-purple-700"
+                >
+                  <Camera size={16} />
+                  QR確認
+                </button>
+              )}
+              {isWaitingSide && qrVerified && (
+                <button
+                  onClick={(): void => void handleCompleteTransaction()}
                   disabled={isCompletingTransaction}
-                  className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700 disabled:opacity-50"
+                  className="flex items-center gap-1 rounded-lg bg-green-600 px-4 py-2 text-lg font-bold text-white hover:bg-green-700 disabled:opacity-50"
                 >
                   {isCompletingTransaction ? (
-                    <Loader className="animate-spin" size={16} />
+                    <Loader className="animate-spin" size={20} />
                   ) : (
-                    <CheckCircle size={16} />
+                    <CheckCircle size={20} />
                   )}
-                  はい
+                  交換完了
                 </button>
-                <button
-                  onClick={(): void => setShowCompleteConfirm(false)}
-                  className="rounded-lg bg-gray-400 px-3 py-1.5 text-sm text-white hover:bg-gray-500"
-                >
-                  キャンセル
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={(): void => setShowCompleteConfirm(true)}
-                className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700"
-              >
-                <CheckCircle size={16} />
-                取引完了
-              </button>
-            )
+              )}
+            </div>
           ) : (
             <span className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-600">
               取引完了済み
@@ -274,6 +314,19 @@ const TradeChatPage: React.FC = () => {
             <span>求: {otherPost?.give_item}</span>
           </div>
         </div>
+
+        {/* QRメッセージ表示 */}
+        {qrMessage && (
+          <div className="mx-4 mt-2 rounded-lg bg-blue-50 p-3 text-center">
+            <p className="text-sm font-medium text-blue-900">{qrMessage}</p>
+            <button
+              onClick={(): void => setQrMessage(null)}
+              className="mt-2 text-xs text-blue-600 hover:underline"
+            >
+              閉じる
+            </button>
+          </div>
+        )}
       </div>
 
       {/* メッセージエリア */}
@@ -362,6 +415,44 @@ const TradeChatPage: React.FC = () => {
               )}
             </button>
           </form>
+        </div>
+      )}
+
+      {/* QRコード表示モーダル */}
+      {showQRDisplay && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="relative w-full max-w-md rounded-lg bg-white p-6">
+            <button
+              onClick={(): void => setShowQRDisplay(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+            >
+              <X size={24} />
+            </button>
+            {user?.id && (
+              <QRCodeDisplay roomId={chatRoomId!} userId={user.id} />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* QRコードスキャナーモーダル */}
+      {showQRScanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="relative w-full max-w-md rounded-lg bg-white p-6">
+            <button
+              onClick={(): void => setShowQRScanner(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+            >
+              <X size={24} />
+            </button>
+            <h3 className="mb-4 text-center text-lg font-bold">
+              QRコードを読み取り
+            </h3>
+            <QRCodeScanner
+              onScan={(data) => void handleQRScan(data)}
+              onError={(error) => setQrMessage(error)}
+            />
+          </div>
         </div>
       )}
     </div>
