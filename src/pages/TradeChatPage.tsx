@@ -15,7 +15,7 @@ import {
   Package,
 } from 'lucide-react';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 
 import {
   tradeChatService,
@@ -193,7 +193,10 @@ const TradeChatPage: React.FC = () => {
             </button>
 
             {/* 相手ユーザー情報 */}
-            <div className="flex items-center gap-2">
+            <Link
+              to={`/profile/${otherUser?.username || ''}`}
+              className="flex items-center gap-2 transition-opacity hover:opacity-75"
+            >
               {otherUser?.avatar_url ? (
                 <img
                   src={otherUser.avatar_url}
@@ -209,14 +212,14 @@ const TradeChatPage: React.FC = () => {
                 </div>
               )}
               <div>
-                <p className="font-semibold">
+                <p className="font-semibold text-blue-600 hover:underline">
                   {otherUser?.display_name ||
                     otherUser?.username ||
                     '不明なユーザー'}
                 </p>
                 <p className="text-xs text-gray-500">取引チャット</p>
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* ステータス表示 */}
