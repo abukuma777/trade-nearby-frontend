@@ -54,25 +54,10 @@ class TradeChatService {
    */
   async getChatRoomById(roomId: string): Promise<ChatRoom> {
     try {
-      const url = `${this.basePath}/rooms/${roomId}`;
-      /* eslint-disable no-console */
-      console.log('[DEBUG Service] Requesting URL:', url);
-      console.log(
-        '[DEBUG Service] Full URL:',
-        apiClient.defaults.baseURL + url,
-      );
-      /* eslint-enable no-console */
-
       const response = await apiClient.get<{
         success: boolean;
         data: ChatRoom;
-      }>(url);
-
-      /* eslint-disable no-console */
-      console.log('[DEBUG Service] Raw response:', response);
-      console.log('[DEBUG Service] Response data:', response.data);
-      console.log('[DEBUG Service] Response.data.data:', response.data.data);
-      /* eslint-enable no-console */
+      }>(`${this.basePath}/rooms/${roomId}`);
 
       return response.data.data;
     } catch (error) {

@@ -67,13 +67,6 @@ const TradeChatPage: React.FC = () => {
 
         // チャットルーム情報を取得
         const roomData = await tradeChatService.getChatRoomById(chatRoomId);
-        /* eslint-disable no-console */
-        console.log('[DEBUG Frontend] chatRoom data received:', roomData);
-        console.log('[DEBUG Frontend] user1:', roomData.user1);
-        console.log('[DEBUG Frontend] user2:', roomData.user2);
-        console.log('[DEBUG Frontend] post1:', roomData.post1);
-        console.log('[DEBUG Frontend] post2:', roomData.post2);
-        /* eslint-enable no-console */
         setChatRoom(roomData);
 
         // メッセージを取得
@@ -185,14 +178,6 @@ const TradeChatPage: React.FC = () => {
   const otherUser = isUser1 ? chatRoom.user2 : chatRoom.user1;
   const myPost = isUser1 ? chatRoom.post1 : chatRoom.post2;
   const otherPost = isUser1 ? chatRoom.post2 : chatRoom.post1;
-
-  /* eslint-disable no-console */
-  console.log('[DEBUG Frontend] Current user id:', user?.id);
-  console.log('[DEBUG Frontend] isUser1:', isUser1);
-  console.log('[DEBUG Frontend] otherUser:', otherUser);
-  console.log('[DEBUG Frontend] myPost:', myPost);
-  console.log('[DEBUG Frontend] otherPost:', otherPost);
-  /* eslint-enable no-console */
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-4">
