@@ -433,7 +433,10 @@ const TradePostDetailPage: React.FC = () => {
           {/* 投稿者情報 */}
           {currentPost.user && (
             <div className="border-t px-6 py-4">
-              <div className="flex items-center gap-3">
+              <Link
+                to={`/profile/${currentPost.user.username}`}
+                className="flex items-center gap-3 transition-opacity hover:opacity-75"
+              >
                 {/* アバター */}
                 <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
                   {currentPost.user.avatar_url ? (
@@ -466,14 +469,14 @@ const TradePostDetailPage: React.FC = () => {
 
                 {/* 名前とユーザー名 */}
                 <div>
-                  <div className="font-medium text-gray-900">
+                  <div className="font-medium text-blue-600 hover:underline">
                     {currentPost.user.display_name || currentPost.user.username}
                   </div>
                   <div className="text-sm text-gray-500">
                     @{currentPost.user.username}
                   </div>
                 </div>
-              </div>
+              </Link>
             </div>
           )}
 
