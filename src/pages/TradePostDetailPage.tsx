@@ -440,8 +440,8 @@ const TradePostDetailPage: React.FC = () => {
             </button>
 
             <div className="flex gap-2">
-              {/* 自分の投稿の場合の編集ボタン（取引中以外） */}
-              {isMyPost && currentPost.status !== 'trading' && (
+              {/* 自分の投稿の場合の編集ボタン（募集中のみ） */}
+              {isMyPost && currentPost.status === 'active' && (
                 <>
                   <button
                     onClick={() => {
