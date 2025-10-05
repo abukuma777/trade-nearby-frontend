@@ -46,6 +46,13 @@ export interface SimpleTradePost {
   // 画像フィールドを追加
   give_item_images?: TradePostImage[];
   want_item_images?: TradePostImage[];
+  // 投稿者情報（JOIN結果）
+  user?: {
+    id: string;
+    username: string;
+    display_name?: string;
+    avatar_url?: string;
+  };
 }
 
 export interface CreateTradePostData {

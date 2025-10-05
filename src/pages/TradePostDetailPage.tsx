@@ -430,6 +430,53 @@ const TradePostDetailPage: React.FC = () => {
             </div>
           </div>
 
+          {/* 投稿者情報 */}
+          {currentPost.user && (
+            <div className="border-t px-6 py-4">
+              <div className="flex items-center gap-3">
+                {/* アバター */}
+                <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
+                  {currentPost.user.avatar_url ? (
+                    <img
+                      src={currentPost.user.avatar_url}
+                      alt={
+                        currentPost.user.display_name ||
+                        currentPost.user.username
+                      }
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gray-300 text-gray-600">
+                      <svg
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+
+                {/* 名前とユーザー名 */}
+                <div>
+                  <div className="font-medium text-gray-900">
+                    {currentPost.user.display_name || currentPost.user.username}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    @{currentPost.user.username}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* アクション（投稿者本人の場合は編集・削除ボタンを表示） */}
           <div className="flex justify-between bg-gray-50 px-6 py-4">
             <button
