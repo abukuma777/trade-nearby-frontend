@@ -12,7 +12,7 @@ import { useUserById } from '../hooks/useProfile';
 import { useUserTradePosts } from '../hooks/useUserTradePosts';
 import { useAuthStore } from '../stores/authStore';
 
-type FilterStatus = 'all' | 'active' | 'trading' | 'completed' | 'cancelled';
+type FilterStatus = 'all' | 'active' | 'trading' | 'completed';
 
 const UserTradePostsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -63,13 +63,11 @@ const UserTradePostsPage: React.FC = () => {
       active: 'bg-green-100 text-green-800',
       trading: 'bg-yellow-100 text-yellow-800',
       completed: 'bg-blue-100 text-blue-800',
-      cancelled: 'bg-gray-100 text-gray-800',
     };
     const labels = {
       active: '募集中',
       trading: '取引中',
       completed: '完了',
-      cancelled: 'キャンセル',
     };
     return (
       <span
@@ -209,13 +207,6 @@ const UserTradePostsPage: React.FC = () => {
             完了 (
             {tradePosts?.filter((p) => p.status === 'completed').length || 0})
           </button>
-          <button
-            onClick={() => setFilterStatus('cancelled')}
-            className={getFilterButtonClass('cancelled')}
-          >
-            キャンセル (
-            {tradePosts?.filter((p) => p.status === 'cancelled').length || 0})
-          </button>
         </div>
 
         {/* 投稿リスト */}
@@ -225,7 +216,7 @@ const UserTradePostsPage: React.FC = () => {
             <p className="text-gray-500">
               {filterStatus === 'all'
                 ? 'まだ出品商品がありません'
-                : `${filterStatus === 'active' ? '募集中' : filterStatus === 'trading' ? '取引中' : filterStatus === 'completed' ? '完了済み' : 'キャンセル済み'}の商品はありません`}
+                : `${filterStatus === 'active' ? '募集中' : filterStatus === 'trading' ? '取引中' : '完了済み'}の商品はありません`}
             </p>
           </div>
         ) : (

@@ -40,7 +40,8 @@ interface TradePostsResponse {
 // クエリキーの定義
 export const userTradePostsQueryKeys = {
   all: ['userTradePosts'] as const,
-  byUserId: (userId: string) => [...userTradePostsQueryKeys.all, userId] as const,
+  byUserId: (userId: string) =>
+    [...userTradePostsQueryKeys.all, userId] as const,
   recent: (userId: string, limit: number) =>
     [...userTradePostsQueryKeys.byUserId(userId), 'recent', limit] as const,
 };
@@ -49,13 +50,21 @@ export const userTradePostsQueryKeys = {
  * ユーザーの最近の投稿を取得するフック
  * @param limit 取得する投稿数（デフォルト: 8）
  * @param userId 対象ユーザーID（省略時は自分）
+ * @param status ステータスフィルター（省略時は全て）
  */
-export const useUserRecentTradePosts = (limit: number = 8, userId?: string): UseQueryResult<UserTradePost[], Error> => {
+export const useUserRecentTradePosts = (
+  limit: number = 8,
+  userId?: string,
+  status?: 'active' | 'trading' | 'completed' | 'private',
+): UseQueryResult<UserTradePost[], Error> => {
   const { user } = useAuthStore();
   const targetUserId = userId || user?.id || '';
 
   return useQuery<UserTradePost[], Error>({
-    queryKey: userTradePostsQueryKeys.recent(targetUserId, limit),
+    queryKey: [
+      ...userTradePostsQueryKeys.recent(targetUserId, limit),
+      status || 'all',
+    ],
     queryFn: async () => {
       if (!targetUserId) {
         throw new Error('ユーザーIDが見つかりません');
@@ -65,6 +74,7 @@ export const useUserRecentTradePosts = (limit: number = 8, userId?: string): Use
         params: {
           user_id: targetUserId,
           limit: limit,
+          ...(status && { status }),
         },
       });
 
@@ -87,7 +97,9 @@ export const useUserRecentTradePosts = (limit: number = 8, userId?: string): Use
  * ユーザーの全投稿を取得するフック
  * @param userId 対象ユーザーID（省略時は自分）
  */
-export const useUserTradePosts = (userId?: string): UseQueryResult<UserTradePost[], Error> => {
+export const useUserTradePosts = (
+  userId?: string,
+): UseQueryResult<UserTradePost[], Error> => {
   const { user } = useAuthStore();
   const targetUserId = userId || user?.id || '';
 
