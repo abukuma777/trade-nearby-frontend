@@ -149,7 +149,9 @@ const TradeChatPage: React.FC = () => {
     roomId: string;
     userId: string;
   }): Promise<void> => {
-    if (!chatRoomId) {return;}
+    if (!chatRoomId) {
+      return;
+    }
 
     try {
       const response = await tradeChatService.verifyQRCode(
@@ -161,10 +163,12 @@ const TradeChatPage: React.FC = () => {
         setShowQRScanner(false);
         setQrMessage('✅ この方が取引相手です');
       } else {
+        setShowQRScanner(false); // 失敗時もモーダルを閉じる
         setQrMessage('❌ この取引の相手ではありません');
       }
     } catch (err) {
       console.error('検証エラー:', err);
+      setShowQRScanner(false); // エラー時もモーダルを閉じる
       setQrMessage('検証に失敗しました');
     }
   };

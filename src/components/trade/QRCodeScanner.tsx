@@ -30,9 +30,18 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onError }) => {
                 roomId: string;
                 userId: string;
               };
-              onScan(data);
-              // スキャン成功後、カメラを停止
-              void scanner.stop();
+              // カメラを停止してからコールバック実行
+              scanner
+                .stop()
+                .then(() => {
+                  setIsScanning(false);
+                  onScan(data);
+                })
+                .catch((err) => {
+                  console.error('カメラ停止エラー:', err);
+                  setIsScanning(false);
+                  onScan(data);
+                });
             } catch {
               onError('無効なQRコードです');
             }
@@ -52,7 +61,9 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onError }) => {
 
     return () => {
       if (scannerRef.current && isScanning) {
-        void scannerRef.current.stop();
+        void scannerRef.current.stop().catch(() => {
+          // cleanup時のエラーは無視
+        });
       }
     };
   }, [onScan, onError, isScanning]);
