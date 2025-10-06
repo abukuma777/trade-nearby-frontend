@@ -18,7 +18,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ProfileEditModal from '@/components/profile/ProfileEditModal';
 import ProfileStats from '@/components/profile/ProfileStats';
 import ProfileTradePosts from '@/components/profile/ProfileTradePosts';
-import { useCurrentUser, useUserStats, useUserById } from '@/hooks/useProfile';
+import {
+  useCurrentUser,
+  useUserStats,
+  useUserById,
+  useUpdateProfile,
+} from '@/hooks/useProfile';
+import { presignedUploadService } from '@/services/presignedUploadService';
 import { useAuthStore } from '@/stores/authStore';
 
 const ProfilePage: React.FC = () => {
@@ -26,6 +32,10 @@ const ProfilePage: React.FC = () => {
   const { username } = useParams<{ username?: string }>();
   const { isAuthenticated, user: authUser } = useAuthStore();
   const [showEditModal, setShowEditModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const updateProfileMutation = useUpdateProfile();
 
   // 自分のプロフィールか判定
   const isOwnProfile = !username || username === authUser?.username;
@@ -59,6 +69,56 @@ const ProfilePage: React.FC = () => {
 
   // 編集後に強制的に再レンダリングするためのステート
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
+
+  // アバター画像アップロード処理
+  const handleAvatarUpload = (): void => {
+    if (uploading) {return;}
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
+    const file = e.target.files?.[0];
+    if (!file) {return;}
+
+    // ファイルバリデーション
+    const validation = presignedUploadService.validateFile(file);
+    if (!validation.valid) {
+      setUploadError(validation.error || 'ファイル検証エラー');
+      return;
+    }
+
+    setUploading(true);
+    setUploadError(null);
+
+    try {
+      // 画像をアップロード
+      const uploadedImage = await presignedUploadService.uploadImage(file);
+
+      // プロフィールを更新
+      await updateProfileMutation.mutateAsync({
+        avatar_url: uploadedImage.url,
+      });
+
+      // キャッシュを無視して再取得
+      void refetchUser();
+      forceUpdate();
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      setUploadError(
+        error instanceof Error
+          ? error.message
+          : 'アバター画像のアップロードに失敗しました',
+      );
+    } finally {
+      setUploading(false);
+      // ファイル入力をリセット
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   // 自分のプロフィールで認証されていない場合はログインページへリダイレクト
   useEffect(() => {
@@ -155,11 +215,23 @@ const ProfilePage: React.FC = () => {
               </div>
               {isOwnProfile && (
                 <button
-                  className="absolute bottom-0 right-0 rounded-full bg-white p-2 shadow-md transition-shadow hover:shadow-lg"
+                  onClick={handleAvatarUpload}
+                  disabled={uploading}
+                  className="absolute bottom-0 right-0 rounded-full bg-white p-2 shadow-md transition-shadow hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
                   title="アバターを変更"
                 >
-                  <Camera className="h-4 w-4 text-gray-600" />
+                  {uploading ? (
+                    <Loader className="h-4 w-4 animate-spin text-gray-600" />
+                  ) : (
+                    <Camera className="h-4 w-4 text-gray-600" />
+                  )}
                 </button>
+              )}
+              {/* アップロード中のオーバーレイ */}
+              {uploading && isOwnProfile && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black bg-opacity-50">
+                  <Loader className="h-8 w-8 animate-spin text-white" />
+                </div>
               )}
             </div>
 
@@ -356,6 +428,36 @@ const ProfilePage: React.FC = () => {
             void refetchUser();
           }}
         />
+      )}
+
+      {/* ファイル入力（非表示） */}
+      {isOwnProfile && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => void handleFileChange(e)}
+          className="hidden"
+        />
+      )}
+
+      {/* アップロードエラー表示 */}
+      {uploadError && isOwnProfile && (
+        <div className="fixed bottom-4 right-4 z-50 max-w-md rounded-lg border border-red-200 bg-red-50 p-4 shadow-lg">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-900">アップロードエラー</h3>
+              <p className="mt-1 text-sm text-red-700">{uploadError}</p>
+            </div>
+            <button
+              onClick={() => setUploadError(null)}
+              className="text-red-600 hover:text-red-800"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
