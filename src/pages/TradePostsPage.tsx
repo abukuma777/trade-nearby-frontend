@@ -237,37 +237,59 @@ const TradePostsPage: React.FC = () => {
 
         {/* アクションエリア */}
         <div className="mb-6 space-y-4">
-          {/* 検索タブ */}
-          <div className="flex items-center gap-2">
+          {/* 検索タブとフィルター */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSearchField('all')}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  searchField === 'all'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                すべて
+              </button>
+              <button
+                onClick={() => setSearchField('give')}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  searchField === 'give'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                譲)のみ
+              </button>
+              <button
+                onClick={() => setSearchField('want')}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  searchField === 'want'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                求)のみ
+              </button>
+            </div>
+
             <button
-              onClick={() => setSearchField('all')}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                searchField === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+              onClick={() => setShowFilter(!showFilter)}
+              className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
             >
-              すべて
-            </button>
-            <button
-              onClick={() => setSearchField('give')}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                searchField === 'give'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              譲)のみ
-            </button>
-            <button
-              onClick={() => setSearchField('want')}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                searchField === 'want'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              求)のみ
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                />
+              </svg>
+              フィルター
             </button>
           </div>
 
@@ -316,44 +338,6 @@ const TradePostsPage: React.FC = () => {
                 クリア
               </button>
             )}
-          </div>
-
-          {/* アクションボタン */}
-          <div className="flex items-center justify-between">
-            <div className="flex gap-4">
-              <Link
-                to="/trade-posts/create"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
-              >
-                新規投稿作成
-              </Link>
-              <Link
-                to="/trade-posts/my"
-                className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
-              >
-                自分の投稿
-              </Link>
-            </div>
-
-            <button
-              onClick={() => setShowFilter(!showFilter)}
-              className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                />
-              </svg>
-              フィルター
-            </button>
           </div>
         </div>
 
