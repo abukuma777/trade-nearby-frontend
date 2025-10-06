@@ -28,6 +28,7 @@ interface TradePostStore {
     includeChildren?: boolean,
     excludeOwn?: boolean,
     search?: string,
+    searchField?: 'all' | 'give' | 'want',
   ) => Promise<void>;
   fetchMyPosts: () => Promise<void>;
   fetchPost: (id: string) => Promise<void>;
@@ -66,6 +67,7 @@ export const useTradePostStore = create<TradePostStore>()(
         includeChildren?: boolean,
         excludeOwn?: boolean,
         search?: string,
+        searchField?: 'all' | 'give' | 'want',
       ) => {
         set({ loading: true, error: null });
         try {
@@ -75,6 +77,7 @@ export const useTradePostStore = create<TradePostStore>()(
             includeChildren,
             excludeOwn,
             search,
+            searchField,
           );
           set({ posts, loading: false });
         } catch (error) {

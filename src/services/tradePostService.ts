@@ -86,6 +86,7 @@ class TradePostService {
     includeChildren?: boolean,
     excludeOwn?: boolean,
     search?: string,
+    searchField?: 'all' | 'give' | 'want',
   ): Promise<SimpleTradePost[]> {
     try {
       const params: Record<string, string> = {};
@@ -103,6 +104,9 @@ class TradePostService {
       }
       if (search) {
         params.search = search;
+      }
+      if (searchField) {
+        params.search_field = searchField;
       }
       const response = await apiClient.get<{ data: SimpleTradePost[] }>(
         '/trade-posts',

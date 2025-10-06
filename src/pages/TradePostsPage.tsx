@@ -35,6 +35,9 @@ const TradePostsPage: React.FC = () => {
 
   // 検索キーワードの状態
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchField, setSearchField] = useState<'all' | 'give' | 'want'>(
+    'all',
+  );
 
   // URLパラメータが変更されたときにフィルターを適用
   useEffect(() => {
@@ -102,6 +105,7 @@ const TradePostsPage: React.FC = () => {
         includeChildren,
         true,
         searchKeyword.trim() || undefined,
+        searchField,
       );
     }
     setShowFilter(false); // フィルターを閉じる
@@ -112,6 +116,7 @@ const TradePostsPage: React.FC = () => {
     setCategorySelection({});
     setCurrentCategoryCount(null);
     setSearchKeyword(''); // 検索キーワードもクリア
+    setSearchField('all'); // 検索フィールドもクリア
     setSearchParams({}); // URLパラメータをクリア
     void fetchPosts('active', undefined, undefined, true);
     setShowFilter(false);
@@ -131,12 +136,14 @@ const TradePostsPage: React.FC = () => {
       contentId ? includeChildren : undefined,
       true,
       searchKeyword.trim() || undefined,
+      searchField,
     );
   };
 
   // 検索をクリア
   const clearSearch = (): void => {
     setSearchKeyword('');
+    setSearchField('all');
     const contentId =
       categorySelection.event_id ||
       categorySelection.series_id ||
@@ -149,6 +156,7 @@ const TradePostsPage: React.FC = () => {
       contentId ? includeChildren : undefined,
       true,
       undefined,
+      'all',
     );
   };
 
@@ -229,6 +237,40 @@ const TradePostsPage: React.FC = () => {
 
         {/* アクションエリア */}
         <div className="mb-6 space-y-4">
+          {/* 検索タブ */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSearchField('all')}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                searchField === 'all'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              すべて
+            </button>
+            <button
+              onClick={() => setSearchField('give')}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                searchField === 'give'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              譲)のみ
+            </button>
+            <button
+              onClick={() => setSearchField('want')}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                searchField === 'want'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              求)のみ
+            </button>
+          </div>
+
           {/* 検索バー */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -398,7 +440,11 @@ const TradePostsPage: React.FC = () => {
         {searchKeyword && (
           <div className="mb-4 flex items-center justify-between rounded-lg bg-green-50 p-3">
             <div className="text-sm text-green-900">
-              <span className="font-medium">検索中: </span>
+              <span className="font-medium">
+                {searchField === 'give' && '譲)のみで検索中: '}
+                {searchField === 'want' && '求)のみで検索中: '}
+                {searchField === 'all' && '検索中: '}
+              </span>
               <span className="rounded bg-green-100 px-2 py-1">
                 {searchKeyword}
               </span>
