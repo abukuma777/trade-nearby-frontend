@@ -33,6 +33,9 @@ const TradePostsPage: React.FC = () => {
   const [currentCategoryCount, setCurrentCategoryCount] =
     useState<CategoryCount | null>(null);
 
+  // 検索キーワードの状態
+  const [searchKeyword, setSearchKeyword] = useState('');
+
   // URLパラメータが変更されたときにフィルターを適用
   useEffect(() => {
     const initializeFromUrl = async (): Promise<void> => {
@@ -93,7 +96,13 @@ const TradePostsPage: React.FC = () => {
         console.error('投稿数取得エラー:', error);
       }
 
-      void fetchPosts('active', contentId, includeChildren, true);
+      void fetchPosts(
+        'active',
+        contentId,
+        includeChildren,
+        true,
+        searchKeyword.trim() || undefined,
+      );
     }
     setShowFilter(false); // フィルターを閉じる
   };
@@ -102,9 +111,45 @@ const TradePostsPage: React.FC = () => {
   const clearFilter = (): void => {
     setCategorySelection({});
     setCurrentCategoryCount(null);
+    setSearchKeyword(''); // 検索キーワードもクリア
     setSearchParams({}); // URLパラメータをクリア
     void fetchPosts('active', undefined, undefined, true);
     setShowFilter(false);
+  };
+
+  // 検索を実行
+  const handleSearch = (): void => {
+    const contentId =
+      categorySelection.event_id ||
+      categorySelection.series_id ||
+      categorySelection.genre_id ||
+      categorySelection.category_id;
+
+    void fetchPosts(
+      'active',
+      contentId,
+      contentId ? includeChildren : undefined,
+      true,
+      searchKeyword.trim() || undefined,
+    );
+  };
+
+  // 検索をクリア
+  const clearSearch = (): void => {
+    setSearchKeyword('');
+    const contentId =
+      categorySelection.event_id ||
+      categorySelection.series_id ||
+      categorySelection.genre_id ||
+      categorySelection.category_id;
+
+    void fetchPosts(
+      'active',
+      contentId,
+      contentId ? includeChildren : undefined,
+      true,
+      undefined,
+    );
   };
 
   useEffect(() => {
@@ -182,42 +227,92 @@ const TradePostsPage: React.FC = () => {
           </div>
         )}
 
-        {/* アクションボタン */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex gap-4">
-            <Link
-              to="/trade-posts/create"
-              className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+        {/* アクションエリア */}
+        <div className="mb-6 space-y-4">
+          {/* 検索バー */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  }
+                }}
+                placeholder="キーワードで検索（譲りたいアイテム、求めるアイテム、説明）"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700 disabled:bg-gray-400"
             >
-              新規投稿作成
-            </Link>
-            <Link
-              to="/trade-posts/my"
-              className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
-            >
-              自分の投稿
-            </Link>
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              検索
+            </button>
+            {searchKeyword && (
+              <button
+                onClick={clearSearch}
+                disabled={loading}
+                className="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-400 disabled:bg-gray-200"
+              >
+                クリア
+              </button>
+            )}
           </div>
 
-          <button
-            onClick={() => setShowFilter(!showFilter)}
-            className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          {/* アクションボタン */}
+          <div className="flex items-center justify-between">
+            <div className="flex gap-4">
+              <Link
+                to="/trade-posts/create"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+              >
+                新規投稿作成
+              </Link>
+              <Link
+                to="/trade-posts/my"
+                className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
+              >
+                自分の投稿
+              </Link>
+            </div>
+
+            <button
+              onClick={() => setShowFilter(!showFilter)}
+              className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-              />
-            </svg>
-            フィルター
-          </button>
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                />
+              </svg>
+              フィルター
+            </button>
+          </div>
         </div>
 
         {/* フィルターパネル */}
@@ -293,6 +388,24 @@ const TradePostsPage: React.FC = () => {
               onClick={clearFilter}
               className="text-sm text-blue-600 underline hover:text-blue-800"
               disabled={loadingCategory}
+            >
+              解除
+            </button>
+          </div>
+        )}
+
+        {/* 検索キーワード表示 */}
+        {searchKeyword && (
+          <div className="mb-4 flex items-center justify-between rounded-lg bg-green-50 p-3">
+            <div className="text-sm text-green-900">
+              <span className="font-medium">検索中: </span>
+              <span className="rounded bg-green-100 px-2 py-1">
+                {searchKeyword}
+              </span>
+            </div>
+            <button
+              onClick={clearSearch}
+              className="text-sm text-green-600 underline hover:text-green-800"
             >
               解除
             </button>
