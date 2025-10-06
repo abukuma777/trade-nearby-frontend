@@ -145,33 +145,38 @@ const TradeChatPage: React.FC = () => {
   };
 
   // QRコード検証処理
-  const handleQRScan = async (data: {
-    roomId: string;
-    userId: string;
-  }): Promise<void> => {
-    if (!chatRoomId) {
-      return;
-    }
-
-    try {
-      const response = await tradeChatService.verifyQRCode(
-        chatRoomId,
-        data.userId,
-      );
-      if (response.verified) {
-        setQrVerified(true);
-        setShowQRScanner(false);
-        setQrMessage('✅ この方が取引相手です');
-      } else {
-        setShowQRScanner(false); // 失敗時もモーダルを閉じる
-        setQrMessage('❌ この取引の相手ではありません');
+  const handleQRScan = useCallback(
+    async (data: { roomId: string; userId: string }): Promise<void> => {
+      if (!chatRoomId) {
+        return;
       }
-    } catch (err) {
-      console.error('検証エラー:', err);
-      setShowQRScanner(false); // エラー時もモーダルを閉じる
-      setQrMessage('検証に失敗しました');
-    }
-  };
+
+      try {
+        const response = await tradeChatService.verifyQRCode(
+          chatRoomId,
+          data.userId,
+        );
+        if (response.verified) {
+          setQrVerified(true);
+          setShowQRScanner(false);
+          setQrMessage('✅ この方が取引相手です');
+        } else {
+          setShowQRScanner(false); // 失敗時もモーダルを閉じる
+          setQrMessage('❌ この取引の相手ではありません');
+        }
+      } catch (err) {
+        console.error('検証エラー:', err);
+        setShowQRScanner(false); // エラー時もモーダルを閉じる
+        setQrMessage('検証に失敗しました');
+      }
+    },
+    [chatRoomId],
+  );
+
+  // QRコードエラーハンドラ
+  const handleQRError = useCallback((error: string) => {
+    setQrMessage(error);
+  }, []);
 
   // スクロールを最下部へ
   useEffect(() => {
@@ -454,7 +459,7 @@ const TradeChatPage: React.FC = () => {
             </h3>
             <QRCodeScanner
               onScan={(data) => void handleQRScan(data)}
-              onError={(error) => setQrMessage(error)}
+              onError={handleQRError}
             />
           </div>
         </div>

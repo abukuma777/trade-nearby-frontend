@@ -8,7 +8,6 @@ interface QRCodeScannerProps {
 
 const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onError }) => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,32 +24,39 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onError }) => {
             qrbox: { width: 250, height: 250 },
           },
           (decodedText) => {
-            try {
-              const data = JSON.parse(decodedText) as {
-                roomId: string;
-                userId: string;
-              };
-              // カメラを停止してからコールバック実行
-              scanner
-                .stop()
-                .then(() => {
-                  setIsScanning(false);
+            // QRコード読み取り成功時
+
+            // カメラを停止してからコールバック実行
+            scanner
+              .stop()
+              .then(() => {
+                try {
+                  const data = JSON.parse(decodedText) as {
+                    roomId: string;
+                    userId: string;
+                  };
                   onScan(data);
-                })
-                .catch((err) => {
-                  console.error('カメラ停止エラー:', err);
-                  setIsScanning(false);
+                } catch {
+                  onError('無効なQRコードです');
+                }
+              })
+              .catch((err) => {
+                console.error('カメラ停止エラー:', err);
+                try {
+                  const data = JSON.parse(decodedText) as {
+                    roomId: string;
+                    userId: string;
+                  };
                   onScan(data);
-                });
-            } catch {
-              onError('無効なQRコードです');
-            }
+                } catch {
+                  onError('無効なQRコードです');
+                }
+              });
           },
           (_errorMessage) => {
             // スキャン中のエラーは無視
           },
         );
-        setIsScanning(true);
       } catch (err) {
         console.error('カメラ起動エラー:', err);
         setCameraError('カメラへのアクセスが許可されていません');
@@ -60,13 +66,19 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan, onError }) => {
     void startScanner();
 
     return () => {
-      if (scannerRef.current && isScanning) {
-        void scannerRef.current.stop().catch(() => {
-          // cleanup時のエラーは無視
-        });
-      }
+      // コンポーネントアンマウント時にカメラを停止
+      const cleanup = async (): Promise<void> => {
+        if (scannerRef.current) {
+          try {
+            await scannerRef.current.stop();
+          } catch (err) {
+            console.error('クリーンアップ時のカメラ停止エラー:', err);
+          }
+        }
+      };
+      void cleanup();
     };
-  }, [onScan, onError, isScanning]);
+  }, [onScan, onError]); // onScan/onErrorが変わった時に再実行
 
   return (
     <div className="flex flex-col items-center gap-4">
