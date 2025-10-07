@@ -17,6 +17,7 @@ export interface AdvancedImageUploaderProps {
   disabled?: boolean;
   className?: string;
   label?: string;
+  postId?: string; // 投稿ID（画像の保存先フォルダ指定用）
 }
 
 interface PreviewImage extends UploadedImage {
@@ -34,6 +35,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
   disabled = false,
   className = '',
   label,
+  postId,
 }) => {
   const [previewImages, setPreviewImages] = useState<PreviewImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -121,6 +123,8 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
         try {
           const uploadedImage = await presignedUploadService.uploadImage(file, {
             signal: controller.signal,
+            imageType: 'trade-image',
+            postId,
             onProgress: (progress) => {
               setPreviewImages((prev) =>
                 prev.map((img) => (img.id === id ? { ...img, progress } : img)),
@@ -207,7 +211,7 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
         });
       }
     },
-    [previewImages, maxImages, disabled, onImagesChange],
+    [previewImages, maxImages, disabled, onImagesChange, postId],
   );
 
   /**

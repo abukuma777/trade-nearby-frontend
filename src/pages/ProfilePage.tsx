@@ -72,7 +72,9 @@ const ProfilePage: React.FC = () => {
 
   // アバター画像アップロード処理
   const handleAvatarUpload = (): void => {
-    if (uploading) {return;}
+    if (uploading) {
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -80,7 +82,9 @@ const ProfilePage: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement>,
   ): Promise<void> => {
     const file = e.target.files?.[0];
-    if (!file) {return;}
+    if (!file) {
+      return;
+    }
 
     // ファイルバリデーション
     const validation = presignedUploadService.validateFile(file);
@@ -93,8 +97,10 @@ const ProfilePage: React.FC = () => {
     setUploadError(null);
 
     try {
-      // 画像をアップロード
-      const uploadedImage = await presignedUploadService.uploadImage(file);
+      // 画像をアップロード（アバター画像として指定）
+      const uploadedImage = await presignedUploadService.uploadImage(file, {
+        imageType: 'avatar',
+      });
 
       // プロフィールを更新
       await updateProfileMutation.mutateAsync({

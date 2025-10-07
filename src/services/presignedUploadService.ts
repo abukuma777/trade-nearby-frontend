@@ -33,6 +33,8 @@ export interface UploadedImage {
 export interface UploadOptions {
   onProgress?: (progress: number) => void;
   signal?: AbortSignal;
+  imageType?: 'avatar' | 'trade-image';
+  postId?: string;
 }
 
 // ========== サービスクラス ==========
@@ -79,7 +81,7 @@ class PresignedUploadService {
     file: File,
     options: UploadOptions = {},
   ): Promise<UploadedImage> {
-    const { onProgress, signal } = options;
+    const { onProgress, signal, imageType = 'trade-image', postId } = options;
 
     try {
       // Step 1: サーバーからパス情報を取得
@@ -91,6 +93,8 @@ class PresignedUploadService {
           fileName: file.name,
           fileType: file.type,
           fileSize: file.size,
+          imageType,
+          postId,
         },
         { signal },
       );

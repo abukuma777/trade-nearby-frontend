@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
 
 import CategorySelect, {
   CategorySelection,
@@ -16,6 +17,9 @@ import { useTradePostStore } from '../stores/tradePostStore';
 const CreateTradePostPage: React.FC = () => {
   const navigate = useNavigate();
   const { createPost, loading, error } = useTradePostStore();
+
+  // 投稿用の一意なIDを生成（画像アップロード時のフォルダ名に使用）
+  const [draftPostId] = useState(() => uuidv4());
 
   const [formData, setFormData] = useState({
     give_item: '',
@@ -202,6 +206,7 @@ const CreateTradePostPage: React.FC = () => {
               initialImages={giveItemImages}
               maxImages={3}
               disabled={isSubmitDisabled}
+              postId={draftPostId}
             />
           </div>
 
@@ -242,6 +247,7 @@ const CreateTradePostPage: React.FC = () => {
               initialImages={wantItemImages}
               maxImages={3}
               disabled={isSubmitDisabled}
+              postId={draftPostId}
             />
           </div>
 
