@@ -314,6 +314,21 @@ class PresignedUploadService {
 
     return { valid: true };
   }
+
+  /**
+   * Supabase Storage URLからパスを抽出
+   * 例: https://xxx.supabase.co/storage/v1/object/public/avatars/userId/file.jpg
+   *     → avatars/userId/file.jpg
+   */
+  extractPathFromUrl(url: string): string | null {
+    try {
+      const urlObj = new URL(url);
+      const pathMatch = urlObj.pathname.match(/\/object\/public\/(.+)$/);
+      return pathMatch ? pathMatch[1] : null;
+    } catch {
+      return null;
+    }
+  }
 }
 
 // シングルトンインスタンスのエクスポート

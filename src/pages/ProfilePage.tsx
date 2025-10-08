@@ -96,6 +96,9 @@ const ProfilePage: React.FC = () => {
     setUploading(true);
     setUploadError(null);
 
+    // 旧アバターURLを保存（削除用）
+    const oldAvatarUrl = displayUser?.avatar_url;
+
     try {
       // 画像をアップロード（アバター画像として指定）
       const uploadedImage = await presignedUploadService.uploadImage(file, {
@@ -106,6 +109,20 @@ const ProfilePage: React.FC = () => {
       await updateProfileMutation.mutateAsync({
         avatar_url: uploadedImage.url,
       });
+
+      // 旧画像を削除（エラーがあっても続行）
+      if (oldAvatarUrl) {
+        try {
+          const oldPath =
+            presignedUploadService.extractPathFromUrl(oldAvatarUrl);
+          if (oldPath) {
+            await presignedUploadService.deleteImage(oldPath);
+          }
+        } catch (deleteError) {
+          // 削除失敗してもユーザーにエラーを表示しない
+          console.warn('旧アバター画像の削除に失敗しました:', deleteError);
+        }
+      }
 
       // キャッシュを無視して再取得
       void refetchUser();
