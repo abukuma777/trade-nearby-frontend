@@ -118,6 +118,11 @@ const TradePostsPage: React.FC = () => {
     }
   }, [urlSearchKeyword, fetchPosts, isInitialized]);
 
+  // urlSearchKeywordが変更されたらローカルstateも同期
+  useEffect(() => {
+    setSearchKeyword(urlSearchKeyword);
+  }, [urlSearchKeyword]);
+
   // フィルターを適用して投稿を取得
   const applyFilter = async (): Promise<void> => {
     // 最深階層のIDを取得
