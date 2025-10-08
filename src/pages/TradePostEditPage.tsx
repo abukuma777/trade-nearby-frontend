@@ -376,6 +376,7 @@ const TradePostEditPage: React.FC = () => {
               initialImages={giveItemImages}
               maxImages={3}
               disabled={isSubmitDisabled}
+              postId={id}
             />
           </div>
 
@@ -416,6 +417,7 @@ const TradePostEditPage: React.FC = () => {
               initialImages={wantItemImages}
               maxImages={3}
               disabled={isSubmitDisabled}
+              postId={id}
             />
           </div>
 
