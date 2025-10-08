@@ -484,7 +484,7 @@ const TradePostsPage: React.FC = () => {
         )}
 
         {/* 検索キーワード表示 */}
-        {searchKeyword && (
+        {urlSearchKeyword && (
           <div className="mb-4 flex items-center justify-between rounded-lg bg-green-50 p-3">
             <div className="text-sm text-green-900">
               <span className="font-medium">
@@ -493,7 +493,7 @@ const TradePostsPage: React.FC = () => {
                 {searchField === 'all' && '検索中: '}
               </span>
               <span className="rounded bg-green-100 px-2 py-1">
-                {searchKeyword}
+                {urlSearchKeyword}
               </span>
             </div>
             <button
