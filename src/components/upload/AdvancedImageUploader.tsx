@@ -231,9 +231,15 @@ export const AdvancedImageUploader: React.FC<AdvancedImageUploaderProps> = ({
       }
 
       // サーバーから削除
-      if (!imageToRemove.uploading && imageToRemove.path) {
+      if (!imageToRemove.uploading && imageToRemove.url) {
         try {
-          await presignedUploadService.deleteImage(imageToRemove.path);
+          // URLから完全なパス（バケット名込み）を抽出
+          const fullPath = presignedUploadService.extractPathFromUrl(
+            imageToRemove.url,
+          );
+          if (fullPath) {
+            await presignedUploadService.deleteImage(fullPath);
+          }
         } catch {
           // エラーは無視（画像削除の失敗はUIに影響しない）
         }
