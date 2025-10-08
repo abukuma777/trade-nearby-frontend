@@ -376,8 +376,14 @@ const TradePostEditPage: React.FC = () => {
               initialImages={giveItemImages}
               maxImages={3}
               disabled={isSubmitDisabled}
-              postId={id}
+              postId={currentPost?.id || id}
             />
+            {/* デバッグ用 */}
+            {process.env.NODE_ENV === 'development' && (
+              <p className="mt-1 text-xs text-gray-500">
+                Debug: postId = {currentPost?.id || id}
+              </p>
+            )}
           </div>
 
           {/* 求めるもの */}
@@ -417,7 +423,7 @@ const TradePostEditPage: React.FC = () => {
               initialImages={wantItemImages}
               maxImages={3}
               disabled={isSubmitDisabled}
-              postId={id}
+              postId={currentPost?.id || id}
             />
           </div>
 
