@@ -104,6 +104,20 @@ const TradePostsPage: React.FC = () => {
     isInitialized,
   ]);
 
+  // urlSearchKeywordが変更されたら検索実行（ヘッダー検索対応）
+  useEffect(() => {
+    if (urlSearchKeyword && isInitialized) {
+      void fetchPosts(
+        'active',
+        undefined,
+        undefined,
+        true,
+        urlSearchKeyword,
+        'all',
+      );
+    }
+  }, [urlSearchKeyword, fetchPosts, isInitialized]);
+
   // フィルターを適用して投稿を取得
   const applyFilter = async (): Promise<void> => {
     // 最深階層のIDを取得
