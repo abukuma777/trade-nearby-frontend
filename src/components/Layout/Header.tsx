@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
+import { SearchModal } from '@/components/search';
 import { useAuth } from '@/hooks/useAuth';
 import type { User } from '@/stores/authStore';
 
@@ -27,6 +28,7 @@ const Header: React.FC<HeaderProps> = ({
   username = '',
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const { logout, user } = useAuth();
 
@@ -127,6 +129,27 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* ユーザーメニュー/ログインボタン */}
           <div className="hidden items-center space-x-4 md:flex">
+            {/* 検索ボタン */}
+            <button
+              onClick={() => setIsSearchModalOpen(true)}
+              className="rounded-lg p-2 text-gray-700 transition-colors hover:bg-gray-100 hover:text-blue-600"
+              aria-label="検索"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+
             {isAuthenticated ? (
               <>
                 {/* 通知ドロップダウン */}
@@ -204,6 +227,27 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* モバイルメニューボタン */}
           <div className="flex items-center space-x-2 md:hidden">
+            {/* モバイル用検索ボタン */}
+            <button
+              onClick={() => setIsSearchModalOpen(true)}
+              className="rounded-lg p-2 text-gray-700 transition-colors hover:bg-gray-100"
+              aria-label="検索"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+
             {/* モバイル用通知ボタン */}
             {isAuthenticated && userId && (
               <NotificationDropdown userId={userId} />
@@ -342,6 +386,12 @@ const Header: React.FC<HeaderProps> = ({
           </nav>
         )}
       </div>
+
+      {/* 検索モーダル */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+      />
     </header>
   );
 };

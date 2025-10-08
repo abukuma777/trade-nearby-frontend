@@ -21,6 +21,7 @@ const TradePostsPage: React.FC = () => {
   // URLパラメータから初期値を取得
   const urlContentId = searchParams.get('content_id');
   const urlIncludeChildren = searchParams.get('include_children') !== 'false';
+  const urlSearchKeyword = searchParams.get('search') || '';
 
   // カテゴリフィルターの状態
   const [categorySelection, setCategorySelection] = useState<CategorySelection>(
@@ -33,8 +34,8 @@ const TradePostsPage: React.FC = () => {
   const [currentCategoryCount, setCurrentCategoryCount] =
     useState<CategoryCount | null>(null);
 
-  // 検索キーワードの状態
-  const [searchKeyword, setSearchKeyword] = useState('');
+  // 検索キーワードの状態（URLパラメータから初期値を設定）
+  const [searchKeyword, setSearchKeyword] = useState(urlSearchKeyword);
   const [searchField, setSearchField] = useState<'all' | 'give' | 'want'>(
     'all',
   );
@@ -55,25 +56,53 @@ const TradePostsPage: React.FC = () => {
           const count = await contentService.getCategoryCountById(urlContentId);
           setCurrentCategoryCount(count || null);
 
-          // content_idで検索を実行
-          void fetchPosts('active', urlContentId, urlIncludeChildren, true);
+          // content_idで検索を実行（検索キーワードも含む）
+          void fetchPosts(
+            'active',
+            urlContentId,
+            urlIncludeChildren,
+            true,
+            urlSearchKeyword || undefined,
+            'all',
+          );
         } catch (error) {
           console.error('カテゴリ情報取得エラー:', error);
           // エラーが発生しても投稿は取得を試みる
-          void fetchPosts('active', urlContentId, urlIncludeChildren, true);
+          void fetchPosts(
+            'active',
+            urlContentId,
+            urlIncludeChildren,
+            true,
+            urlSearchKeyword || undefined,
+            'all',
+          );
         } finally {
           setLoadingCategory(false);
           setIsInitialized(true);
         }
       } else if (!urlContentId && !isInitialized) {
         // content_idが指定されていない場合は全件取得（自分の投稿を除外）
-        void fetchPosts('active', undefined, undefined, true);
+        // 検索キーワードがあればそれで検索
+        void fetchPosts(
+          'active',
+          undefined,
+          undefined,
+          true,
+          urlSearchKeyword || undefined,
+          'all',
+        );
         setIsInitialized(true);
       }
     };
 
     void initializeFromUrl();
-  }, [urlContentId, urlIncludeChildren, fetchPosts, isInitialized]);
+  }, [
+    urlContentId,
+    urlIncludeChildren,
+    urlSearchKeyword,
+    fetchPosts,
+    isInitialized,
+  ]);
 
   // フィルターを適用して投稿を取得
   const applyFilter = async (): Promise<void> => {
@@ -117,7 +146,7 @@ const TradePostsPage: React.FC = () => {
     setCurrentCategoryCount(null);
     setSearchKeyword(''); // 検索キーワードもクリア
     setSearchField('all'); // 検索フィールドもクリア
-    setSearchParams({}); // URLパラメータをクリア
+    setSearchParams({}); // URLパラメータを全てクリア
     void fetchPosts('active', undefined, undefined, true);
     setShowFilter(false);
   };
@@ -129,6 +158,15 @@ const TradePostsPage: React.FC = () => {
       categorySelection.series_id ||
       categorySelection.genre_id ||
       categorySelection.category_id;
+
+    // URLパラメータに検索キーワードを追加
+    const params = new URLSearchParams(searchParams);
+    if (searchKeyword.trim()) {
+      params.set('search', searchKeyword.trim());
+    } else {
+      params.delete('search');
+    }
+    setSearchParams(params);
 
     void fetchPosts(
       'active',
@@ -144,6 +182,12 @@ const TradePostsPage: React.FC = () => {
   const clearSearch = (): void => {
     setSearchKeyword('');
     setSearchField('all');
+
+    // URLパラメータからsearchを削除
+    const params = new URLSearchParams(searchParams);
+    params.delete('search');
+    setSearchParams(params);
+
     const contentId =
       categorySelection.event_id ||
       categorySelection.series_id ||
