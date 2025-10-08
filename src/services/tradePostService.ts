@@ -56,6 +56,7 @@ export interface SimpleTradePost {
 }
 
 export interface CreateTradePostData {
+  id?: string; // フロントで生成したUUID（任意）
   give_item: string;
   want_item: string;
   description?: string;

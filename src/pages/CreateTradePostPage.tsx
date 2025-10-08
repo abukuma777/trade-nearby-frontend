@@ -102,6 +102,7 @@ const CreateTradePostPage: React.FC = () => {
 
       // 投稿データを作成（画像は既にアップロード済みなので、パス情報のみ送信）
       const postData = {
+        id: draftPostId, // フロントで生成したIDを送信
         ...formData,
         content_id,
         category_hierarchy: categorySelection,
