@@ -132,7 +132,7 @@ const EventDetailPage: React.FC = () => {
                     ⚡ マッチング検索
                   </button>
                   <button
-                    onClick={() => navigate('/event-mode')}
+                    onClick={() => navigate(`/create-trade-post?event_id=${eventId}`)}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     投稿する
@@ -198,7 +198,7 @@ const EventDetailPage: React.FC = () => {
                 : 'まだ投稿がありません'}
             </p>
             <button
-              onClick={() => navigate('/event-mode')}
+              onClick={() => navigate(`/create-trade-post?event_id=${eventId}`)}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               最初の投稿をする

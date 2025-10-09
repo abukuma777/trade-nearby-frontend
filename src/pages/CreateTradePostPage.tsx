@@ -1,9 +1,10 @@
 /**
  * 交換投稿作成ページ（Pre-signed URL方式）
+ * イベント参加時の投稿もサポート
  */
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
 import CategorySelect, {
@@ -13,19 +14,27 @@ import { AdvancedImageUploader } from '../components/upload/AdvancedImageUploade
 import { UploadedImage } from '../services/presignedUploadService';
 import { TradePostImage } from '../services/tradePostService';
 import { useTradePostStore } from '../stores/tradePostStore';
+import { useEventTradeStore } from '../stores/eventTradeStore';
 
 const CreateTradePostPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { createPost, loading, error } = useTradePostStore();
+  const { events, fetchActiveEvents } = useEventTradeStore();
 
   // 投稿用の一意なIDを生成（画像アップロード時のフォルダ名に使用）
   const [draftPostId] = useState(() => uuidv4());
+
+  // URLパラメータからevent_idを取得
+  const urlEventId = searchParams.get('event_id');
 
   const [formData, setFormData] = useState({
     give_item: '',
     want_item: '',
     description: '',
     location_name: '',
+    event_id: urlEventId || '',
+    zone_code: '',
   });
 
   // カテゴリ選択の状態
@@ -43,11 +52,49 @@ const CreateTradePostPage: React.FC = () => {
     images?: string;
   }>({});
 
+  // イベント一覧取得
+  useEffect(() => {
+    fetchActiveEvents();
+  }, []);
+
+  // URLパラメータでイベントが指定されている場合、location_nameを自動設定
+  useEffect(() => {
+    if (urlEventId && events.length > 0) {
+      const selectedEvent = events.find((e) => e.id === urlEventId);
+      if (selectedEvent) {
+        setFormData((prev) => ({
+          ...prev,
+          event_id: urlEventId,
+          location_name: selectedEvent.venue,
+        }));
+      }
+    }
+  }, [urlEventId, events]);
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // イベントが選択された場合、location_nameを自動設定
+    if (name === 'event_id' && value) {
+      const selectedEvent = events.find((e) => e.id === value);
+      if (selectedEvent) {
+        setFormData((prev) => ({
+          ...prev,
+          location_name: selectedEvent.venue,
+        }));
+      }
+    }
+
+    // イベントが解除された場合、zone_codeをクリア
+    if (name === 'event_id' && !value) {
+      setFormData((prev) => ({
+        ...prev,
+        zone_code: '',
+      }));
+    }
 
     // バリデーションエラーをクリア
     if (validationErrors[name as keyof typeof validationErrors]) {
@@ -92,7 +139,38 @@ const CreateTradePostPage: React.FC = () => {
     }
 
     try {
-      // 最深階層のIDをcontent_idとして設定
+      // イベント投稿の場合は EventTradeService を使用
+      if (formData.event_id) {
+        // EventModePageのロジックと同様に処理
+        const { useEventTradeStore } = await import('../stores/eventTradeStore');
+        const { createEventTrade } = useEventTradeStore.getState();
+
+        // 譲・求アイテムをキャラクター名のリストに変換
+        const give_items = formData.give_item.split(/[、,]/).map((name) => ({
+          character_name: name.trim(),
+          quantity: 1,
+        }));
+
+        const want_items = formData.want_item.split(/[、,]/).map((name) => ({
+          character_name: name.trim(),
+          quantity: 1,
+        }));
+
+        await createEventTrade({
+          event_id: formData.event_id,
+          zone_code: formData.zone_code || undefined,
+          is_instant: true, // イベント投稿は常にマッチング対象
+          give_items,
+          want_items,
+          description: formData.description || undefined,
+        });
+
+        // イベント詳細ページへ遷移
+        navigate(`/events/${formData.event_id}`);
+        return;
+      }
+
+      // 通常投稿の場合
       const content_id =
         categorySelection.event_id ||
         categorySelection.series_id ||
@@ -100,9 +178,8 @@ const CreateTradePostPage: React.FC = () => {
         categorySelection.category_id ||
         undefined;
 
-      // 投稿データを作成（画像は既にアップロード済みなので、パス情報のみ送信）
       const postData = {
-        id: draftPostId, // フロントで生成したIDを送信
+        id: draftPostId,
         ...formData,
         content_id,
         category_hierarchy: categorySelection,
@@ -127,6 +204,7 @@ const CreateTradePostPage: React.FC = () => {
   };
 
   const isSubmitDisabled = loading;
+  const selectedEvent = events.find((e) => e.id === formData.event_id);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -160,15 +238,101 @@ const CreateTradePostPage: React.FC = () => {
           }}
           className="rounded-lg bg-white p-6 shadow"
         >
-          {/* カテゴリ選択 */}
-          <div className="mb-6">
-            <CategorySelect
-              onSelectionChange={setCategorySelection}
-              initialSelection={categorySelection}
-              required={false}
-              disabled={isSubmitDisabled}
-            />
+          {/* イベント参加セクション */}
+          <div className="mb-8 border-b border-gray-200 pb-6">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              🎪 イベント参加中ですか？（任意）
+            </h2>
+            <p className="mb-4 text-sm text-gray-600">
+              イベント会場での交換の場合、イベントを選択すると自動マッチングが利用できます
+            </p>
+
+            {/* イベント選択 */}
+            <div className="mb-4">
+              <label
+                htmlFor="event_id"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                イベント
+              </label>
+              <select
+                id="event_id"
+                name="event_id"
+                value={formData.event_id}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isSubmitDisabled}
+              >
+                <option value="">イベントを選択しない（通常投稿）</option>
+                {events.map((event) => {
+                  const startDate = new Date(event.start_date).toLocaleDateString('ja-JP');
+                  const endDate = new Date(event.end_date).toLocaleDateString('ja-JP');
+                  const dateStr = startDate === endDate ? startDate : `${startDate}〜${endDate}`;
+                  return (
+                    <option key={event.id} value={event.id}>
+                      {event.name} - {dateStr} ({event.venue})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            {/* ゾーンコード（イベント選択時のみ表示） */}
+            {formData.event_id && (
+              <div className="mb-4">
+                <label
+                  htmlFor="zone_code"
+                  className="mb-2 block text-sm font-medium text-gray-700"
+                >
+                  ゾーン・エリア（任意）
+                </label>
+                <input
+                  type="text"
+                  id="zone_code"
+                  name="zone_code"
+                  value={formData.zone_code}
+                  onChange={handleChange}
+                  placeholder="例: G1、A2、物販列など"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isSubmitDisabled}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  会場内の特定エリアを指定できます
+                </p>
+              </div>
+            )}
+
+            {/* イベント選択時の注意書き */}
+            {formData.event_id && selectedEvent && (
+              <div className="rounded-lg bg-blue-50 p-4">
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-600">ℹ️</span>
+                  <div className="text-sm text-blue-800">
+                    <p className="font-semibold mb-1">
+                      イベント投稿として作成されます
+                    </p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>自動マッチング機能が利用できます</li>
+                      <li>イベント期間終了後も投稿は残ります</li>
+                      <li>画像のアップロードは通常投稿と同様に可能です</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* カテゴリ選択（通常投稿時のみ表示） */}
+          {!formData.event_id && (
+            <div className="mb-6">
+              <CategorySelect
+                onSelectionChange={setCategorySelection}
+                initialSelection={categorySelection}
+                required={false}
+                disabled={isSubmitDisabled}
+              />
+            </div>
+          )}
 
           {/* 譲るもの */}
           <div className="mb-6">
@@ -184,7 +348,11 @@ const CreateTradePostPage: React.FC = () => {
               name="give_item"
               value={formData.give_item}
               onChange={handleChange}
-              placeholder="例: エマのアクリルスタンド"
+              placeholder={
+                formData.event_id
+                  ? '例: エマ、果林（複数の場合は、で区切る）'
+                  : '例: エマのアクリルスタンド'
+              }
               className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 validationErrors.give_item
                   ? 'border-red-500'
@@ -197,19 +365,26 @@ const CreateTradePostPage: React.FC = () => {
                 {validationErrors.give_item}
               </p>
             )}
+            {formData.event_id && (
+              <p className="mt-1 text-xs text-gray-500">
+                キャラクター名を、で区切って入力してください
+              </p>
+            )}
           </div>
 
-          {/* 譲るものの画像 */}
-          <div className="mb-6">
-            <AdvancedImageUploader
-              label="譲るものの画像（任意）"
-              onImagesChange={setGiveItemImages}
-              initialImages={giveItemImages}
-              maxImages={3}
-              disabled={isSubmitDisabled}
-              postId={draftPostId}
-            />
-          </div>
+          {/* 譲るものの画像（通常投稿時のみ） */}
+          {!formData.event_id && (
+            <div className="mb-6">
+              <AdvancedImageUploader
+                label="譲るものの画像（任意）"
+                onImagesChange={setGiveItemImages}
+                initialImages={giveItemImages}
+                maxImages={3}
+                disabled={isSubmitDisabled}
+                postId={draftPostId}
+              />
+            </div>
+          )}
 
           {/* 求めるもの */}
           <div className="mb-6">
@@ -225,7 +400,11 @@ const CreateTradePostPage: React.FC = () => {
               name="want_item"
               value={formData.want_item}
               onChange={handleChange}
-              placeholder="例: 栞子のアクリルスタンド"
+              placeholder={
+                formData.event_id
+                  ? '例: 栞子、愛（複数の場合は、で区切る）'
+                  : '例: 栞子のアクリルスタンド'
+              }
               className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 validationErrors.want_item
                   ? 'border-red-500'
@@ -238,19 +417,26 @@ const CreateTradePostPage: React.FC = () => {
                 {validationErrors.want_item}
               </p>
             )}
+            {formData.event_id && (
+              <p className="mt-1 text-xs text-gray-500">
+                キャラクター名を、で区切って入力してください
+              </p>
+            )}
           </div>
 
-          {/* 求めるものの画像 */}
-          <div className="mb-6">
-            <AdvancedImageUploader
-              label="求めるものの画像（任意）"
-              onImagesChange={setWantItemImages}
-              initialImages={wantItemImages}
-              maxImages={3}
-              disabled={isSubmitDisabled}
-              postId={draftPostId}
-            />
-          </div>
+          {/* 求めるものの画像（通常投稿時のみ） */}
+          {!formData.event_id && (
+            <div className="mb-6">
+              <AdvancedImageUploader
+                label="求めるものの画像（任意）"
+                onImagesChange={setWantItemImages}
+                initialImages={wantItemImages}
+                maxImages={3}
+                disabled={isSubmitDisabled}
+                postId={draftPostId}
+              />
+            </div>
+          )}
 
           {/* 詳細説明 */}
           <div className="mb-6">
@@ -272,25 +458,27 @@ const CreateTradePostPage: React.FC = () => {
             />
           </div>
 
-          {/* 場所 */}
-          <div className="mb-8">
-            <label
-              htmlFor="location_name"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              取引希望場所（任意）
-            </label>
-            <input
-              type="text"
-              id="location_name"
-              name="location_name"
-              value={formData.location_name}
-              onChange={handleChange}
-              placeholder="例: 東京駅周辺"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isSubmitDisabled}
-            />
-          </div>
+          {/* 場所（通常投稿時のみ） */}
+          {!formData.event_id && (
+            <div className="mb-8">
+              <label
+                htmlFor="location_name"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                取引希望場所（任意）
+              </label>
+              <input
+                type="text"
+                id="location_name"
+                name="location_name"
+                value={formData.location_name}
+                onChange={handleChange}
+                placeholder="例: 東京駅周辺"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isSubmitDisabled}
+              />
+            </div>
+          )}
 
           {/* ボタン */}
           <div className="flex gap-4">
@@ -332,7 +520,7 @@ const CreateTradePostPage: React.FC = () => {
                   </span>
                 </div>
                 {/* 譲アイテム画像プレビュー */}
-                {giveItemImages.length > 0 && (
+                {!formData.event_id && giveItemImages.length > 0 && (
                   <div className="ml-12 flex gap-2">
                     {giveItemImages
                       .filter((img) => img.is_main)
@@ -367,7 +555,7 @@ const CreateTradePostPage: React.FC = () => {
                   </span>
                 </div>
                 {/* 求アイテム画像プレビュー */}
-                {wantItemImages.length > 0 && (
+                {!formData.event_id && wantItemImages.length > 0 && (
                   <div className="ml-12 flex gap-2">
                     {wantItemImages
                       .filter((img) => img.is_main)
@@ -396,10 +584,28 @@ const CreateTradePostPage: React.FC = () => {
                   {formData.description}
                 </p>
               )}
-              {formData.location_name && (
+              
+              {/* イベント情報表示 */}
+              {selectedEvent && (
+                <div className="mb-3 text-sm text-gray-500">
+                  📍 {selectedEvent.name}
+                  {formData.zone_code && ` - ${formData.zone_code}`}
+                </div>
+              )}
+              
+              {!formData.event_id && formData.location_name && (
                 <p className="text-sm text-gray-500">
                   📍 {formData.location_name}
                 </p>
+              )}
+
+              {/* イベント投稿バッジ */}
+              {formData.event_id && (
+                <div className="mt-3">
+                  <span className="inline-block bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">
+                    ⚡ イベント投稿（マッチング対象）
+                  </span>
+                </div>
               )}
             </div>
           </div>
