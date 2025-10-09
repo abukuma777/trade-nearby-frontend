@@ -183,11 +183,16 @@ const EventModePage: React.FC = () => {
               disabled={loading}
             >
               <option value="">イベントを選択してください</option>
-              {events.map((event) => (
-                <option key={event.id} value={event.id}>
-                  {event.name} - {new Date(event.event_date).toLocaleDateString('ja-JP')} ({event.venue})
-                </option>
-              ))}
+              {events.map((event) => {
+                const startDate = new Date(event.start_date).toLocaleDateString('ja-JP');
+                const endDate = new Date(event.end_date).toLocaleDateString('ja-JP');
+                const dateStr = startDate === endDate ? startDate : `${startDate}〜${endDate}`;
+                return (
+                  <option key={event.id} value={event.id}>
+                    {event.name} - {dateStr} ({event.venue})
+                  </option>
+                );
+              })}
             </select>
             {validationErrors.event_id && (
               <p className="mt-1 text-sm text-red-500">{validationErrors.event_id}</p>

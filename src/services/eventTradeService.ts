@@ -15,9 +15,15 @@ export interface TradeItem {
 export interface Event {
   id: string;
   name: string;
-  event_date: string;
+  start_date: string;
+  end_date: string;
   venue: string;
+  artist?: string;
+  description?: string;
+  venue_zones?: Array<{ code: string; zone: string }>;
+  is_active: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 // イベント限定投稿型
