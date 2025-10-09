@@ -103,3 +103,4 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 - `npm run build` - プロダクションビルド
 - `npm run preview` - ビルドプレビュー
 - `npm run lint` - ESLint実行
+# イベントモード実装完了
