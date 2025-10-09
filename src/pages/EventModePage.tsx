@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEventTradeStore } from '../stores/eventTradeStore';
 import { TradeItem } from '../services/eventTradeService';
+import EventMatchingModal from '../components/trade/EventMatchingModal';
 
 const EventModePage: React.FC = () => {
   const navigate = useNavigate();
@@ -39,6 +40,9 @@ const EventModePage: React.FC = () => {
     give_items?: string;
     want_items?: string;
   }>({});
+
+  // マッチングモーダル状態
+  const [isMatchingModalOpen, setIsMatchingModalOpen] = useState<boolean>(false);
 
   // イベント一覧取得
   useEffect(() => {
@@ -99,6 +103,15 @@ const EventModePage: React.FC = () => {
     }
   };
 
+  // マッチング検索を開く
+  const handleOpenMatching = () => {
+    if (!formData.event_id) {
+      setValidationErrors({ event_id: 'マッチング検索にはイベントを選択してください' });
+      return;
+    }
+    setIsMatchingModalOpen(true);
+  };
+
   const validate = (): boolean => {
     const errors: typeof validationErrors = {};
 
@@ -149,15 +162,50 @@ const EventModePage: React.FC = () => {
     }
   };
 
+  // 選択中のイベント情報取得
+  const selectedEvent = events.find((e) => e.id === formData.event_id);
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-3xl">
         {/* ヘッダー */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">🎪 イベントモード</h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-6">
             イベント会場での即交換投稿を作成します。爆死救済マッチングが利用できます。
           </p>
+
+          {/* アクション選択 */}
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">選択してください</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 投稿作成カード */}
+              <div className="border-2 border-blue-200 rounded-lg p-4 hover:border-blue-400 transition-colors">
+                <h3 className="text-lg font-bold text-blue-600 mb-2">📝 投稿を作成</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  譲渡・求めるキャラクターを投稿して、他のユーザーからのリクエストを待ちます
+                </p>
+                <p className="text-xs text-gray-500">
+                  ↓ 下のフォームから投稿できます
+                </p>
+              </div>
+
+              {/* マッチング検索カード */}
+              <div className="border-2 border-orange-200 rounded-lg p-4 hover:border-orange-400 transition-colors">
+                <h3 className="text-lg font-bold text-orange-600 mb-2">⚡ マッチング検索</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  条件を入力して、マッチする投稿を検索し、すぐにチャットを開始できます
+                </p>
+                <button
+                  onClick={handleOpenMatching}
+                  disabled={!formData.event_id}
+                  className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {formData.event_id ? 'マッチング検索を開く' : 'イベントを選択してください'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* エラー表示 */}
@@ -167,6 +215,8 @@ const EventModePage: React.FC = () => {
 
         {/* フォーム */}
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">📝 投稿作成フォーム</h2>
+
           {/* イベント選択 */}
           <div className="mb-6">
             <label htmlFor="event_id" className="block text-sm font-medium text-gray-700 mb-2">
@@ -411,6 +461,16 @@ const EventModePage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* マッチングモーダル */}
+      {selectedEvent && (
+        <EventMatchingModal
+          isOpen={isMatchingModalOpen}
+          onClose={() => setIsMatchingModalOpen(false)}
+          eventId={selectedEvent.id}
+          eventName={selectedEvent.name}
+        />
+      )}
     </div>
   );
 };
