@@ -114,7 +114,81 @@ class EventTradeService {
   }
 
   /**
-   * 爆死マッチング取得
+   * 爆死マッチング取得（新版）
+   */
+  async matchEventTrades(
+    eventId: string,
+    giveItems: TradeItem[],
+    wantItems: TradeItem[],
+    offset = 0,
+    limit = 5,
+  ): Promise<{
+    matches: Array<{
+      post_id: string;
+      event_trade_id: string;
+      user: {
+        id: string;
+        username: string;
+        display_name?: string;
+        avatar_url?: string;
+      };
+      give_items: TradeItem[];
+      want_items: TradeItem[];
+      zone_code?: string;
+      created_at: string;
+    }>;
+    total_count: number;
+    has_more: boolean;
+  }> {
+    try {
+      const response = await apiClient.post('/event-trades/match', {
+        event_id: eventId,
+        give_items: giveItems,
+        want_items: wantItems,
+        offset,
+        limit,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('マッチングエラー:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * マッチング後のチャット開始
+   */
+  async startChat(
+    eventId: string,
+    matchedPostId: string,
+    giveItems: TradeItem[],
+    wantItems: TradeItem[],
+    zoneCode?: string,
+    description?: string,
+  ): Promise<{
+    post_id: string;
+    trade_request_id: string;
+    chat_available: boolean;
+  }> {
+    try {
+      const response = await apiClient.post('/event-trades/start-chat', {
+        event_id: eventId,
+        matched_post_id: matchedPostId,
+        give_items: giveItems,
+        want_items: wantItems,
+        zone_code: zoneCode,
+        description,
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error('チャット開始エラー:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 爆死マッチング取得（旧版 - 非推奨）
+   * @deprecated Use matchEventTrades instead
    */
   async getMatches(eventId: string): Promise<EventTrade[]> {
     try {

@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useEventTradeStore } from '../stores/eventTradeStore';
+import EventMatchingModal from '../components/trade/EventMatchingModal';
 
 const EventDetailPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -23,6 +24,9 @@ const EventDetailPage: React.FC = () => {
   // フィルター状態
   const [filterZone, setFilterZone] = useState<string>('');
   const [filterInstantOnly, setFilterInstantOnly] = useState<boolean>(false);
+  
+  // モーダル状態
+  const [isMatchingModalOpen, setIsMatchingModalOpen] = useState<boolean>(false);
 
   // イベント情報
   const event = events.find((e) => e.id === eventId);
@@ -120,12 +124,20 @@ const EventDetailPage: React.FC = () => {
                 <div className="text-2xl font-bold text-orange-600">
                   {getTimeRemaining()}
                 </div>
-                <button
-                  onClick={() => navigate('/event-mode')}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  投稿する
-                </button>
+                <div className="mt-4 flex flex-col gap-2">
+                  <button
+                    onClick={() => setIsMatchingModalOpen(true)}
+                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    ⚡ マッチング検索
+                  </button>
+                  <button
+                    onClick={() => navigate('/event-mode')}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    投稿する
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -269,6 +281,16 @@ const EventDetailPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* マッチングモーダル */}
+      {event && (
+        <EventMatchingModal
+          isOpen={isMatchingModalOpen}
+          onClose={() => setIsMatchingModalOpen(false)}
+          eventId={eventId}
+          eventName={event.name}
+        />
+      )}
     </div>
   );
 };
