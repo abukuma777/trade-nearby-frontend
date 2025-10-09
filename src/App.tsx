@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // 譲求システム（シンプル版）
 import CreateTradePostPage from './pages/CreateTradePostPage';
+import EventDetailPage from './pages/EventDetailPage';
 import EventModePage from './pages/EventModePage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -151,6 +152,16 @@ function App(): JSX.Element {
                 <EventModePage />
               </MainLayout>
             </PrivateRoute>
+          }
+        />
+
+        {/* イベント専用ページ（認証不要） */}
+        <Route
+          path="/events/:eventId"
+          element={
+            <MainLayout isAuthenticated={isAuthenticated} username={username}>
+              <EventDetailPage />
+            </MainLayout>
           }
         />
 

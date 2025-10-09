@@ -142,8 +142,8 @@ const EventModePage: React.FC = () => {
       };
 
       const postId = await createEventTrade(postData);
-      // 投稿詳細ページへ遷移
-      navigate(`/trade-posts/${postId}`);
+      // イベント専用ページへ遷移
+      navigate(`/events/${formData.event_id}`);
     } catch (err) {
       console.error('イベント投稿作成エラー:', err);
     }

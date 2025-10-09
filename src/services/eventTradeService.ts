@@ -33,6 +33,8 @@ export interface EventTrade {
   event_id: string;
   zone_code?: string;
   is_instant: boolean;
+  give_item: string; // 譲るアイテム（テキスト）
+  want_item: string; // 求めるアイテム（テキスト）
   description?: string;
   status: 'active' | 'matched' | 'completed';
   created_at: string;
