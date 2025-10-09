@@ -65,10 +65,10 @@ class EventTradeService {
    */
   async getActiveEvents(): Promise<Event[]> {
     try {
-      const response = await apiClient.get<{ data: Event[] }>(
+      const response = await apiClient.get<{ success: boolean; events: Event[] }>(
         '/events/active',
       );
-      return response.data.data || [];
+      return response.data.events || [];
     } catch (error) {
       console.error('イベント一覧取得エラー:', error);
       throw error;
