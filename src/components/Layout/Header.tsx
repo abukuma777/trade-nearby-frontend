@@ -99,6 +99,12 @@ const Header: React.FC<HeaderProps> = ({
             {isAuthenticated && (
               <>
                 <Link
+                  to="/event-mode"
+                  className="flex items-center gap-1 text-gray-700 transition-colors hover:text-blue-600"
+                >
+                  🎪 イベント
+                </Link>
+                <Link
                   to="/trade-posts/my"
                   className="text-gray-700 transition-colors hover:text-blue-600"
                 >
@@ -311,6 +317,13 @@ const Header: React.FC<HeaderProps> = ({
               </Link>
               {isAuthenticated && (
                 <>
+                  <Link
+                    to="/event-mode"
+                    className="flex items-center gap-2 py-2 text-gray-700 transition-colors hover:text-blue-600"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    🎪 イベントモード
+                  </Link>
                   <Link
                     to="/trade-posts/my"
                     className="py-2 text-gray-700 transition-colors hover:text-blue-600"
