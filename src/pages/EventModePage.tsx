@@ -133,7 +133,7 @@ const EventModePage: React.FC = () => {
               <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="font-semibold text-gray-900 mb-2">{selectedEvent.name}</h3>
                 <div className="text-sm text-gray-600 space-y-1">
-                  <p>📅 {new Date(selected Event.start_date).toLocaleDateString('ja-JP')} 〜 {new Date(selectedEvent.end_date).toLocaleDateString('ja-JP')}</p>
+                  <p>📅 {new Date(selectedEvent.start_date).toLocaleDateString('ja-JP')} 〜 {new Date(selectedEvent.end_date).toLocaleDateString('ja-JP')}</p>
                   <p>📍 {selectedEvent.venue}</p>
                   {selectedEvent.artist && <p>🎤 {selectedEvent.artist}</p>}
                 </div>
