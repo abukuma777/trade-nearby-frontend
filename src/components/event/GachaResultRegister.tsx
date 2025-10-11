@@ -36,6 +36,9 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>('');
   const [showResult, setShowResult] = useState(false);
+  const [showTradeSelection, setShowTradeSelection] = useState(false);
+  const [selectedForTrade, setSelectedForTrade] = useState<number[]>([]);
+  const [allObtainedNumbers, setAllObtainedNumbers] = useState<number[]>([]);
 
   // 物販種別を取得（すべての種別）
   useEffect(() => {
@@ -102,6 +105,7 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
     setError('');
     
     try {
+      // ウィッシュリストとの照合
       const result = await wishListService.registerGachaResult(
         eventId,
         selectedType,
@@ -109,7 +113,7 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
       );
       
       setKeepingNumbers(result.keeping);
-      setTradeableNumbers(result.tradeable);
+      setAllObtainedNumbers(obtainedNumbers);
       setShowResult(true);
       
     } catch (err) {
@@ -122,9 +126,12 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
 
   const handleResultClose = () => {
     setShowResult(false);
+    setShowTradeSelection(false);
     setObtainedNumbers([]);
     setKeepingNumbers([]);
     setTradeableNumbers([]);
+    setSelectedForTrade([]);
+    setAllObtainedNumbers([]);
     onComplete?.();
     
     // 他の種別がある場合は次へ、なければ閉じる
@@ -175,70 +182,54 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
   const renderResult = () => {
     if (!showResult) return null;
 
+    const hasWishlistMatch = keepingNumbers.length > 0;
+
     return (
       <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75 p-4">
         <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6">
-            <h3 className="text-xl font-bold">✨ 物販結果登録完了！</h3>
+          <div className={`${hasWishlistMatch ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : 'bg-gradient-to-r from-gray-600 to-gray-700'} text-white p-6`}>
+            <h3 className="text-xl font-bold">
+              {hasWishlistMatch ? '🎉 おめでとうございます！' : '📦 取得結果'}
+            </h3>
+            {hasWishlistMatch && (
+              <p className="mt-2 text-yellow-100">
+                ウィッシュリストの番号が{keepingNumbers.length}個含まれていました！
+              </p>
+            )}
           </div>
           
           <div className="p-6 space-y-6">
-            {/* キープ分 */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">
-                💎 キープ（ウィッシュリストと一致）
-              </h4>
-              <p className="text-blue-700">
-                {keepingNumbers.length > 0 
-                  ? formatNumberList(keepingNumbers)
-                  : 'なし'
-                }
-              </p>
-              {keepingNumbers.length > 0 && (
-                <p className="text-sm text-blue-600 mt-2">
-                  これらは自動的にキープされました
+            {/* ウィッシュリスト一致 */}
+            {hasWishlistMatch && (
+              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+                <h4 className="font-semibold text-yellow-900 mb-2">
+                  ✨ ウィッシュリストと一致した番号
+                </h4>
+                <p className="text-yellow-800 font-bold text-lg">
+                  {formatNumberList(keepingNumbers)}
                 </p>
-              )}
-            </div>
-
-            {/* 交換可能分 */}
-            <div className="bg-orange-50 rounded-lg p-4">
-              <h4 className="font-semibold text-orange-900 mb-2">
-                🔄 交換可能（他の人が探しているかも）
-              </h4>
-              <p className="text-orange-700">
-                {tradeableNumbers.length > 0 
-                  ? formatNumberList(tradeableNumbers)
-                  : 'なし'
-                }
-              </p>
-              {tradeableNumbers.length > 0 && (
-                <p className="text-sm text-orange-600 mt-2">
-                  これらは交換リストに追加されました
+                <p className="text-sm text-yellow-700 mt-2">
+                  これらの番号は自動的にキープされます
                 </p>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* サマリー */}
-            <div className="bg-gray-100 rounded-lg p-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {obtainedNumbers.length}
-                  </p>
-                  <p className="text-sm text-gray-600">取得総数</p>
+            {/* 取得した全番号 */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-900 mb-2">
+                📋 取得した番号一覧
+              </h4>
+              <p className="text-gray-700">
+                {formatNumberList(allObtainedNumbers)}
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <div className="text-center p-2 bg-white rounded">
+                  <p className="text-2xl font-bold text-gray-900">{allObtainedNumbers.length}</p>
+                  <p className="text-gray-600">取得総数</p>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {keepingNumbers.length}
-                  </p>
-                  <p className="text-sm text-gray-600">キープ</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-orange-600">
-                    {tradeableNumbers.length}
-                  </p>
-                  <p className="text-sm text-gray-600">交換可能</p>
+                <div className="text-center p-2 bg-white rounded">
+                  <p className="text-2xl font-bold text-yellow-600">{keepingNumbers.length}</p>
+                  <p className="text-gray-600">ウィッシュリスト一致</p>
                 </div>
               </div>
             </div>
@@ -246,10 +237,144 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
 
           <div className="border-t border-gray-200 p-4 bg-gray-50">
             <button
-              onClick={handleResultClose}
-              className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-all"
+              onClick={() => {
+                setShowResult(false);
+                setShowTradeSelection(true);
+              }}
+              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all"
             >
-              完了
+              次へ：交換に出す番号を選択
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTradeSelection = () => {
+    if (!showTradeSelection) return null;
+
+    const config = MERCHANDISE_CONFIG[selectedType as keyof typeof MERCHANDISE_CONFIG];
+    if (!config) return null;
+
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75 p-4">
+        <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6">
+            <h3 className="text-xl font-bold">🔄 交換に出す番号を選択</h3>
+            <p className="mt-2 text-purple-100">
+              この中で交換に出しても良い番号を選んでください
+            </p>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-6">
+            {/* 説明 */}
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+              <p className="text-blue-900 font-medium mb-2">💡 選択のヒント</p>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• ウィッシュリスト一致の番号はキープ推奨</li>
+                <li>• 重複した番号は交換に出すのがおすすめ</li>
+                <li>• 後から変更することも可能です</li>
+              </ul>
+            </div>
+
+            {/* 選択状態表示 */}
+            <div className="mb-6 p-4 bg-purple-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold text-purple-900">
+                  交換に出す番号: {selectedForTrade.length}個
+                </h4>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      // ウィッシュリスト以外を全選択
+                      const nonWishlist = allObtainedNumbers.filter(n => !keepingNumbers.includes(n));
+                      setSelectedForTrade(nonWishlist);
+                    }}
+                    className="text-sm px-3 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
+                  >
+                    推奨を選択
+                  </button>
+                  <button
+                    onClick={() => setSelectedForTrade([])}
+                    className="text-sm px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                  >
+                    クリア
+                  </button>
+                </div>
+              </div>
+              <p className="text-sm text-purple-700">
+                {selectedForTrade.length > 0 
+                  ? formatNumberList(selectedForTrade)
+                  : '番号を選択してください'
+                }
+              </p>
+            </div>
+
+            {/* 番号グリッド */}
+            <div 
+              className={`grid gap-2`}
+              style={{ gridTemplateColumns: `repeat(${config.gridColumns}, 1fr)` }}
+            >
+              {allObtainedNumbers.map(number => {
+                const isWishlist = keepingNumbers.includes(number);
+                const isSelected = selectedForTrade.includes(number);
+                
+                return (
+                  <button
+                    key={number}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedForTrade(prev => prev.filter(n => n !== number));
+                      } else {
+                        setSelectedForTrade(prev => [...prev, number]);
+                      }
+                    }}
+                    className={`
+                      p-3 rounded-lg border-2 font-medium transition-all relative
+                      ${isSelected 
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-md' 
+                        : isWishlist
+                          ? 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:border-yellow-400'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400'
+                      }
+                    `}
+                  >
+                    {formatItemNumber(number, selectedType)}
+                    {isWishlist && (
+                      <span className="absolute -top-1 -right-1 text-xs bg-yellow-400 text-yellow-900 px-1 rounded">
+                        ⭐
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-between">
+            <button
+              onClick={() => {
+                setShowTradeSelection(false);
+                setShowResult(true);
+              }}
+              className="px-6 py-2 text-gray-600 hover:text-gray-900"
+            >
+              戻る
+            </button>
+            <button
+              onClick={() => {
+                // 最終的な振り分けを保存
+                setTradeableNumbers(selectedForTrade);
+                setShowTradeSelection(false);
+                alert(`✅ 登録完了！\n\nキープ: ${keepingNumbers.length}個\n交換可能: ${selectedForTrade.length}個`);
+                
+                // リセット
+                handleResultClose();
+              }}
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700"
+            >
+              💫 市場に出す
             </button>
           </div>
         </div>
@@ -424,6 +549,9 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
       
       {/* 結果表示モーダル */}
       {renderResult()}
+      
+      {/* 交換選択モーダル */}
+      {renderTradeSelection()}
     </>
   );
 };
