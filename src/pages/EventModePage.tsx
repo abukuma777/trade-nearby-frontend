@@ -178,14 +178,14 @@ const EventModePage: React.FC = () => {
                   </div>
                 </button>
                 
-                {/* ガチャ結果登録 */}
+                {/* 物販結果登録 */}
                 <button
                   onClick={handleOpenGachaResult}
                   className="flex items-center justify-center gap-3 px-4 py-4 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                 >
-                  <span className="text-2xl">🎰</span>
+                  <span className="text-2xl">📦</span>
                   <div className="text-left">
-                    <p className="font-semibold">ガチャ結果登録</p>
+                    <p className="font-semibold">物販結果登録</p>
                     <p className="text-sm text-green-600">取得した番号を登録</p>
                   </div>
                 </button>
@@ -237,14 +237,14 @@ const EventModePage: React.FC = () => {
         />
       )}
 
-      {/* ガチャ結果登録モーダル */}
+      {/* 物販結果登録モーダル */}
       {selectedEvent && (
         <GachaResultRegister
           isOpen={isGachaResultOpen}
           onClose={() => setIsGachaResultOpen(false)}
           eventId={selectedEventId}
           eventName={selectedEvent.name}
-          onComplete={() => console.log('ガチャ結果登録完了')}
+          onComplete={() => console.log('物販結果登録完了')}
         />
       )}
     </div>
