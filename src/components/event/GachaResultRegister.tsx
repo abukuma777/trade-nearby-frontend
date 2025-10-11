@@ -1,6 +1,6 @@
 /**
- * ガチャ結果登録コンポーネント
- * ガチャで取得した番号を登録し、自動的にキープ/交換可能に振り分け
+ * 物販結果登録コンポーネント
+ * 物販（ホログラムトレカ、ガチャ等）で取得した番号を登録し、自動的にキープ/交換可能に振り分け
  */
 
 import React, { useState, useEffect } from 'react';
@@ -37,7 +37,7 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
   const [error, setError] = useState<string>('');
   const [showResult, setShowResult] = useState(false);
 
-  // 物販種別を取得（ガチャタイプのみ）
+  // 物販種別を取得（すべての種別）
   useEffect(() => {
     if (isOpen && eventId) {
       loadMerchandiseTypes();
@@ -49,13 +49,10 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
     setError('');
     try {
       const types = await wishListService.getMerchandiseTypes(eventId);
-      // ガチャタイプのみフィルタ（または全種別表示）
-      const gachaTypes = types.filter(t => 
-        t.type_name.includes('ガチャ') || t.total_items > 20
-      );
-      setMerchandiseTypes(gachaTypes);
-      if (gachaTypes.length > 0 && !selectedType) {
-        setSelectedType(gachaTypes[0].type_name);
+      // すべての物販種別を表示（フィルタリングしない）
+      setMerchandiseTypes(types);
+      if (types.length > 0 && !selectedType) {
+        setSelectedType(types[0].type_name);
       }
     } catch (err) {
       console.error('物販種別取得エラー:', err);
@@ -182,7 +179,7 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
       <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75 p-4">
         <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6">
-            <h3 className="text-xl font-bold">✨ ガチャ結果登録完了！</h3>
+            <h3 className="text-xl font-bold">✨ 物販結果登録完了！</h3>
           </div>
           
           <div className="p-6 space-y-6">
@@ -270,7 +267,7 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold mb-2">🎰 ガチャ結果登録</h2>
+                <h2 className="text-2xl font-bold mb-2">📦 物販結果登録</h2>
                 <p className="text-green-100">{eventName}</p>
               </div>
               <button
@@ -300,12 +297,12 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
               </div>
             ) : merchandiseTypes.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-600">ガチャ情報がありません</p>
+                <p className="text-gray-600">物販情報がありません</p>
               </div>
             ) : (
               <>
                 {/* 種別選択タブ */}
-                {merchandiseTypes.length > 1 && (
+                {merchandiseTypes.length > 0 && (
                   <div className="mb-6">
                     <div className="flex gap-2 border-b border-gray-200">
                       {merchandiseTypes.map(type => {
