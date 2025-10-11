@@ -51,7 +51,6 @@ const WishListSelector: React.FC<WishListSelectorProps> = ({
     setError('');
     try {
       const types = await wishListService.getMerchandiseTypes(eventId);
-      console.log('取得したmerchandiseTypes:', types);
       setMerchandiseTypes(types);
       if (types.length > 0 && !selectedType) {
         setSelectedType(types[0].type_name);
@@ -202,13 +201,6 @@ const WishListSelector: React.FC<WishListSelectorProps> = ({
 
     const currentType = merchandiseTypes.find(t => t.type_name === selectedType);
     const imageUrl = currentType?.image_url;
-    
-    console.log('画像デバッグ:', {
-      selectedType,
-      currentType,
-      imageUrl,
-      merchandiseTypes
-    });
 
     const items: NumberSelectionItem[] = Array.from(
       { length: config.totalItems },
