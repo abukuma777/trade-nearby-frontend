@@ -117,6 +117,19 @@ export const MERCHANDISE_CONFIG = {
     maxSelection: 10,
     gridColumns: 7,
   },
+  // DBのtype_nameが異なる場合用のフォールバック
+  'hologram_treca': {
+    totalItems: 12,
+    displayName: 'ホログラムトレカ',
+    maxSelection: 5,
+    gridColumns: 4,
+  },
+  'gacha': {
+    totalItems: 49,
+    displayName: 'ガチャ',
+    maxSelection: 10,
+    gridColumns: 7,
+  },
 } as const;
 
 // 番号を表示用にフォーマット

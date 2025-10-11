@@ -54,6 +54,7 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
     setError('');
     try {
       const types = await wishListService.getMerchandiseTypes(eventId);
+      console.log('取得したmerchandiseTypes (GachaResult):', types);
       // すべての物販種別を表示（フィルタリングしない）
       setMerchandiseTypes(types);
       if (types.length > 0 && !selectedType) {
@@ -184,6 +185,13 @@ const GachaResultRegister: React.FC<GachaResultRegisterProps> = ({
 
     const currentType = merchandiseTypes.find(t => t.type_name === selectedType);
     const imageUrl = currentType?.image_url;
+    
+    console.log('画像デバッグ (GachaResult):', {
+      selectedType,
+      currentType,
+      imageUrl,
+      merchandiseTypes
+    });
 
     const items = Array.from(
       { length: config.totalItems },
