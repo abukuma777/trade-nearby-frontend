@@ -25,6 +25,7 @@ export interface MerchandiseType {
   type_name: string;        // "ポラロイド風ホログラムトレカ" | "ガチャ"
   total_items: number;       // 12 | 49
   display_order: number;
+  image_url?: string;        // 物販種別の画像URL
   created_at?: string;
 }
 

@@ -35,6 +35,8 @@ const WishListSelector: React.FC<WishListSelectorProps> = ({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>('');
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState<string>('');
 
   // 物販種別を取得
   useEffect(() => {
@@ -160,9 +162,45 @@ const WishListSelector: React.FC<WishListSelectorProps> = ({
     }
   };
 
+  const handleImageClick = (imageUrl: string) => {
+    setModalImageUrl(imageUrl);
+    setShowImageModal(true);
+  };
+
+  const renderImageModal = () => {
+    if (!showImageModal || !modalImageUrl) return null;
+
+    return (
+      <div 
+        className="fixed inset-0 z-[70] flex items-center justify-center bg-black bg-opacity-90 p-4"
+        onClick={() => setShowImageModal(false)}
+      >
+        <div className="max-w-4xl max-h-[90vh] relative">
+          <img
+            src={modalImageUrl}
+            alt="物販画像"
+            className="w-full h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setShowImageModal(false)}
+            className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-colors"
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderNumberGrid = () => {
     const config = MERCHANDISE_CONFIG[selectedType as keyof typeof MERCHANDISE_CONFIG];
     if (!config) return null;
+
+    const currentType = merchandiseTypes.find(t => t.type_name === selectedType);
+    const imageUrl = currentType?.image_url;
 
     const items: NumberSelectionItem[] = Array.from(
       { length: config.totalItems },
@@ -174,25 +212,52 @@ const WishListSelector: React.FC<WishListSelectorProps> = ({
     );
 
     return (
-      <div 
-        className={`grid gap-2`}
-        style={{ gridTemplateColumns: `repeat(${config.gridColumns}, 1fr)` }}
-      >
-        {items.map(item => (
-          <button
-            key={item.number}
-            onClick={() => handleNumberToggle(item.number)}
-            className={`
-              p-3 rounded-lg border-2 font-medium transition-all
-              ${item.selected 
-                ? 'bg-blue-600 text-white border-blue-600 shadow-md transform scale-105' 
-                : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-              }
-            `}
-          >
-            {formatItemNumber(item.number, selectedType)}
-          </button>
-        ))}
+      <div className="space-y-6">
+        {/* 画像表示エリア */}
+        {imageUrl && (
+          <div className="flex justify-center mb-6">
+            <div className="relative group cursor-pointer" onClick={() => handleImageClick(imageUrl)}>
+              <img
+                src={imageUrl}
+                alt={`${config.displayName}の参考画像`}
+                className="max-w-full h-48 object-contain rounded-lg shadow-lg group-hover:opacity-95 transition-opacity"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-20 rounded-lg">
+                <div className="bg-white bg-opacity-90 p-2 rounded-full">
+                  <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* 番号グリッド */}
+        <div 
+          className={`grid gap-2`}
+          style={{ gridTemplateColumns: `repeat(${config.gridColumns}, 1fr)` }}
+        >
+          {items.map(item => (
+            <button
+              key={item.number}
+              onClick={() => handleNumberToggle(item.number)}
+              className={`
+                p-3 rounded-lg border-2 font-medium transition-all
+                ${item.selected 
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-md transform scale-105' 
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                }
+              `}
+            >
+              {formatItemNumber(item.number, selectedType)}
+            </button>
+          ))}
+        </div>
       </div>
     );
   };
@@ -200,6 +265,7 @@ const WishListSelector: React.FC<WishListSelectorProps> = ({
   if (!isOpen) return null;
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
       <div className="bg-white rounded-xl max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* ヘッダー */}
@@ -342,6 +408,10 @@ const WishListSelector: React.FC<WishListSelectorProps> = ({
         )}
       </div>
     </div>
+    
+    {/* 画像モーダル */}
+    {renderImageModal()}
+    </>
   );
 };
 
