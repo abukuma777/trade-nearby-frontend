@@ -154,7 +154,7 @@ const EventMatchingModal: React.FC<EventMatchingModalProps> = ({
   // マッチング検索
   const handleSearch = async () => {
     if (!validateStep1()) {
-      setError('譲るアイテムと求めるアイテムを最低1つずつ入力してください');
+      setError('譲るキャラと求めるキャラを最低1つずつ入力してください');
       return;
     }
 
@@ -279,10 +279,10 @@ const EventMatchingModal: React.FC<EventMatchingModalProps> = ({
             {/* Step 1: 条件入力 */}
             {step === 1 && (
               <div className="space-y-6">
-                {/* 譲るアイテム */}
+                {/* あなたが譲るキャラ */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    譲るアイテム
+                    あなたが譲るキャラ
                   </label>
                   <div className="space-y-2">
                     {giveItems.map((item, index) => (
@@ -316,14 +316,14 @@ const EventMatchingModal: React.FC<EventMatchingModalProps> = ({
                     className="mt-2 flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
                   >
                     <Plus size={16} />
-                    アイテムを追加
+                    キャラを追加
                   </button>
                 </div>
 
-                {/* 求めるアイテム */}
+                {/* あなたが求めるキャラ */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    求めるアイテム
+                    あなたが求めるキャラ
                   </label>
                   <div className="space-y-2">
                     {wantItems.map((item, index) => (
@@ -357,7 +357,7 @@ const EventMatchingModal: React.FC<EventMatchingModalProps> = ({
                     className="mt-2 flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
                   >
                     <Plus size={16} />
-                    アイテムを追加
+                    キャラを追加
                   </button>
                 </div>
               </div>

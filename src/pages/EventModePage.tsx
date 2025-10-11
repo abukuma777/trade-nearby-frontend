@@ -7,6 +7,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEventTradeStore } from '../stores/eventTradeStore';
 import EventMatchingModal from '../components/trade/EventMatchingModal';
+import WishListSelector from '../components/event/WishListSelector';
+import GachaResultRegister from '../components/event/GachaResultRegister';
 
 const EventModePage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +22,8 @@ const EventModePage: React.FC = () => {
 
   const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [isMatchingModalOpen, setIsMatchingModalOpen] = useState<boolean>(false);
+  const [isWishListOpen, setIsWishListOpen] = useState<boolean>(false);
+  const [isGachaResultOpen, setIsGachaResultOpen] = useState<boolean>(false);
 
   // イベント一覧取得
   useEffect(() => {
@@ -32,6 +36,22 @@ const EventModePage: React.FC = () => {
       return;
     }
     setIsMatchingModalOpen(true);
+  };
+
+  const handleOpenWishList = () => {
+    if (!selectedEventId) {
+      alert('イベントを選択してください');
+      return;
+    }
+    setIsWishListOpen(true);
+  };
+
+  const handleOpenGachaResult = () => {
+    if (!selectedEventId) {
+      alert('イベントを選択してください');
+      return;
+    }
+    setIsGachaResultOpen(true);
   };
 
   const selectedEvent = events.find((e) => e.id === selectedEventId);
@@ -133,13 +153,45 @@ const EventModePage: React.FC = () => {
               <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="font-semibold text-gray-900 mb-2">{selectedEvent.name}</h3>
                 <div className="text-sm text-gray-600 space-y-1">
-                  <p>📅 {new Date(selected Event.start_date).toLocaleDateString('ja-JP')} 〜 {new Date(selectedEvent.end_date).toLocaleDateString('ja-JP')}</p>
+                  <p>📅 {new Date(selectedEvent.start_date).toLocaleDateString('ja-JP')} 〜 {new Date(selectedEvent.end_date).toLocaleDateString('ja-JP')}</p>
                   <p>📍 {selectedEvent.venue}</p>
                   {selectedEvent.artist && <p>🎤 {selectedEvent.artist}</p>}
                 </div>
               </div>
             )}
           </div>
+
+          {/* 番号管理機能 */}
+          {selectedEventId && (
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">🎯 番号管理機能</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* ウィッシュリスト設定 */}
+                <button
+                  onClick={handleOpenWishList}
+                  className="flex items-center justify-center gap-3 px-4 py-4 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                >
+                  <span className="text-2xl">📝</span>
+                  <div className="text-left">
+                    <p className="font-semibold">ウィッシュリスト設定</p>
+                    <p className="text-sm text-blue-600">欲しい番号を登録</p>
+                  </div>
+                </button>
+                
+                {/* 物販結果登録 */}
+                <button
+                  onClick={handleOpenGachaResult}
+                  className="flex items-center justify-center gap-3 px-4 py-4 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                >
+                  <span className="text-2xl">📦</span>
+                  <div className="text-left">
+                    <p className="font-semibold">物販結果登録</p>
+                    <p className="text-sm text-green-600">取得した番号を登録</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* その他の選択肢 */}
           <div className="mt-8 pt-6 border-t border-gray-200">
@@ -171,6 +223,28 @@ const EventModePage: React.FC = () => {
           onClose={() => setIsMatchingModalOpen(false)}
           eventId={selectedEventId}
           eventName={selectedEvent.name}
+        />
+      )}
+
+      {/* ウィッシュリストモーダル */}
+      {selectedEvent && (
+        <WishListSelector
+          isOpen={isWishListOpen}
+          onClose={() => setIsWishListOpen(false)}
+          eventId={selectedEventId}
+          eventName={selectedEvent.name}
+          onComplete={() => console.log('ウィッシュリスト設定完了')}
+        />
+      )}
+
+      {/* 物販結果登録モーダル */}
+      {selectedEvent && (
+        <GachaResultRegister
+          isOpen={isGachaResultOpen}
+          onClose={() => setIsGachaResultOpen(false)}
+          eventId={selectedEventId}
+          eventName={selectedEvent.name}
+          onComplete={() => console.log('物販結果登録完了')}
         />
       )}
     </div>

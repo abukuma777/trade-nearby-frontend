@@ -104,12 +104,7 @@ const Header: React.FC<HeaderProps> = ({
                 >
                   🎪 イベント
                 </Link>
-                <Link
-                  to="/trade-posts/my"
-                  className="text-gray-700 transition-colors hover:text-blue-600"
-                >
-                  マイ投稿
-                </Link>
+
                 <Link
                   to="/trade"
                   className="flex items-center gap-1 text-gray-700 transition-colors hover:text-blue-600"
@@ -191,12 +186,7 @@ const Header: React.FC<HeaderProps> = ({
                     >
                       プロフィール
                     </Link>
-                    <Link
-                      to="/trade-posts/my"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >
-                      マイ投稿
-                    </Link>
+
                     <Link
                       to="/settings"
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -324,13 +314,7 @@ const Header: React.FC<HeaderProps> = ({
                   >
                     🎪 イベントモード
                   </Link>
-                  <Link
-                    to="/trade-posts/my"
-                    className="py-2 text-gray-700 transition-colors hover:text-blue-600"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    マイ投稿
-                  </Link>
+
                   <Link
                     to="/trade"
                     className="flex items-center gap-2 py-2 text-gray-700 transition-colors hover:text-blue-600"

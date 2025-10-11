@@ -224,12 +224,12 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
             <p className="mt-1 text-xs text-gray-500">{formData.bio.length}/500文字</p>
           </div>
 
-          {/* SNSアカウント（折りたたみ可能） */}
-          <details className="border border-gray-200 rounded-lg">
-            <summary className="px-4 py-3 cursor-pointer hover:bg-gray-50 text-sm font-medium text-gray-700">
+          {/* SNSアカウント */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
               SNSアカウント（任意）
-            </summary>
-            <div className="px-4 pb-4 space-y-4">
+            </label>
+            <div className="space-y-4">
               {/* Twitter */}
               <div>
                 <label
@@ -290,7 +290,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 )}
               </div>
             </div>
-          </details>
+          </div>
 
           {/* ボタン */}
           <div className="flex gap-3 pt-2">
